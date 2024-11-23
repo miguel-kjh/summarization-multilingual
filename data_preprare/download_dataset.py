@@ -1,12 +1,7 @@
 import os
 from datasets import load_dataset
-import shutil  # Para manejar la eliminación de carpetas de forma segura
-
-# Ruta base para los datos sin procesar
-RAW_DATA_FOLDER = "/home/miguel/projects/summarization-multilingual/data/01-raw"
-
-# Idiomas a procesar
-LANGUAGES = ['de', 'es', 'fr', 'ru', 'tu', 'en']
+import shutil
+from utils import RAW_DATA_FOLDER, LANGUAGES
 
 def process_dataset(language, folder):
     
