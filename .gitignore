@@ -162,3 +162,4 @@ cython_debug/
 #.idea/
 use_env.sh
 std/
+data/
