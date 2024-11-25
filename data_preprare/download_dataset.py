@@ -1,9 +1,8 @@
 import os
 from datasets import load_dataset
 import shutil
-from utils import RAW_DATA_FOLDER, LANGUAGES
 
-def process_dataset(language, folder):
+def download_dataset(language, folder):
     
     # Configuración para otros idiomas
     lang_folder = os.path.join(folder, language)
@@ -15,7 +14,6 @@ def process_dataset(language, folder):
             dataset = load_dataset(
                 "ccdv/cnn_dailymail",
                 '3.0.0',
-                cache_dir=lang_folder,
                 trust_remote_code=True,
             )
             
@@ -36,7 +34,6 @@ def process_dataset(language, folder):
                     dataset = load_dataset(
                         "reciTAL/mlsum",
                         language,
-                        cache_dir=lang_folder,
                         trust_remote_code=True,
                     )
                     
@@ -54,7 +51,3 @@ def process_dataset(language, folder):
 
                 except Exception as e:
                     print(f"Error to load dataset for language {language}")
-
-if __name__ == '__main__':
-    for lang in LANGUAGES:
-        process_dataset(lang, RAW_DATA_FOLDER)
