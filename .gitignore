@@ -164,3 +164,6 @@ use_env.sh
 std/
 data/
 checkpoints/
+models/
+evaluate_model/
+wandb/
