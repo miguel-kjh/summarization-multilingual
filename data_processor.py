@@ -7,7 +7,7 @@ from datasets import load_from_disk
 from data_preprare.transform_data import TransformData
 from data_preprare.generate_data_stats import StatsGenerator
 from data_preprare.download_dataset import download_dataset
-from utils import LANGUAGES, RAW_DATA_FOLDER,  FILE_STATS, PROCESS_DATA_FOLDER
+from utils import LANGUAGES, RAW_DATA_FOLDER,  FILE_STATS, PROCESS_DATA_FOLDER, COMBINED_DATA_FOLDER
 
 def download():
     for lang in LANGUAGES:
@@ -41,6 +41,27 @@ def process():
             with open(file, 'w') as f:
                 json.dump(instructions, f)
 
+def combine():
+    # generate a tiny dataset for testing using en
+    print("Combining data")
+    lang = "en"
+    dataset_tiny_name = os.path.join(COMBINED_DATA_FOLDER, "tiny")
+    os.makedirs(dataset_tiny_name, exist_ok=True)
+    dataset = json.load(open(os.path.join(PROCESS_DATA_FOLDER, lang, "train.json")))
+    dataset_train = dataset[:100]
+    dataset = json.load(open(os.path.join(PROCESS_DATA_FOLDER, lang, "validation.json")))
+    dataset_val = dataset[200:210]
+    dataset = json.load(open(os.path.join(PROCESS_DATA_FOLDER, lang, "test.json")))
+    dataset_test = dataset[300:310]
+    # save the tiny dataset
+    with open(os.path.join(dataset_tiny_name, "train.json"), 'w') as f:
+        json.dump(dataset_train, f)
+    with open(os.path.join(dataset_tiny_name, "validation.json"), 'w') as f:
+        json.dump(dataset_val, f)
+    with open(os.path.join(dataset_tiny_name, "test.json"), 'w') as f:
+        json.dump(dataset_test, f)
+
+
 def parse_args():
     parse = argparse.ArgumentParser()
     parse.add_argument(
@@ -55,6 +76,7 @@ OPERATIONS = {
     "download": download,
     "stats": stats,
     "process": process,
+    "combine": combine,
 }
 
 
