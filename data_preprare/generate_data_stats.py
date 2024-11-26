@@ -6,26 +6,6 @@ from collections import defaultdict
 from transformers import AutoTokenizer
 
 from utils import SEED
-
-"""
-Formato de datos
-DatasetDict({
-    train: Dataset({
-        features: ['text', 'summary', 'topic', 'url', 'title', 'date'],
-        num_rows: 249277
-    })
-    validation: Dataset({
-        features: ['text', 'summary', 'topic', 'url', 'title', 'date'],
-        num_rows: 11565
-    })
-    test: Dataset({
-        features: ['text', 'summary', 'topic', 'url', 'title', 'date'],
-        num_rows: 12775
-    })
-
-Estadísticas que quiero obtener
-Lang || Samples Train || Samples Val || Samples Test || tokens average || Max tokens || Min tokens 
-"""
     
 def sample_dataset(dataset, fraction=0.05):
     return dataset.shuffle(seed=SEED).select(range(int(len(dataset) * fraction)))
