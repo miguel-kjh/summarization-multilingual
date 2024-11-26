@@ -163,3 +163,4 @@ cython_debug/
 use_env.sh
 std/
 data/
+checkpoints/
