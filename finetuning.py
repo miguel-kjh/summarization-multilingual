@@ -64,7 +64,7 @@ import torch
     get_quantization_config,
 )"""
 
-from peft import LoraConfig, PeftModel
+from peft import LoraConfig
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,

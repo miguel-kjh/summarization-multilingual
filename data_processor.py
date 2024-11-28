@@ -38,7 +38,9 @@ def process():
         for split in dataset.keys():
             print(f"Processing {split} split for {lang}")
             instructions = transform.generate_instructions(dataset[split], lang)
+            print("Saving dataset 1" )
             dataset_dict[split] = instructions
+            print("Saving dataset 2")
         dataset_dict.save_to_disk(dataset_it_name)
 
 def combine():

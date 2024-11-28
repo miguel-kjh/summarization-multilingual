@@ -26,4 +26,5 @@ class TransformData:
             template['text'] = generate_training_prompt(template['instruction'], template['input'], template['output'])
             instructions.append(template)
 
+        print(f"Generated {len(instructions)} instructions for {lang}")
         return Dataset.from_list(instructions)
