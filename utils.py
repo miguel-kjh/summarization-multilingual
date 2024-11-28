@@ -46,11 +46,12 @@ def generate_training_prompt(
 """.strip()
 
 
-def setup_environment(project_name=PROJECT_NAME, seed=SEED):
+def setup_environment(args):
     warnings.filterwarnings("ignore")
-    wandb.require("core")
-    wandb.init(project=project_name)
-    seed_everything(seed=seed)
+    os.environ["WANDB_PROJECT"] = PROJECT_NAME
+    if not args.wandb:
+        os.environ["WANDB_DISABLED"] = "true"
+    seed_everything(seed=SEED)
     torch.backends.cudnn.deterministic = True
 
 def generate_names_for_wandb_run(model_name, dataset_name, epochs):

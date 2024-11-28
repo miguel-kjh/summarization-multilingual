@@ -76,7 +76,7 @@ from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDic
 from accelerate import Accelerator, FullyShardedDataParallelPlugin
 
 
-from utils import setup_environment, generate_names_for_wandb_run
+from utils import SEED, setup_environment, generate_names_for_wandb_run
 
 
 def parse_args():
@@ -131,23 +131,24 @@ def create_model_and_tokenizer(args):
             bnb_4bit_use_double_quant= False,
         )
         model = AutoModelForCausalLM.from_pretrained(
-            args.model_name,
+            args.model_name_or_path,
             quantization_config=bnb_config,
             device_map={"": 0}
         )
     else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name)
+        model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
     accelerator = create_accelerator()
     model = accelerator.prepare_model(model)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
     tokenizer.pad_token = tokenizer.eos_token
     return tokenizer, model
 
 
 
 if __name__ == "__main__":
-    setup_environment()
     script_args = parse_args()
+    print(script_args)
+    setup_environment(script_args)
     #parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
     #script_args, training_args, model_config = parser.parse_args_and_config()
 
@@ -167,6 +168,64 @@ if __name__ == "__main__":
     ################
     # Training
     ################
+    peft_config = LoraConfig(
+        lora_alpha=script_args.lora_alpha,
+        lora_dropout=script_args.lora_dropout,
+        r=script_args.lora_r,
+        bias="none",
+        task_type="CAUSAL_LM",
+    )    
+
+    training_arguments = TrainingArguments(
+        per_device_train_batch_size=script_args.batch_size,
+        gradient_accumulation_steps=script_args.gradient_accumulation_steps,
+        optim="paged_adamw_32bit",
+        logging_steps=1,
+        learning_rate=1e-4,
+        fp16=True,
+        max_grad_norm=0.3,
+        num_train_epochs=20,
+        evaluation_strategy="epoch",
+        eval_steps=0.2,
+        warmup_ratio=0.05,
+        save_strategy="epoch",
+        group_by_length=True,
+        output_dir=script_args.output_dir,
+        report_to="wandb" if script_args.wandb else None,
+        save_safetensors=True,
+        lr_scheduler_type="cosine",
+        seed=SEED,
+        load_best_model_at_end=True,
+        run_name=run_name,
+    )
+
+    
+    trainer = SFTTrainer(
+        model=model,
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["validation"],
+        peft_config=peft_config,
+        dataset_text_field="text",
+        max_seq_length=script_args.context,
+        tokenizer=tokenizer,
+        args=training_arguments,
+    )
+
+    trainer.train()
+    trainer.save_model(script_args.output_dir)
+
+    # Save and push to hub
+    if script_args.push_to_hub:
+        trainer.push_to_hub(dataset_name=script_args.dataset_name)
+
+
+
+
+
+
+
+
+
     """trainer = SFTTrainer(
         model=model_config.model_name_or_path,
         args=training_args,
