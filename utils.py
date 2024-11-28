@@ -23,5 +23,20 @@ INSTRUCTION_TEMPLATE = {
     "tu": "Lütfen aşağıdaki metni birkaç cümlede özetleyin ve en önemli noktaları vurgulayın."
 }
 
+def generate_training_prompt(
+    system_prompt: str, document: str, summary: str
+) -> str:
+    summary = summary.replace("\n", "")
+
+    return f"""### Instruction: {system_prompt}
+
+### Input:
+{document.strip()}
+
+### Response:
+{summary}
+""".strip()
+
+
 if __name__ == '__main__':
     print("This is a utils file")

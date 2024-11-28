@@ -2,7 +2,7 @@ import os
 import json
 import argparse
 from tqdm import tqdm
-from datasets import load_from_disk
+from datasets import load_from_disk, DatasetDict
 
 from data_preprare.transform_data import TransformData
 from data_preprare.generate_data_stats import StatsGenerator
@@ -34,12 +34,12 @@ def process():
         dataset = load_from_disk(dataset_name)
         dataset_it_name = os.path.join(PROCESS_DATA_FOLDER, lang)
         os.makedirs(dataset_it_name, exist_ok=True)
+        dataset_dict = DatasetDict()
         for split in dataset.keys():
             print(f"Processing {split} split for {lang}")
             instructions = transform.generate_instructions(dataset[split], lang)
-            file = os.path.join(dataset_it_name, f"{split}.json")
-            with open(file, 'w') as f:
-                json.dump(instructions, f)
+            dataset_dict[split] = instructions
+        dataset_dict.save_to_disk(dataset_it_name)
 
 def combine():
     # generate a tiny dataset for testing using en
@@ -47,19 +47,12 @@ def combine():
     lang = "en"
     dataset_tiny_name = os.path.join(COMBINED_DATA_FOLDER, "tiny")
     os.makedirs(dataset_tiny_name, exist_ok=True)
-    dataset = json.load(open(os.path.join(PROCESS_DATA_FOLDER, lang, "train.json")))
-    dataset_train = dataset[:100]
-    dataset = json.load(open(os.path.join(PROCESS_DATA_FOLDER, lang, "validation.json")))
-    dataset_val = dataset[200:210]
-    dataset = json.load(open(os.path.join(PROCESS_DATA_FOLDER, lang, "test.json")))
-    dataset_test = dataset[300:310]
-    # save the tiny dataset
-    with open(os.path.join(dataset_tiny_name, "train.json"), 'w') as f:
-        json.dump(dataset_train, f)
-    with open(os.path.join(dataset_tiny_name, "validation.json"), 'w') as f:
-        json.dump(dataset_val, f)
-    with open(os.path.join(dataset_tiny_name, "test.json"), 'w') as f:
-        json.dump(dataset_test, f)
+    dataset = load_from_disk(os.path.join(PROCESS_DATA_FOLDER, lang))
+    # take 0.1% of the data
+    dataset_small = DatasetDict()
+    for split in dataset.keys():
+        dataset_small[split] = dataset[split].shuffle(seed=42).select(range(len(dataset[split]) // 1000))
+    dataset_small.save_to_disk(dataset_tiny_name)
 
 
 def parse_args():
