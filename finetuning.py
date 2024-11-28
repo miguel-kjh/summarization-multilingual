@@ -48,10 +48,12 @@ python examples/scripts/sft.py \
     --push_to_hub
 """
 
+import argparse
 from datasets import load_dataset, load_from_disk
-from transformers import AutoTokenizer
+import torch
+#from transformers import AutoTokenizer
 
-from trl import (
+"""from trl import (
     ModelConfig,
     ScriptArguments,
     SFTConfig,
@@ -60,41 +62,111 @@ from trl import (
     get_kbit_device_map,
     get_peft_config,
     get_quantization_config,
+)"""
+
+from peft import LoraConfig, PeftModel
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    TrainingArguments,
 )
+from trl import SFTTrainer
+from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
+from accelerate import Accelerator, FullyShardedDataParallelPlugin
+
+
+from utils import setup_environment, generate_names_for_wandb_run
+
+
+def parse_args():
+    parse = argparse.ArgumentParser()
+    parse.add_argument("--model_name_or_path", type=str, default="EleutherAI/pythia-14m")
+    parse.add_argument("--batch_size", type=int, default=8)
+    parse.add_argument("--num_train_epochs", type=int, default=2)
+    parse.add_argument("--lr", type=float, default=1e-4)
+    parse.add_argument("--weight_decay", type=float, default=0.01)
+    parse.add_argument("--context", type=int, default=512)
+    parse.add_argument("--dataset_name", type=str, default="data/03-combined/tiny")
+    parse.add_argument("--num_proc", type=int, default=10)
+    parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
+    parse.add_argument("--wandb", type=bool, default=False)
+    parse.add_argument("--upload", type=bool, default=False)
+    parse.add_argument("--neftune_noise_alpha", type=float, default=None) # https://arxiv.org/abs/2310.05914
+    parse.add_argument("--output_dir", type=str, default="models/pythia-14m")
+    parse.add_argument("--packing", type=bool, default=False)
+    parse.add_argument("--gradient_accumulation_steps", type=int, default=8)
+    parse.add_argument("--gradient_checkpointing", type=bool, default=True)
+    parse.add_argument("--logging_steps", type=int, default=25)
+    parse.add_argument("--eval_strategy", type=str, default="steps")
+    parse.add_argument("--eval_steps", type=int, default=100)
+    parse.add_argument("--push_to_hub", type=bool, default=False)
+
+    #loras parameters
+    parse.add_argument("--lora_r", type=int, default=16)
+    parse.add_argument("--lora_alpha", type=int, default=32) # a trick use lora_r*2
+    parse.add_argument("--lora_dropout", type=float, default=0.05)
+    parse.add_argument("--lora_bias", type=str, default="none")
+    parse.add_argument("--lora_task_type", type=str, default="CAUSAL_LM")
+    parse.add_argument("--lora_target_modules", type=str, default="query_key_value,dense,dense_h_to_4h,dense_4h_to_h")
+    parse.add_argument("--qlora", type=bool, default=False)
+    return parse.parse_args()
+
+def create_accelerator():
+    fsdp_plugin = FullyShardedDataParallelPlugin(
+        state_dict_config=FullStateDictConfig(offload_to_cpu=True, rank0_only=False),
+        optim_state_dict_config=FullOptimStateDictConfig(offload_to_cpu=True, rank0_only=False),
+    )
+
+    return Accelerator(fsdp_plugin=fsdp_plugin)
+
+
+def create_model_and_tokenizer(args):
+    if args.qlora:
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit= True,
+            bnb_4bit_quant_type= "nf4",
+            bnb_4bit_compute_dtype= torch.bfloat16,
+            bnb_4bit_use_double_quant= False,
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model_name,
+            quantization_config=bnb_config,
+            device_map={"": 0}
+        )
+    else:
+        model = AutoModelForCausalLM.from_pretrained(args.model_name)
+    accelerator = create_accelerator()
+    model = accelerator.prepare_model(model)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer, model
+
 
 
 if __name__ == "__main__":
-    parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
-    script_args, training_args, model_config = parser.parse_args_and_config()
+    setup_environment()
+    script_args = parse_args()
+    #parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
+    #script_args, training_args, model_config = parser.parse_args_and_config()
 
     ################
     # Model init kwargs & Tokenizer
     ################
-    quantization_config = get_quantization_config(model_config)
-    model_kwargs = dict(
-        revision=model_config.model_revision,
-        trust_remote_code=model_config.trust_remote_code,
-        attn_implementation=model_config.attn_implementation,
-        torch_dtype=model_config.torch_dtype,
-        use_cache=False if training_args.gradient_checkpointing else True,
-        device_map=get_kbit_device_map() if quantization_config is not None else None,
-        quantization_config=quantization_config,
-    )
-    training_args.model_init_kwargs = model_kwargs
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_config.model_name_or_path, trust_remote_code=model_config.trust_remote_code, use_fast=True
-    )
-    tokenizer.pad_token = tokenizer.eos_token
+    run_name = generate_names_for_wandb_run(script_args.model_name_or_path, script_args.dataset_name, script_args.num_train_epochs)
+    print(f"Run name: {run_name}")
+    tokenizer, model = create_model_and_tokenizer(script_args)
+    
 
     ################
     # Dataset
     ################
     dataset = load_from_disk(script_args.dataset_name)
-    
+
     ################
     # Training
     ################
-    trainer = SFTTrainer(
+    """trainer = SFTTrainer(
         model=model_config.model_name_or_path,
         args=training_args,
         train_dataset=dataset[script_args.dataset_train_split],
@@ -106,6 +178,6 @@ if __name__ == "__main__":
     trainer.train()
 
     # Save and push to hub
-    trainer.save_model(training_args.output_dir)
+    trainer.save_model(training_args.output_dir)"""
     #if training_args.push_to_hub:
     #    trainer.push_to_hub(dataset_name=script_args.dataset_name)

@@ -1,4 +1,12 @@
 import os
+import warnings
+
+import wandb
+from lightning import seed_everything
+import torch
+
+#WANDB CONFIG
+PROJECT_NAME = "multilingual-summarization"
 
 # Folders
 DATA_FOLDER           = "data"
@@ -37,6 +45,18 @@ def generate_training_prompt(
 {summary}
 """.strip()
 
+
+def setup_environment(project_name=PROJECT_NAME, seed=SEED):
+    warnings.filterwarnings("ignore")
+    wandb.require("core")
+    wandb.init(project=project_name)
+    seed_everything(seed=seed)
+    torch.backends.cudnn.deterministic = True
+
+def generate_names_for_wandb_run(model_name, dataset_name, epochs):
+    model_name = model_name.split("/")[-1]
+    dataset_name = dataset_name.split("/")[-1]
+    return f"{model_name}-{dataset_name}-{epochs}"
 
 if __name__ == '__main__':
     print("This is a utils file")
