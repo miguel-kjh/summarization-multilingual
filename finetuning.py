@@ -102,7 +102,8 @@ def parse_args():
     parse.add_argument("--eval_steps", type=int, default=100)
     parse.add_argument("--push_to_hub", type=bool, default=False)
 
-    #loras parameters
+    #loras parameters 
+    # TODO: add differents adapters
     parse.add_argument("--lora_r", type=int, default=16)
     parse.add_argument("--lora_alpha", type=int, default=32) # a trick use lora_r*2
     parse.add_argument("--lora_dropout", type=float, default=0.05)
