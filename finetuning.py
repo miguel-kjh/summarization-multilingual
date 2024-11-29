@@ -51,7 +51,7 @@ def parse_args():
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
 
     #loras parameters 
-    # TODO: add differents adapters
+    # TODO: add differents adapters (Adapters, dora, etc)
     parse.add_argument("--lora", type=lambda x: bool(strtobool(x)), default=True)
     parse.add_argument("--lora_r", type=int, default=16)
     parse.add_argument("--lora_alpha", type=int, default=32) # a trick use lora_r*2
@@ -59,7 +59,8 @@ def parse_args():
     parse.add_argument("--lora_bias", type=str, default="none")
     parse.add_argument("--lora_task_type", type=str, default="CAUSAL_LM")
     parse.add_argument("--lora_target_modules", type=str, default="query_key_value,dense,dense_h_to_4h,dense_4h_to_h")
-    parse.add_argument("--qlora", type=lambda x: bool(strtobool(x)), default=False)
+    # quantization
+    parse.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False)
     return parse.parse_args()
 
 if __name__ == "__main__":
