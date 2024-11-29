@@ -11,143 +11,59 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-# Full training
-python examples/scripts/sft.py \
-    --model_name_or_path Qwen/Qwen2-0.5B \
-    --dataset_name trl-lib/Capybara \
-    --learning_rate 2.0e-5 \
-    --num_train_epochs 1 \
-    --packing \
-    --per_device_train_batch_size 2 \
-    --gradient_accumulation_steps 8 \
-    --gradient_checkpointing \
-    --logging_steps 25 \
-    --eval_strategy steps \
-    --eval_steps 100 \
-    --output_dir Qwen2-0.5B-SFT \
-    --push_to_hub
-
-# LoRA
-python examples/scripts/sft.py \
-    --model_name_or_path Qwen/Qwen2-0.5B \
-    --dataset_name trl-lib/Capybara \
-    --learning_rate 2.0e-4 \
-    --num_train_epochs 1 \
-    --packing \
-    --per_device_train_batch_size 2 \
-    --gradient_accumulation_steps 8 \
-    --gradient_checkpointing \
-    --logging_steps 25 \
-    --eval_strategy steps \
-    --eval_steps 100 \
-    --use_peft \
-    --lora_r 32 \
-    --lora_alpha 16 \
-    --output_dir Qwen2-0.5B-SFT \
-    --push_to_hub
-"""
 
 import argparse
-from datasets import load_dataset, load_from_disk
+from datasets import load_from_disk
+from distutils.util import strtobool
 import torch
-#from transformers import AutoTokenizer
-
-"""from trl import (
-    ModelConfig,
-    ScriptArguments,
-    SFTConfig,
-    SFTTrainer,
-    TrlParser,
-    get_kbit_device_map,
-    get_peft_config,
-    get_quantization_config,
-)"""
 
 from peft import LoraConfig
 from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    BitsAndBytesConfig,
     TrainingArguments,
 )
 from trl import SFTTrainer
-from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
-from accelerate import Accelerator, FullyShardedDataParallelPlugin
 
 
-from utils import SEED, setup_environment, generate_names_for_wandb_run
+from utils import SEED, create_model_and_tokenizer, setup_environment, generate_names_for_wandb_run
 
 
 def parse_args():
     parse = argparse.ArgumentParser()
     parse.add_argument("--model_name_or_path", type=str, default="EleutherAI/pythia-14m")
     parse.add_argument("--batch_size", type=int, default=8)
-    parse.add_argument("--num_train_epochs", type=int, default=2)
+    parse.add_argument("--num_train_epochs", type=int, default=20)
     parse.add_argument("--lr", type=float, default=1e-4)
     parse.add_argument("--weight_decay", type=float, default=0.01)
     parse.add_argument("--context", type=int, default=512)
     parse.add_argument("--dataset_name", type=str, default="data/03-combined/tiny")
     parse.add_argument("--num_proc", type=int, default=10)
     parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
-    parse.add_argument("--wandb", type=bool, default=False)
-    parse.add_argument("--upload", type=bool, default=False)
+    parse.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False)
+    parse.add_argument("--upload", type=lambda x: bool(strtobool(x)), default=False)
     parse.add_argument("--neftune_noise_alpha", type=float, default=None) # https://arxiv.org/abs/2310.05914
     parse.add_argument("--output_dir", type=str, default="models/pythia-14m")
-    parse.add_argument("--packing", type=bool, default=False)
+    parse.add_argument("--packing", type=lambda x: bool(strtobool(x)), default=False)
     parse.add_argument("--gradient_accumulation_steps", type=int, default=8)
     parse.add_argument("--gradient_checkpointing", type=bool, default=True)
     parse.add_argument("--logging_steps", type=int, default=25)
     parse.add_argument("--eval_strategy", type=str, default="steps")
-    parse.add_argument("--eval_steps", type=int, default=100)
-    parse.add_argument("--push_to_hub", type=bool, default=False)
+    parse.add_argument("--eval_steps", type=int, default=1)
+    parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
 
     #loras parameters 
     # TODO: add differents adapters
+    parse.add_argument("--lora", type=lambda x: bool(strtobool(x)), default=True)
     parse.add_argument("--lora_r", type=int, default=16)
     parse.add_argument("--lora_alpha", type=int, default=32) # a trick use lora_r*2
     parse.add_argument("--lora_dropout", type=float, default=0.05)
     parse.add_argument("--lora_bias", type=str, default="none")
     parse.add_argument("--lora_task_type", type=str, default="CAUSAL_LM")
     parse.add_argument("--lora_target_modules", type=str, default="query_key_value,dense,dense_h_to_4h,dense_4h_to_h")
-    parse.add_argument("--qlora", type=bool, default=False)
+    parse.add_argument("--qlora", type=lambda x: bool(strtobool(x)), default=False)
     return parse.parse_args()
-
-def create_accelerator():
-    fsdp_plugin = FullyShardedDataParallelPlugin(
-        state_dict_config=FullStateDictConfig(offload_to_cpu=True, rank0_only=False),
-        optim_state_dict_config=FullOptimStateDictConfig(offload_to_cpu=True, rank0_only=False),
-    )
-
-    return Accelerator(fsdp_plugin=fsdp_plugin)
-
-
-def create_model_and_tokenizer(args):
-    if args.qlora:
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit= True,
-            bnb_4bit_quant_type= "nf4",
-            bnb_4bit_compute_dtype= torch.bfloat16,
-            bnb_4bit_use_double_quant= False,
-        )
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model_name_or_path,
-            quantization_config=bnb_config,
-            device_map={"": 0}
-        )
-    else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
-    accelerator = create_accelerator()
-    model = accelerator.prepare_model(model)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
-    tokenizer.pad_token = tokenizer.eos_token
-    return tokenizer, model
-
-
 
 if __name__ == "__main__":
     script_args = parse_args()
-    print(script_args)
     setup_environment(script_args)
     #parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
     #script_args, training_args, model_config = parser.parse_args_and_config()
@@ -155,8 +71,7 @@ if __name__ == "__main__":
     ################
     # Model init kwargs & Tokenizer
     ################
-    run_name = generate_names_for_wandb_run(script_args.model_name_or_path, script_args.dataset_name, script_args.num_train_epochs)
-    print(f"Run name: {run_name}")
+    run_name = generate_names_for_wandb_run(script_args)
     tokenizer, model = create_model_and_tokenizer(script_args)
     
 
@@ -174,21 +89,20 @@ if __name__ == "__main__":
         r=script_args.lora_r,
         bias="none",
         task_type="CAUSAL_LM",
+        #target_modules=script_args.lora_target_modules,
     )    
 
     training_arguments = TrainingArguments(
         per_device_train_batch_size=script_args.batch_size,
         gradient_accumulation_steps=script_args.gradient_accumulation_steps,
         optim="paged_adamw_32bit",
-        logging_steps=1,
-        learning_rate=1e-4,
+        learning_rate=script_args.lr,
         fp16=True,
         max_grad_norm=0.3,
-        num_train_epochs=20,
+        num_train_epochs=script_args.num_train_epochs,
         evaluation_strategy="epoch",
-        eval_steps=0.2,
+        eval_steps=script_args.eval_steps,
         warmup_ratio=0.05,
-        save_strategy="epoch",
         group_by_length=True,
         output_dir=script_args.output_dir,
         report_to="wandb" if script_args.wandb else None,
@@ -197,8 +111,11 @@ if __name__ == "__main__":
         seed=SEED,
         load_best_model_at_end=True,
         run_name=run_name,
+        # logging strategies 
+        logging_strategy="steps",
+        logging_steps=1,
+        save_strategy="epoch", # saving is done at the end of each epoch
     )
-
     
     trainer = SFTTrainer(
         model=model,
@@ -207,37 +124,14 @@ if __name__ == "__main__":
         peft_config=peft_config,
         dataset_text_field="text",
         max_seq_length=script_args.context,
-        tokenizer=tokenizer,
+        packing=script_args.packing,
+        processing_class=tokenizer,
         args=training_arguments,
     )
 
-    trainer.train()
+    trainer.train(resume_from_checkpoint=None)
     trainer.save_model(script_args.output_dir)
 
     # Save and push to hub
     if script_args.push_to_hub:
         trainer.push_to_hub(dataset_name=script_args.dataset_name)
-
-
-
-
-
-
-
-
-
-    """trainer = SFTTrainer(
-        model=model_config.model_name_or_path,
-        args=training_args,
-        train_dataset=dataset[script_args.dataset_train_split],
-        eval_dataset=dataset[script_args.dataset_test_split] if training_args.eval_strategy != "no" else None,
-        processing_class=tokenizer,
-        peft_config=get_peft_config(model_config),
-    )
-
-    trainer.train()
-
-    # Save and push to hub
-    trainer.save_model(training_args.output_dir)"""
-    #if training_args.push_to_hub:
-    #    trainer.push_to_hub(dataset_name=script_args.dataset_name)
