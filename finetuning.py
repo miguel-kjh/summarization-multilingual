@@ -23,8 +23,8 @@ from transformers import (
 )
 from trl import SFTTrainer
 
-
-from utils import SEED, create_model_and_tokenizer, setup_environment, generate_names_for_wandb_run
+from evaluation.summary_generator import SummaryGenerator
+from utils import INSTRUCTION_TEMPLATE, SEED, create_model_and_tokenizer, setup_environment, generate_names_for_wandb_run, upload_to_wandb
 
 
 def parse_args():
@@ -72,7 +72,6 @@ if __name__ == "__main__":
     ################
     # Model init kwargs & Tokenizer
     ################
-    run_name = generate_names_for_wandb_run(script_args)
     tokenizer, model = create_model_and_tokenizer(script_args)
     
 
@@ -111,12 +110,11 @@ if __name__ == "__main__":
         lr_scheduler_type="cosine",
         seed=SEED,
         load_best_model_at_end=True,
-        run_name=run_name,
         # logging strategies 
         logging_strategy="steps",
         logging_steps=1,
         save_strategy="epoch", # saving is done at the end of each epoch
-    )
+    )    
     
     trainer = SFTTrainer(
         model=model,
@@ -130,9 +128,25 @@ if __name__ == "__main__":
         args=training_arguments,
     )
 
+    summary_generator = SummaryGenerator(
+        tokenizer, 
+        INSTRUCTION_TEMPLATE["en"], 
+        script_args.device
+    )
+
+    if script_args.wandb:
+        initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
+        upload_to_wandb("Original Summaries", initial_summary)
+
     trainer.train(resume_from_checkpoint=None)
     trainer.save_model(script_args.output_dir)
 
+    if script_args.wandb:
+        after_training_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
+        upload_to_wandb("Generated Summaries", after_training_summary)
+
+
+
     # Save and push to hub
-    if script_args.push_to_hub:
-        trainer.push_to_hub(dataset_name=script_args.dataset_name)
+    #if script_args.push_to_hub:
+    #    trainer.push_to_hub(dataset_name=script_args.dataset_name)

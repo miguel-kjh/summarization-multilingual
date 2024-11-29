@@ -2,6 +2,7 @@ import os
 import warnings
 
 from accelerate import Accelerator, FullyShardedDataParallelPlugin
+import pandas as pd
 from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import wandb
@@ -52,9 +53,12 @@ def generate_training_prompt(
 
 def setup_environment(args):
     warnings.filterwarnings("ignore")
-    os.environ["WANDB_PROJECT"] = PROJECT_NAME
     if not args.wandb:
         os.environ["WANDB_DISABLED"] = "true"
+    else:
+        os.environ["WANDB_PROJECT"] = PROJECT_NAME
+        run_name = generate_names_for_wandb_run(args)
+        wandb.init(project=PROJECT_NAME, entity="miguel_kjh", name=run_name)
     seed_everything(seed=SEED)
     torch.backends.cudnn.deterministic = True
 
@@ -82,7 +86,7 @@ def create_accelerator():
 
 
 def create_model_and_tokenizer(args):
-    if args.qlora:
+    if args.quantization:
         bnb_config = BitsAndBytesConfig(
             load_in_4bit= True,
             bnb_4bit_quant_type= "nf4",
@@ -101,3 +105,12 @@ def create_model_and_tokenizer(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
     tokenizer.pad_token = tokenizer.eos_token
     return tokenizer, model
+
+def upload_to_wandb(table_name: str, summaries: list):
+    df_original = pd.DataFrame(summaries)
+    table_name = f"{wandb.run.name}-{table_name}"
+    wandb.log(
+        {
+            table_name: wandb.Table(dataframe=df_original)
+        }
+    )
