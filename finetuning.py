@@ -61,7 +61,9 @@ def parse_args():
     parse.add_argument("--lora_target_modules", type=str, default="query_key_value,dense,dense_h_to_4h,dense_4h_to_h")
     # quantization
     parse.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False)
-    return parse.parse_args()
+    args = parse.parse_args()
+    args.lora_target_modules = args.lora_target_modules.split(",")
+    return args
 
 if __name__ == "__main__":
     script_args = parse_args()
@@ -89,7 +91,7 @@ if __name__ == "__main__":
         r=script_args.lora_r,
         bias="none",
         task_type="CAUSAL_LM",
-        #target_modules=script_args.lora_target_modules,
+        target_modules=script_args.lora_target_modules,
     )    
 
     training_arguments = TrainingArguments(
