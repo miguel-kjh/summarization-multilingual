@@ -36,9 +36,9 @@ class SummaryMetricsCalculator:
 
         # Calculate average precision, recall, and F1 using numpy
         bertscore_results = {
-            "precision": np.mean(bertscore_raw["precision"]),
-            "recall": np.mean(bertscore_raw["recall"]),
-            "f1": np.mean(bertscore_raw["f1"]),
+            "bertscore_precision": np.mean(bertscore_raw["precision"]),
+            "bertscore_recall": np.mean(bertscore_raw["recall"]),
+            "bertscore_f1": np.mean(bertscore_raw["f1"]),
         }
 
         # Return results

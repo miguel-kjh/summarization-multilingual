@@ -144,8 +144,8 @@ if __name__ == "__main__":
         initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
         upload_to_wandb("Original Summaries", initial_summary)
 
-    #trainer.train(resume_from_checkpoint=None)
-    #trainer.save_model(script_args.output_dir)
+    trainer.train(resume_from_checkpoint=None)
+    trainer.save_model(script_args.output_dir)
 
     if script_args.wandb:
         after_training_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     test_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=len(dataset["test"]))
     df_summary = pd.DataFrame(test_summary)
-    df_summary.to_csv(os.path.join(script_args.output_dir, "test_summary.csv"), index=False)
+    df_summary.to_excel(os.path.join(script_args.output_dir, "test_summary.xlsx"), index=False)
 
 
 

@@ -116,3 +116,8 @@ def upload_to_wandb(table_name: str, summaries: list):
 
 def wandb_end():
     wandb.finish()
+
+
+# Default filenames
+DATASET_FILENAME = "test_summary.xlsx"
+RESULTS_FILENAME = "result_metrics.json"
