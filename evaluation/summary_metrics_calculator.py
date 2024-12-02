@@ -1,17 +1,17 @@
 import numpy as np
 from evaluate import load
+from typing import List
 
 class SummaryMetricsCalculator:
-    def __init__(self, lang="en"):
+    def __init__(self):
         """
         Initializes the class with the specified language for BERTScore.
         :param lang: Language to use for BERTScore. Example: 'en', 'es'.
         """
-        self.lang = lang
         self.rouge = load("rouge")
         self.bertscore = load("bertscore")
 
-    def calculate_metrics(self, reference_summaries, generated_summaries):
+    def calculate_metrics(self, reference_summaries: List[str], generated_summaries: List[str], lang: str="en"):
         """
         Calculates ROUGE and BERTScore metrics for the given lists of summaries.
         :param reference_summaries: List of reference summaries.
@@ -31,7 +31,7 @@ class SummaryMetricsCalculator:
         bertscore_raw = self.bertscore.compute(
             predictions=generated_summaries,
             references=reference_summaries,
-            lang=self.lang
+            lang=lang
         )
 
         # Calculate average precision, recall, and F1 using numpy
@@ -56,8 +56,8 @@ if __name__ == "__main__":
         "The brown fox quickly jumped over the slow dog.", "Hello, planet!"
     ]
 
-    calculator = SummaryMetricsCalculator(lang="en")
-    results = calculator.calculate_metrics(reference_summaries, generated_summaries)
+    calculator = SummaryMetricsCalculator()
+    results = calculator.calculate_metrics(reference_summaries, generated_summaries, lang="en")
     print("ROUGE Results:", results["rouge"])
     print("BERTScore Results:", results["bertscore"])
 

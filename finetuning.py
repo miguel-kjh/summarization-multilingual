@@ -13,8 +13,10 @@
 # limitations under the License.
 
 import argparse
+import os
 from datasets import load_from_disk
 from distutils.util import strtobool
+import pandas as pd
 import torch
 
 from peft import LoraConfig
@@ -24,7 +26,7 @@ from transformers import (
 from trl import SFTTrainer
 
 from evaluation.summary_generator import SummaryGenerator
-from utils import INSTRUCTION_TEMPLATE, SEED, create_model_and_tokenizer, setup_environment, generate_names_for_wandb_run, upload_to_wandb
+from utils import INSTRUCTION_TEMPLATE, SEED, create_model_and_tokenizer, setup_environment, generate_names_for_wandb_run, upload_to_wandb, wandb_end
 
 
 def parse_args():
@@ -41,7 +43,7 @@ def parse_args():
     parse.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False)
     parse.add_argument("--upload", type=lambda x: bool(strtobool(x)), default=False)
     parse.add_argument("--neftune_noise_alpha", type=float, default=None) # https://arxiv.org/abs/2310.05914
-    parse.add_argument("--output_dir", type=str, default="models/pythia-14m")
+    parse.add_argument("--output_dir", type=str, default="models")
     parse.add_argument("--packing", type=lambda x: bool(strtobool(x)), default=False)
     parse.add_argument("--gradient_accumulation_steps", type=int, default=8)
     parse.add_argument("--gradient_checkpointing", type=bool, default=True)
@@ -63,6 +65,8 @@ def parse_args():
     parse.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False)
     args = parse.parse_args()
     args.lora_target_modules = args.lora_target_modules.split(",")
+    args.run_name = generate_names_for_wandb_run(args)
+    args.output_dir = os.path.join(args.output_dir, args.run_name)
     return args
 
 if __name__ == "__main__":
@@ -140,12 +144,17 @@ if __name__ == "__main__":
         initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
         upload_to_wandb("Original Summaries", initial_summary)
 
-    trainer.train(resume_from_checkpoint=None)
-    trainer.save_model(script_args.output_dir)
+    #trainer.train(resume_from_checkpoint=None)
+    #trainer.save_model(script_args.output_dir)
 
     if script_args.wandb:
         after_training_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
         upload_to_wandb("Generated Summaries", after_training_summary)
+        wandb_end()
+
+    test_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=len(dataset["test"]))
+    df_summary = pd.DataFrame(test_summary)
+    df_summary.to_csv(os.path.join(script_args.output_dir, "test_summary.csv"), index=False)
 
 
 

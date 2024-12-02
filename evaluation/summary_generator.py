@@ -1,5 +1,6 @@
 import torch
 from datasets import Dataset
+from tqdm import tqdm
 
 from utils import generate_prompt
 
@@ -22,14 +23,14 @@ class SummaryGenerator:
 
     def generate_summaries(self, model, dataset: Dataset, num_samples: int=5):
         summaries = []
-        for i, example in enumerate(dataset):
-            if i >= num_samples:
-                break
-            print(f"Processing sample {i}")
-            prompt = generate_prompt(self.system_prompt, example['input'])
+        dataset   = dataset[:num_samples]
+        for instruction, input, output, language in tqdm(zip(dataset["instruction"], dataset["input"], dataset["output"], dataset["language"]), desc="Generating summaries"):
+            prompt = generate_prompt(instruction, input)
             summary = self.summarize(model, prompt)
             summaries.append({
-                'text': example['input'], 
-                'generated_summary': summary
+                'text': input, 
+                'generated_summary': summary,
+                'output': output,
+                'language': language,
             })
         return summaries

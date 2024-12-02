@@ -14,6 +14,7 @@ class TransformData:
             "input": "",
             "output": "",
             "text": "",
+            "language": ""
         }
         
     def generate_instructions(self, dataset: Dataset, lang: str) -> Dataset:
@@ -24,6 +25,7 @@ class TransformData:
             template['input'] = sample['text']
             template['output'] = sample['summary']
             template['text'] = generate_training_prompt(template['instruction'], template['input'], template['output'])
+            template['language'] = lang
             instructions.append(template)
 
         print(f"Generated {len(instructions)} instructions for {lang}")

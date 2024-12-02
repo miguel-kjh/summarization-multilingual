@@ -57,8 +57,7 @@ def setup_environment(args):
         os.environ["WANDB_DISABLED"] = "true"
     else:
         os.environ["WANDB_PROJECT"] = PROJECT_NAME
-        run_name = generate_names_for_wandb_run(args)
-        wandb.init(project=PROJECT_NAME, entity="miguel_kjh", name=run_name)
+        wandb.init(project=PROJECT_NAME, entity="miguel_kjh", name=args.run_name)
     seed_everything(seed=SEED)
     torch.backends.cudnn.deterministic = True
 
@@ -114,3 +113,6 @@ def upload_to_wandb(table_name: str, summaries: list):
             table_name: wandb.Table(dataframe=df_original)
         }
     )
+
+def wandb_end():
+    wandb.finish()
