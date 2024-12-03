@@ -73,6 +73,7 @@ def generate_names_for_wandb_run(args):
     name_experiment = f"{model_name}-{dataset_name}-e{epochs}-b{batch_size}-lr{lr}-wd{weight_decay}-c{context}"
     name_experiment += f"-r{args.lora_r}-a{args.lora_alpha}-d{args.lora_dropout}" if args.lora else ""
     name_experiment += f"-nna{neftune_noise_alpha}" if neftune_noise_alpha is not None else ""
+    name_experiment += "-quant" if args.quantization else ""
     return name_experiment
 
 def create_accelerator():

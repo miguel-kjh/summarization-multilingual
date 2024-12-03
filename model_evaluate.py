@@ -73,17 +73,17 @@ def main(model, enable_wandb):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model-generated summaries.")
     parser.add_argument(
-        "--model",
+        "--model_name_or_path",
         type=str,
         required=True,
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument(
-        "--enable_wandb",
+        "--wandb",
         type=lambda x: bool(strtobool(x)),
         default=False,
         help="Enable logging to Weights & Biases (wandb). Set to True to enable."
     )
 
     args = parser.parse_args()
-    main(model=args.model, enable_wandb=args.enable_wandb)
+    main(model=args.model_name_or_path, enable_wandb=args.wandb)

@@ -167,3 +167,4 @@ checkpoints/
 models/
 evaluate_model/
 wandb/
+test.py
