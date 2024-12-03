@@ -168,3 +168,4 @@ models/
 evaluate_model/
 wandb/
 test.py
+lightning_logs/
