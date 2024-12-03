@@ -2,7 +2,7 @@ import torch
 from datasets import Dataset
 from tqdm import tqdm
 
-from utils import generate_prompt
+from utils import SEED, generate_prompt
 
 class SummaryGenerator:
     def __init__(self, tokenizer, system_prompt, device="cpu"):
@@ -23,9 +23,11 @@ class SummaryGenerator:
 
     def generate_summaries(self, model, dataset: Dataset, num_samples: int=5):
         summaries = []
-        dataset   = dataset[:num_samples]
-        for instruction, input, output, language in tqdm(zip(dataset["instruction"], dataset["input"], dataset["output"], dataset["language"]), desc="Generating summaries"):
-            prompt = generate_prompt(instruction, input)
+        # get a subset of the dataset
+        shuffle_dataset = dataset.shuffle(seed=SEED)
+        shuffle_dataset = shuffle_dataset[:num_samples]
+        for instruction, input, output, language in tqdm(zip(shuffle_dataset["instruction"], shuffle_dataset["input"], shuffle_dataset["output"], shuffle_dataset["language"]), desc="Generating summaries"):
+            prompt  = generate_prompt(instruction, input)
             summary = self.summarize(model, prompt)
             summaries.append({
                 'text': input, 
