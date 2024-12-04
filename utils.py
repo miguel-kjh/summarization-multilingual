@@ -132,6 +132,6 @@ def prepare_embeddings(tokenizer, model, sentences, context=32):
     embeddings = []
     for sentence in sentences:
         input_ids = tokenizer(sentence, return_tensors="pt", max_length=context, truncation=True, padding="max_length").input_ids
-        embedding = model.gpt_neox.embed_in(input_ids)
+        embedding = model.gpt_neox.embed_in(input_ids).detach()
         embeddings.append(embedding.squeeze(0))  # Saca el batch dimension
     return torch.stack(embeddings)
