@@ -2,6 +2,7 @@ import os
 import warnings
 
 from accelerate import Accelerator, FullyShardedDataParallelPlugin
+from datetime import datetime
 import pandas as pd
 from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -23,6 +24,10 @@ FILE_STATS = os.path.join(RAW_DATA_FOLDER, "stats.csv")
 
 # Languages to download
 LANGUAGES = ['en', 'de', 'fr', 'ru', 'tu', 'es']
+
+# Default filenames
+DATASET_FILENAME = "test_summary.xlsx"
+RESULTS_FILENAME = "result_metrics.json"
 
 SEED = 3407
 
@@ -50,6 +55,9 @@ def generate_training_prompt(
     summary = summary.replace("\n", "")
     return generate_prompt(system_prompt, document) + f"\n{summary.strip()}"
 
+def get_timestamp():
+    now = datetime.now()
+    return now.strftime("%Y-%m-%d-%H-%M-%S")
 
 def setup_environment(args):
     warnings.filterwarnings("ignore")
@@ -119,6 +127,11 @@ def wandb_end():
     wandb.finish()
 
 
-# Default filenames
-DATASET_FILENAME = "test_summary.xlsx"
-RESULTS_FILENAME = "result_metrics.json"
+# Preparación de embeddings
+def prepare_embeddings(tokenizer, model, sentences, context=32):
+    embeddings = []
+    for sentence in sentences:
+        input_ids = tokenizer(sentence, return_tensors="pt", max_length=context, truncation=True, padding="max_length").input_ids
+        embedding = model.gpt_neox.embed_in(input_ids)
+        embeddings.append(embedding.squeeze(0))  # Saca el batch dimension
+    return torch.stack(embeddings)
