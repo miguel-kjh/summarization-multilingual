@@ -78,10 +78,11 @@ def generate_names_for_wandb_run(args):
     weight_decay = args.weight_decay
     neftune_noise_alpha = args.neftune_noise_alpha
     context = args.context
-    name_experiment = f"{model_name}-{dataset_name}-e{epochs}-b{batch_size}-lr{lr}-wd{weight_decay}-c{context}"
+    name_experiment  = f"{model_name}-{dataset_name}-e{epochs}-b{batch_size}-lr{lr}-wd{weight_decay}-c{context}"
     name_experiment += f"-r{args.lora_r}-a{args.lora_alpha}-d{args.lora_dropout}" if args.lora else ""
     name_experiment += f"-nna{neftune_noise_alpha}" if neftune_noise_alpha is not None else ""
     name_experiment += "-quant" if args.quantization else ""
+    name_experiment += f"-{get_timestamp()}"
     return name_experiment
 
 def create_accelerator():
@@ -128,10 +129,31 @@ def wandb_end():
 
 
 # Preparación de embeddings
-def prepare_embeddings(tokenizer, model, sentences, context=32):
+def prepare_embeddings(tokenizer, model, sentences, context=32, stride=16):
     embeddings = []
+    
     for sentence in sentences:
-        input_ids = tokenizer(sentence, return_tensors="pt", max_length=context, truncation=True, padding="max_length").input_ids
-        embedding = model.gpt_neox.embed_in(input_ids).detach()
-        embeddings.append(embedding.squeeze(0))  # Saca el batch dimension
+        # Tokenizar la frase completa
+        input_ids = tokenizer(sentence, return_tensors="pt").input_ids.squeeze(0)
+        num_tokens = input_ids.size(0)
+        
+        # Crear ventanas deslizantes
+        windows = [
+            input_ids[i:i + context]
+            for i in range(0, max(1, num_tokens - context + 1), stride)
+        ]
+        
+        # Asegurar que la última ventana siempre se incluya
+        if len(windows) == 0 or windows[-1].size(0) < context:
+            windows.append(input_ids[-context:])
+        
+        # Generar embeddings para cada ventana
+        for window in windows:
+            padded_window = torch.nn.functional.pad(
+                window, (0, context - window.size(0)), value=tokenizer.pad_token_id
+            )  # Rellena si es necesario
+            embedding = model.gpt_neox.embed_in(padded_window.unsqueeze(0)).detach()
+            embeddings.append(embedding.squeeze(0))  # Saca la dimensión del batch
+
+    # Combinar todos los embeddings en un solo tensor
     return torch.stack(embeddings)

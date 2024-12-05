@@ -1,17 +1,3 @@
-# Copyright 2023 The HuggingFace Inc. team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import argparse
 import os
 from datasets import load_from_disk
@@ -26,6 +12,7 @@ from transformers import (
 from trl import SFTTrainer
 
 from evaluation.summary_generator import SummaryGenerator
+from embedding_distilation.Connector import Connector
 from utils import INSTRUCTION_TEMPLATE, SEED, create_model_and_tokenizer, setup_environment, generate_names_for_wandb_run, upload_to_wandb, wandb_end
 
 
@@ -52,6 +39,10 @@ def parse_args():
     parse.add_argument("--eval_steps", type=int, default=1)
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
 
+    # conectors
+    parse.add_argument("--type_model", type=str, default=None)
+    parse.add_argument("--connector",  type=str, default=None) 
+
     #loras parameters 
     # TODO: add differents adapters (Adapters, dora, etc)
     parse.add_argument("--lora", type=lambda x: bool(strtobool(x)), default=True)
@@ -72,13 +63,19 @@ def parse_args():
 if __name__ == "__main__":
     script_args = parse_args()
     setup_environment(script_args)
-    #parser = TrlParser((ScriptArguments, SFTConfig, ModelConfig))
-    #script_args, training_args, model_config = parser.parse_args_and_config()
 
     ################
     # Model init kwargs & Tokenizer
     ################
     tokenizer, model = create_model_and_tokenizer(script_args)
+
+    if script_args.connector:
+        if "pythia" in script_args.model_name_or_path:
+            connector = Connector.from_pretraining(script_args.connector)
+            model.gpt_neox.embed_in = torch.nn.Sequential(
+                model.gpt_neox.embed_in,
+                connector
+            )
     
 
     ################
@@ -89,14 +86,16 @@ if __name__ == "__main__":
     ################
     # Training
     ################
-    peft_config = LoraConfig(
-        lora_alpha=script_args.lora_alpha,
-        lora_dropout=script_args.lora_dropout,
-        r=script_args.lora_r,
-        bias="none",
-        task_type="CAUSAL_LM",
-        target_modules=script_args.lora_target_modules,
-    )    
+    peft_config = None 
+    if script_args.lora:
+        peft_config = LoraConfig(
+            lora_alpha=script_args.lora_alpha,
+            lora_dropout=script_args.lora_dropout,
+            r=script_args.lora_r,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=script_args.lora_target_modules,
+        )    
 
     training_arguments = TrainingArguments(
         per_device_train_batch_size=script_args.batch_size,
@@ -106,7 +105,7 @@ if __name__ == "__main__":
         fp16=True,
         max_grad_norm=0.3,
         num_train_epochs=script_args.num_train_epochs,
-        evaluation_strategy="epoch",
+        evaluation_strategy=script_args.eval_strategy,
         eval_steps=script_args.eval_steps,
         warmup_ratio=0.05,
         group_by_length=True,
@@ -116,10 +115,9 @@ if __name__ == "__main__":
         lr_scheduler_type="cosine",
         seed=SEED,
         load_best_model_at_end=True,
-        # logging strategies 
         logging_strategy="steps",
         logging_steps=1,
-        save_strategy="epoch", # saving is done at the end of each epoch
+        save_strategy=script_args.eval_strategy, # saving is done at the end of each epoch
     )    
     
     trainer = SFTTrainer(

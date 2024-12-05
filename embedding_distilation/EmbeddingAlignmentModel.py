@@ -2,16 +2,14 @@
 import pytorch_lightning as pl
 import torch
 
+from embedding_distilation.Connector import Connector
+from embedding_distilation.ProjectionHead import ProjectionHead
 
 class EmbeddingAlignmentModel(pl.LightningModule):
     def __init__(self, large_embedding_dim, small_embedding_dim, projected_dim, inner_dim, lr=1e-3):
         super().__init__()
-        self.projector = torch.nn.Linear(large_embedding_dim, projected_dim)
-        self.connector = torch.nn.Sequential(
-            torch.nn.Linear(small_embedding_dim, inner_dim),
-            torch.nn.GELU(),
-            torch.nn.Linear(inner_dim, projected_dim)
-        )
+        self.projector = ProjectionHead(large_embedding_dim, projected_dim)
+        self.connector = Connector(small_embedding_dim, projected_dim, inner_dim)
         self.lr = lr
         self.criterion = torch.nn.MSELoss() # L2 norm error
 
