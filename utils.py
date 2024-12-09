@@ -82,6 +82,7 @@ def generate_names_for_wandb_run(args):
     name_experiment += f"-r{args.lora_r}-a{args.lora_alpha}-d{args.lora_dropout}" if args.lora else ""
     name_experiment += f"-nna{neftune_noise_alpha}" if neftune_noise_alpha is not None else ""
     name_experiment += "-quant" if args.quantization else ""
+    name_experiment += f"-conn-{args.type_connector}" if args.connector else ""
     name_experiment += f"-{get_timestamp()}"
     return name_experiment
 
@@ -96,6 +97,7 @@ def create_accelerator():
 
 def create_model_and_tokenizer(args):
     if args.quantization:
+        print("### Using Quantization ###")
         bnb_config = BitsAndBytesConfig(
             load_in_4bit= True,
             bnb_4bit_quant_type= "nf4",

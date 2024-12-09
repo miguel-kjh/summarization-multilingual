@@ -40,7 +40,7 @@ def parse_args():
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
 
     # conectors
-    parse.add_argument("--type_model", type=str, default=None)
+    parse.add_argument("--type_connector", type=str, default=None)
     parse.add_argument("--connector",  type=str, default=None) 
 
     #loras parameters 
@@ -88,6 +88,7 @@ if __name__ == "__main__":
     ################
     peft_config = None 
     if script_args.lora:
+        print("### Using Lora ###")
         peft_config = LoraConfig(
             lora_alpha=script_args.lora_alpha,
             lora_dropout=script_args.lora_dropout,
@@ -95,7 +96,10 @@ if __name__ == "__main__":
             bias="none",
             task_type="CAUSAL_LM",
             target_modules=script_args.lora_target_modules,
-        )    
+        )
+    
+    if not (script_args.lora or script_args.quantization):
+        print("### Full Finetuning ###")
 
     training_arguments = TrainingArguments(
         per_device_train_batch_size=script_args.batch_size,

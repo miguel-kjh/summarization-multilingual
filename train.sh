@@ -1,23 +1,28 @@
 #!/bin/bash
 
 # model architecture
-model_name="meta-llama/Llama-3.2-1B"
-lora=True
-lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+model_name="EleutherAI/pythia-70m"
+# peft and quantization
+lora=False
+quantization=False
 lora_r=8
 lora_alpha=16
 lora_dropout=0.05
-quantization=False
+lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
 batch_size=4
 learning_rate=1e-4
-num_train_epochs=1
-weight_decay=0.01
+num_train_epochs=5
+weight_decay=0.
 context_length=512
 
+# connector
+connector="models/connectors/connector_pythia-410m-pythia-70m-tiny-e5-b4-c512-id512-2024-12-09-07-50-37"
+type_connector="pythia-410m"
+
 # data
-dataset_name="data/02-processed/en"
+dataset_name="data/03-combined/tiny"
 wandb=True
 
 # run
@@ -35,7 +40,9 @@ python finetuning.py \
     --weight_decay $weight_decay \
     --dataset_name $dataset_name \
     --wandb $wandb \
-    --context $context_length
+    --context $context_length \
+    --connector $connector \
+    --type_connector $type_connector
 
 
 
