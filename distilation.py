@@ -81,8 +81,9 @@ def main(args: dict):
     # Dataset and Embeddings
     dataset   = load_from_disk(args.dataset)
     train_sentences = dataset['train']['text']
-    train_sentences = random.sample(train_sentences, len(train_sentences))
-    train_sentences = train_sentences[:int(len(train_sentences) * args.data_porcentage)]
+    if args.data_porcentage < 1:
+        train_sentences = random.sample(train_sentences, len(train_sentences))
+        train_sentences = train_sentences[:int(len(train_sentences) * args.data_porcentage)]
     # TODO: improve prepare_embeddings to generate embeddings for all text
     embeddings_large = prepare_embeddings(tokenizer, model_large, train_sentences, context=args.context)
     embeddings_small = prepare_embeddings(tokenizer, model_small, train_sentences, context=args.context)
