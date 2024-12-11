@@ -34,4 +34,4 @@ class Connector(torch.nn.Module):
         return connector
 
     def forward(self, embedding_small) -> torch.Tensor:
-        return self.connector(embedding_small)
+        return self.connector(embedding_small) + embedding_small

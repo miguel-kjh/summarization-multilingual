@@ -13,12 +13,12 @@ lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 # hyperparameters
 batch_size=4
 learning_rate=1e-4
-num_train_epochs=5
+num_train_epochs=10
 weight_decay=0.
 context_length=512
 
 # connector
-connector="models/connectors/connector_pythia-410m-pythia-70m-tiny-e5-b4-c512-id512-2024-12-09-07-50-37"
+connector="models/connectors/connector_pythia-410m-pythia-70m-tiny-e10-b4-c512-id512-2024-12-11-11-06-53"
 type_connector="pythia-410m"
 
 # data
