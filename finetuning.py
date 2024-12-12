@@ -148,7 +148,7 @@ if __name__ == "__main__":
     trainer.train(resume_from_checkpoint=None)
     trainer.save_model(script_args.output_dir)
 
-    test_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=5)
+    test_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=len(dataset["test"]))
     df_summary = pd.DataFrame(test_summary)
     df_summary.to_excel(os.path.join(script_args.output_dir, "test_summary.xlsx"), index=False)
 

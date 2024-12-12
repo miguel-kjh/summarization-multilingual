@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="meta-llama/Llama-3.2-1B"
+model_name="meta-llama/Llama-3.2-1B-Instruct"
 # peft and quantization
 lora=True
 quantization=True
