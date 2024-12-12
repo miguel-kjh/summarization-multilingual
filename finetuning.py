@@ -69,13 +69,13 @@ if __name__ == "__main__":
     ################
     tokenizer, model = create_model_and_tokenizer(script_args)
 
-    if script_args.connector:
+    """if script_args.connector:
         if "pythia" in script_args.model_name_or_path:
             connector = Connector.from_pretraining(script_args.connector)
             model.gpt_neox.embed_in = torch.nn.Sequential(
                 model.gpt_neox.embed_in,
                 connector
-            )
+            )"""
     
 
     ################
@@ -138,7 +138,6 @@ if __name__ == "__main__":
 
     summary_generator = SummaryGenerator(
         tokenizer, 
-        INSTRUCTION_TEMPLATE["en"], 
         script_args.device
     )
 

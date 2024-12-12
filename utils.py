@@ -11,7 +11,7 @@ from lightning import seed_everything
 import torch
 
 #WANDB CONFIG
-PROJECT_NAME = "multilingual-summarization"
+PROJECT_NAME = "eur-lex-sum"
 
 #DATASET
 DATASET = "dennlinger/eur-lex-sum"

@@ -5,10 +5,9 @@ from tqdm import tqdm
 from utils import SEED, generate_prompt
 
 class SummaryGenerator:
-    def __init__(self, tokenizer, system_prompt, device="cpu"):
+    def __init__(self, tokenizer, device="cpu"):
         self.device        = device
         self.tokenizer     = tokenizer
-        self.system_prompt = system_prompt
 
     def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.0001) -> str:
         inputs = self.tokenizer(text, return_tensors="pt").to(self.device)

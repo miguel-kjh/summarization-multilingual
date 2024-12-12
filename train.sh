@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # model architecture
-model_name="EleutherAI/pythia-70m"
+model_name="meta-llama/Llama-3.2-1B"
 # peft and quantization
-lora=False
+lora=True
 quantization=False
 lora_r=8
 lora_alpha=16
@@ -17,12 +17,8 @@ num_train_epochs=10
 weight_decay=0.
 context_length=512
 
-# connector
-connector="models/connectors/connector_pythia-410m-pythia-70m-tiny-e10-b4-c512-id512-2024-12-11-11-06-53"
-type_connector="pythia-410m"
-
 # data
-dataset_name="data/03-combined/tiny"
+dataset_name="data/02-processed/spanish"
 wandb=True
 
 # run
@@ -41,8 +37,6 @@ python finetuning.py \
     --dataset_name $dataset_name \
     --wandb $wandb \
     --context $context_length \
-    --connector $connector \
-    --type_connector $type_connector
 
 
 
