@@ -13,6 +13,9 @@ import torch
 #WANDB CONFIG
 PROJECT_NAME = "multilingual-summarization"
 
+#DATASET
+DATASET = "dennlinger/eur-lex-sum"
+
 # Folders
 DATA_FOLDER           = "data"
 RAW_DATA_FOLDER       = os.path.join(DATA_FOLDER, "01-raw")
@@ -23,7 +26,12 @@ COMBINED_DATA_FOLDER  = os.path.join(DATA_FOLDER, "03-combined")
 FILE_STATS = os.path.join(RAW_DATA_FOLDER, "stats.csv")
 
 # Languages to download
-LANGUAGES = ['en', 'de', 'fr', 'ru', 'tu', 'es']
+LANGUAGES = ['portuguese', 'spanish', 'english', 'german', 'italian']
+"""
+['bulgarian', 'czech', 'dutch', 'estonian', 'french', 'greek', '', 'irish', 'latvian', 'maltese', 'portuguese', 'slovak', 
+'spanish', 'croatian', 'danish', 'english', 'finnish', 'german', 'hungarian', 'italian', 'lithuanian', 'polish', 
+'romanian', 'slovenian', 'swedish']
+"""
 
 # Default filenames
 DATASET_FILENAME = "test_summary.xlsx"
@@ -32,13 +40,13 @@ RESULTS_FILENAME = "result_metrics.json"
 SEED = 3407
 
 INSTRUCTION_TEMPLATE = {
-    "en": "Please summarize the following text in a few sentences, highlighting the most important points.",
-    "es": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
-    "fr": "Veuillez résumer le texte suivant en quelques phrases, en mettant en évidence les points les plus importants.",
-    "de": "Bitte fassen Sie den folgenden Text in ein paar Sätzen zusammen und heben Sie die wichtigsten Punkte hervor.",
-    "ru": "Пожалуйста, подытожите следующий текст несколькими предложениями, выделив наиболее важные моменты.",
-    "tu": "Lütfen aşağıdaki metni birkaç cümlede özetleyin ve en önemli noktaları vurgulayın."
+    "english": "Please summarize the following text in a few sentences, highlighting the most important points.",
+    "spanish": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
+    "german": "Bitte fassen Sie den folgenden Text in ein paar Sätzen zusammen und heben Sie die wichtigsten Punkte hervor.",
+    "italian": "Per favore, riassumi il seguente testo in poche frasi, evidenziando i punti più importanti.",
+    "portuguese": "Por favor, resuma o texto a seguir em algumas frases, destacando os pontos mais importantes."
 }
+
 
 def generate_prompt(system_prompt: str, document: str,) -> str:
         return f"""### Instruction: {system_prompt}

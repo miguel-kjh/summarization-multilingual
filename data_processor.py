@@ -44,14 +44,16 @@ def process():
 def combine():
     # generate a tiny dataset for testing using en
     print("Combining data")
-    lang = "en"
+    lang = "english"
     dataset_tiny_name = os.path.join(COMBINED_DATA_FOLDER, "tiny")
     os.makedirs(dataset_tiny_name, exist_ok=True)
     dataset = load_from_disk(os.path.join(PROCESS_DATA_FOLDER, lang))
     # take 0.1% of the data
     dataset_small = DatasetDict()
     for split in dataset.keys():
-        dataset_small[split] = dataset[split].shuffle(seed=42).select(range(len(dataset[split]) // 1000))
+        len_dataset = len(dataset[split])
+        num_samples = int(0.1 * len_dataset)
+        dataset_small[split] = dataset[split].shuffle(seed=42).select(range(num_samples))
     dataset_small.save_to_disk(dataset_tiny_name)
 
 
