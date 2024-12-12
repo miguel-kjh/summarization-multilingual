@@ -4,7 +4,7 @@
 model_name="meta-llama/Llama-3.2-1B"
 # peft and quantization
 lora=True
-quantization=False
+quantization=True
 lora_r=8
 lora_alpha=16
 lora_dropout=0.05

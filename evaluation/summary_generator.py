@@ -26,12 +26,19 @@ class SummaryGenerator:
         shuffle_dataset = dataset.shuffle(seed=SEED)
         shuffle_dataset = shuffle_dataset[:num_samples]
         for instruction, input, output, language in tqdm(zip(shuffle_dataset["instruction"], shuffle_dataset["input"], shuffle_dataset["output"], shuffle_dataset["language"]), desc="Generating summaries"):
-            prompt  = generate_prompt(instruction, input)
-            summary = self.summarize(model, prompt)
-            summaries.append({
-                'text': input, 
-                'generated_summary': summary,
-                'output': output,
-                'language': language,
-            })
+            try:
+                prompt  = generate_prompt(instruction, input)
+                summary = self.summarize(model, prompt)
+                summaries.append({
+                    'text': input, 
+                    'generated_summary': summary,
+                    'output': output,
+                    'language': language,
+                })
+            except torch.cuda.OutOfMemoryError:
+                print("Out of memory error")
+                # FREE MEMORY
+                torch.cuda.empty_cache()
+                print("Memory freed")
+                continue
         return summaries
