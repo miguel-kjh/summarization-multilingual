@@ -37,8 +37,6 @@ class SummaryGenerator:
                 })
             except torch.cuda.OutOfMemoryError:
                 print("Out of memory error")
-                # FREE MEMORY
-                torch.cuda.empty_cache()
-                print("Memory freed")
-                continue
+            torch.cuda.empty_cache()
+            print("Memory freed")
         return summaries
