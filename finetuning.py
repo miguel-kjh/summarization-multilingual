@@ -148,13 +148,13 @@ if __name__ == "__main__":
     trainer.train(resume_from_checkpoint=None)
     trainer.save_model(script_args.output_dir)
 
-    test_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=len(dataset["test"]))
-    df_summary = pd.DataFrame(test_summary)
-    df_summary.to_excel(os.path.join(script_args.output_dir, "test_summary.xlsx"), index=False)
+    #test_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=len(dataset["test"]))
+    #df_summary = pd.DataFrame(test_summary)
+    #df_summary.to_excel(os.path.join(script_args.output_dir, "test_summary.xlsx"), index=False)
 
     if script_args.wandb:
         # get 5 samples of generated summaries
-        after_training_summary = test_summary[:5]
+        after_training_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=5)
         upload_to_wandb("Generated Summaries", after_training_summary)
         wandb_end()
 
