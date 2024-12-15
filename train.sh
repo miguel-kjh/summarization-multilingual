@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="meta-llama/Llama-3.2-1B-Instruct"
+model_name="meta-llama/Llama-3.2-3B"
 # peft and quantization
 lora=True
 quantization=True
@@ -11,7 +11,7 @@ lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
-batch_size=4
+batch_size=2
 learning_rate=1e-4
 num_train_epochs=10
 weight_decay=0.
