@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     num_samples = data_sample * dataset["test"].num_rows // 100
 
-    summaries = summary_generator.generate_summaries(model, dataset["test"], num_samples=2, max_new_tokens=max_new_tokens)
+    summaries = summary_generator.generate_summaries(model, dataset["test"], num_samples=num_samples, max_new_tokens=max_new_tokens)
     df_summary = pd.DataFrame(summaries)
     df_summary.to_excel(os.path.join(model_name, "test_summary.xlsx"), index=False)
     print("Summaries generated")
