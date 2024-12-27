@@ -5,11 +5,18 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from evaluation.summary_generator import SummaryGenerator
 from datasets import load_from_disk
+from sentence_transformers import SentenceTransformer
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 model_name = "models/Llama-3.2-3B-spanish-e10-b2-lr0.0001-wd0.0-c512-r8-a16-d0.05-quant-2024-12-14-20-10-15"
 dataset = "data/02-processed/spanish"
 data_sample = 50
 max_new_tokens = 512
+using_clustering = False
+cluster_embedding_model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
+chunk_size=1000, 
+chunk_overlap=100
+num_clusters = 10
 
 #main
 if __name__ == '__main__':
@@ -31,7 +38,34 @@ if __name__ == '__main__':
 
     num_samples = data_sample * dataset["test"].num_rows // 100
 
-    summaries = summary_generator.generate_summaries(model, dataset["test"], num_samples=num_samples, max_new_tokens=max_new_tokens)
+    if using_clustering:
+        embedding_model = SentenceTransformer(model_name)
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            length_function=len, 
+            is_separator_regex=False
+        )
+        summaries = summary_generator.generate_summaries_from_cluster(
+            model,
+            embedding_model,
+            text_splitter,
+            dataset["test"], 
+            num_samples=num_samples, 
+            max_new_tokens=max_new_tokens, 
+            embedding_model=embedding_model, 
+            text_splitter=text_splitter, 
+            num_clusters=num_clusters
+        )
+    else:
+        summaries = summary_generator.generate_summaries(
+            model, 
+            dataset["test"], 
+            num_samples=num_samples, 
+            max_new_tokens=max_new_tokens
+        )
+    
+    
     df_summary = pd.DataFrame(summaries)
     df_summary.to_excel(os.path.join(model_name, "test_summary.xlsx"), index=False)
     print("Summaries generated")

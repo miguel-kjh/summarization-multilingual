@@ -3,7 +3,10 @@ import torch
 from datasets import Dataset
 from tqdm import tqdm
 import time
+from sentence_transformers import SentenceTransformer
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from document_cluster import DocumentClusterer
 from utils import SEED, generate_prompt
 
 class SummaryGenerator:
@@ -46,4 +49,51 @@ class SummaryGenerator:
                 pass
                 #print("Out of memory error")
             torch.cuda.empty_cache()
+        return summaries
+    
+    def generate_summaries_from_cluster(
+            self, 
+            model, 
+            embedding_model: SentenceTransformer,
+            text_splitter: RecursiveCharacterTextSplitter,
+            dataset: Dataset, 
+            num_samples: int=5, 
+            max_new_tokens: int=256, 
+            temperature: float=0.0001,
+            num_clusters: int=10,
+        ) -> list:
+
+        document_clusterer = DocumentClusterer(
+            embedding_model, 
+            text_splitter, 
+            num_clusters
+        )
+        summaries = []
+        # get a subset of the dataset
+        shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
+        for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
+            instruction, input, output, language = obj['instruction'], obj['input'], obj['text'], obj['language']
+            result = document_clusterer.cluster_and_assign(input, output)
+            join_summary = []
+            for (doc_parts, _) in result:
+                text = " ".join(doc_parts)
+                try:
+                    prompt  = generate_prompt(instruction, text)
+                    summary, time = self.summarize(
+                        model, 
+                        prompt, 
+                        max_new_tokens=max_new_tokens, 
+                        temperature=temperature
+                    )
+                    join_summary.append(summary)
+                except torch.cuda.OutOfMemoryError:
+                    pass
+                torch.cuda.empty_cache()
+            summaries.append({
+                'text': input, 
+                'generated_summary': " ".join(join_summary),
+                'output': output,
+                'language': language,
+                'time': time,
+            })
         return summaries
