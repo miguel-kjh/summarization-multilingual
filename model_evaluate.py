@@ -1,3 +1,4 @@
+from collections import defaultdict
 import json
 import os
 import argparse
@@ -5,7 +6,7 @@ import wandb
 import pandas as pd
 from distutils.util import strtobool
 from evaluation.summary_metrics_calculator import SummaryMetricsCalculator
-from utils import DATASET_FILENAME, PROJECT_NAME, RESULTS_FILENAME
+from utils import DATASET_FILENAME, PROJECT_NAME, RESULTS_FILENAME, seed_everything, SEED
 
 def load_dataset(model_path, filename):
     """
@@ -30,38 +31,53 @@ def save_metrics_to_json(metrics, model_path, filename):
     with open(filepath, "w") as f:
         json.dump(metrics, f, indent=4)
 
-def log_metrics_to_wandb(metrics):
+def log_metrics_to_wandb(metrics: dict):
     """
     Log metrics to Weights & Biases (wandb).
 
     :param metrics: Dictionary containing the metrics.
     """
-    wandb.log(metrics["rouge"])
-    wandb.log(metrics["bertscore"])
+    for lang, metrics in metrics.items():
+        wandb.log({f"{lang}/rouge": metrics["rouge"]})
+        wandb.log({f"{lang}/bertscore": metrics["bertscore"]})
     wandb.finish()
 
-def main(model, enable_wandb):
+def main(model, enable_wandb, verbose=True):
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
 
     # Initialize wandb if enabled
     if enable_wandb:
-        wandb.init(project=PROJECT_NAME)
-        wandb.run.name = os.path.basename(model)
+        wandb.init(
+            project=f"{PROJECT_NAME}_metrics", 
+            entity="miguel_kjh", 
+            name=os.path.basename(model),
+            resume="allow",
+        )
 
     # Load the dataset
     dataset = load_dataset(model, DATASET_FILENAME)
 
-    # Calculate metrics
-    metrics = calculator.calculate_metrics(
-        reference_summaries=dataset["output"],
-        generated_summaries=dataset["generated_summary"],
-        lang=dataset["language"][0]  # Assumes all rows have the same language
-    )
+    # split for language
+    dataset_gropby_lang = dataset.groupby("language")
 
-    # Display results
-    print("ROUGE Results:", metrics["rouge"])
-    print("BERTScore Results:", metrics["bertscore"])
+    metrics = defaultdict(dict)
+    for lang, dataset in dataset_gropby_lang:
+        metrics[lang] = {}
+        results = calculator.calculate_metrics(
+            reference_summaries=dataset["expected_summary"],
+            generated_summaries=dataset["generated_summary"],
+            lang=lang
+        )
+
+        # Display results
+        if verbose:
+            print(f"Results for {lang}")
+            print("ROUGE Results:", results["rouge"])
+            print("BERTScore Results:", results["bertscore"])
+
+        metrics[lang]["rouge"] = results["rouge"]
+        metrics[lang]["bertscore"] = results["bertscore"]
 
     # Save metrics to a JSON file
     save_metrics_to_json(metrics, model, RESULTS_FILENAME)
@@ -71,6 +87,7 @@ def main(model, enable_wandb):
         log_metrics_to_wandb(metrics)
 
 if __name__ == "__main__":
+    seed_everything(SEED)
     parser = argparse.ArgumentParser(description="Evaluate model-generated summaries.")
     parser.add_argument(
         "--model_name_or_path",
@@ -84,6 +101,12 @@ if __name__ == "__main__":
         default=False,
         help="Enable logging to Weights & Biases (wandb). Set to True to enable."
     )
+    parser.add_argument(
+        "--verbose",
+        type=lambda x: bool(strtobool(x)),
+        default=True,
+        help="Enable verbose output. Set to True to enable."
+    )
 
     args = parser.parse_args()
-    main(model=args.model_name_or_path, enable_wandb=args.wandb)
+    main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose)

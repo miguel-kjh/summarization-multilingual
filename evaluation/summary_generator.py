@@ -2,6 +2,7 @@ from typing import Tuple
 import torch
 from datasets import Dataset
 from tqdm import tqdm
+import numpy as np
 import time
 from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -34,19 +35,20 @@ class SummaryGenerator:
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
-            instruction, input, output, language = obj['instruction'], obj['input'], obj['text'], obj['language']
+            instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
             try:
                 prompt  = generate_prompt(instruction, input)
                 summary, time = self.summarize(model, prompt, max_new_tokens=max_new_tokens, temperature=temperature)
                 summaries.append({
-                    'text': input, 
+                    'document': input, 
+                    'expected_summary': output,
                     'generated_summary': summary,
-                    'output': output,
                     'language': language,
                     'time': time,
                 })
             except torch.cuda.OutOfMemoryError:
-                pass
+                torch.cuda.empty_cache()
+                continue
                 #print("Out of memory error")
             torch.cuda.empty_cache()
         return summaries
@@ -75,6 +77,7 @@ class SummaryGenerator:
             instruction, input, output, language = obj['instruction'], obj['input'], obj['text'], obj['language']
             result = document_clusterer.cluster_and_assign(input, output)
             join_summary = []
+            times = []
             for (doc_parts, _) in result:
                 text = " ".join(doc_parts)
                 try:
@@ -86,14 +89,15 @@ class SummaryGenerator:
                         temperature=temperature
                     )
                     join_summary.append(summary)
+                    times.append(time)
                 except torch.cuda.OutOfMemoryError:
                     pass
                 torch.cuda.empty_cache()
             summaries.append({
-                'text': input, 
+                'document': input, 
+                'expected_summary': output,
                 'generated_summary': " ".join(join_summary),
-                'output': output,
                 'language': language,
-                'time': time,
+                'time': np.mean(times),
             })
         return summaries
