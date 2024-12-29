@@ -12,10 +12,10 @@ model_name = "models/Llama-3.2-1B-spanish-e10-b4-lr0.0001-wd0.0-c512-r8-a16-d0.0
 dataset = "data/02-processed/spanish"
 data_sample = 50
 max_new_tokens = 512
-using_clustering = False
+using_clustering = True
 cluster_embedding_model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
-chunk_size=1000, 
-chunk_overlap=100
+chunk_size = 1000
+chunk_overlap = 100
 num_clusters = 10
 
 #main
@@ -36,9 +36,10 @@ if __name__ == '__main__':
 
     print("Generating")
 
-    num_samples = data_sample * dataset["test"].num_rows // 100
+    num_samples = 2 #data_sample * dataset["test"].num_rows // 100
 
     if using_clustering:
+        print("#"*10, "Using clustering", "#"*10)
         embedding_model = SentenceTransformer(model_name)
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
@@ -53,8 +54,6 @@ if __name__ == '__main__':
             dataset["test"], 
             num_samples=num_samples, 
             max_new_tokens=max_new_tokens, 
-            embedding_model=embedding_model, 
-            text_splitter=text_splitter, 
             num_clusters=num_clusters
         )
     else:

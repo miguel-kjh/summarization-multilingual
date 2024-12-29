@@ -18,6 +18,15 @@ class DocumentClusterer:
         self.text_splitter = text_splitter
         self.num_clusters = num_clusters
 
+        tokenizer = self.embedding_model.tokenizer
+
+        if tokenizer.pad_token is None:
+            if tokenizer.eos_token is not None:
+                tokenizer.pad_token = tokenizer.eos_token
+            else:
+                tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+                self.embedding_model.resize_token_embeddings(len(tokenizer))
+
     def cluster_and_assign(self, document: str, summary: str) -> List[Tuple[List[str], List[str]]]:
         """
         Processes the document and summary to cluster document parts and assign summary parts to clusters.
@@ -33,6 +42,7 @@ class DocumentClusterer:
         """
         # Split the document into parts
         document_parts: List[str] = [doc.page_content for doc in self.text_splitter.create_documents([document])]
+        print(len(document_parts))
         
         # Generate embeddings for document parts
         document_embeddings = self.embedding_model.encode(document_parts)
@@ -82,9 +92,11 @@ if __name__ == '__main__':
     from datasets import load_from_disk
 
     dataset = load_from_disk("data/02-processed/spanish")
-    document = dataset["train"]['input'][10]
+    print(dataset)
+    exit()
+    document = dataset["test"]['input'][0]
     print(len(document))
-    summary = dataset["train"]['output'][10]
+    summary = dataset["test"]['output'][0]
     print(len(summary))
 
     # Perform clustering and assignment

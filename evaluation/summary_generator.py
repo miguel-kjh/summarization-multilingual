@@ -74,7 +74,7 @@ class SummaryGenerator:
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
-            instruction, input, output, language = obj['instruction'], obj['input'], obj['text'], obj['language']
+            instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
             result = document_clusterer.cluster_and_assign(input, output)
             join_summary = []
             times = []
