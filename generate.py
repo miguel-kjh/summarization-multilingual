@@ -36,11 +36,11 @@ if __name__ == '__main__':
 
     print("Generating")
 
-    num_samples = 2 #data_sample * dataset["test"].num_rows // 100
+    num_samples = data_sample * dataset["test"].num_rows // 100
 
     if using_clustering:
         print("#"*10, "Using clustering", "#"*10)
-        embedding_model = SentenceTransformer(model_name)
+        embedding_model = SentenceTransformer(cluster_embedding_model)
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
