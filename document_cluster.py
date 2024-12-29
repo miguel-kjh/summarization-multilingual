@@ -42,7 +42,6 @@ class DocumentClusterer:
         """
         # Split the document into parts
         document_parts: List[str] = [doc.page_content for doc in self.text_splitter.create_documents([document])]
-        print(len(document_parts))
         
         # Generate embeddings for document parts
         document_embeddings = self.embedding_model.encode(document_parts)
