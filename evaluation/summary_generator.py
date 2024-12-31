@@ -57,18 +57,18 @@ class SummaryGenerator:
             self, 
             model, 
             embedding_model: SentenceTransformer,
-            text_splitter: RecursiveCharacterTextSplitter,
+            spacy_model: str,
+            top_k_sents: int,
             dataset: Dataset, 
             num_samples: int=5, 
             max_new_tokens: int=256, 
             temperature: float=0.0001,
-            num_clusters: int=10,
         ) -> list:
 
         document_clusterer = DocumentClusterer(
             embedding_model, 
-            text_splitter, 
-            num_clusters
+            spacy_model, 
+            top_k_sents=top_k_sents,
         )
         summaries = []
         # get a subset of the dataset
@@ -76,28 +76,28 @@ class SummaryGenerator:
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
             instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
             result = document_clusterer.cluster_and_assign(input, output)
-            join_summary = []
-            times = []
-            for (doc_parts, _) in result:
-                text = " ".join(doc_parts)
-                try:
-                    prompt  = generate_prompt(instruction, text)
-                    summary, time = self.summarize(
-                        model, 
-                        prompt, 
-                        max_new_tokens=max_new_tokens, 
-                        temperature=temperature
-                    )
-                    join_summary.append(summary)
-                    times.append(time)
-                except torch.cuda.OutOfMemoryError:
-                    pass
-                torch.cuda.empty_cache()
+            #join_summary = []
+            #times = []
+            #for (doc_parts, _) in result:
+            #    text = " ".join(doc_parts)
+            try:
+                prompt  = generate_prompt(instruction, result)
+                summary, time = self.summarize(
+                    model, 
+                    prompt, 
+                    max_new_tokens=max_new_tokens, 
+                    temperature=temperature
+                )
+                #join_summary.append(summary)
+                #times.append(time)
+            except torch.cuda.OutOfMemoryError:
+                pass
+            torch.cuda.empty_cache()
             summaries.append({
                 'document': input, 
                 'expected_summary': output,
-                'generated_summary': " ".join(join_summary),
+                'generated_summary': summary, #" ".join(join_summary),
                 'language': language,
-                'time': np.mean(times),
+                'time': time, #np.mean(times),
             })
         return summaries

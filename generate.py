@@ -14,9 +14,8 @@ data_sample = 50
 max_new_tokens = 512
 using_clustering = True
 cluster_embedding_model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
-chunk_size = 1000
-chunk_overlap = 100
-num_clusters = 10
+spacy_model = "es_core_news_sm"
+top_k_sents = 1
 
 #main
 if __name__ == '__main__':
@@ -41,20 +40,14 @@ if __name__ == '__main__':
     if using_clustering:
         print("#"*10, "Using clustering", "#"*10)
         embedding_model = SentenceTransformer(cluster_embedding_model)
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            length_function=len, 
-            is_separator_regex=False
-        )
         summaries = summary_generator.generate_summaries_from_cluster(
             model,
             embedding_model,
-            text_splitter,
+            spacy_model,
+            top_k_sents,
             dataset["test"], 
             num_samples=num_samples, 
             max_new_tokens=max_new_tokens, 
-            num_clusters=num_clusters
         )
     else:
         summaries = summary_generator.generate_summaries(
