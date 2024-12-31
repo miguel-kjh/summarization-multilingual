@@ -93,8 +93,6 @@ class DocumentClusterer:
         embeddings = self.embedding_model.encode(sentences)
         inertia_values = []
         silhouette_scores = []
-        #print(min_clusters, max_clusters)
-
         cluster_range = range(min_clusters, max_clusters)
 
         for n_clusters in cluster_range:
@@ -112,10 +110,9 @@ class DocumentClusterer:
             cluster_range, 
             inertia_values, 
             curve="convex", 
-            direction="decreasing"
+            direction="decreasing",
         )
         k_opt = knee_locator.knee
-        #print(f"Optimal number of clusters: {k_opt}")
 
         kmeans = KMeans(n_clusters=k_opt, random_state=SEED)
         clusters = kmeans.fit_predict(embeddings)
