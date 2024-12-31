@@ -14,7 +14,7 @@ data_sample = 50
 max_new_tokens = 512
 using_clustering = True
 cluster_embedding_model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
-spacy_model = "es_core_news_sm"
+spacy_model = "es_dep_news_trf"
 top_k_sents = 1
 
 #main

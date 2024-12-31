@@ -89,9 +89,11 @@ class DocumentClusterer:
     
     def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> str:
         doc = self.nlp(document)
-        embeddings = self.embedding_model.encode(list(doc.sents))
+        sentences = list(sent.text for sent in doc.sents)
+        embeddings = self.embedding_model.encode(sentences)
         inertia_values = []
         silhouette_scores = []
+        #print(min_clusters, max_clusters)
 
         cluster_range = range(min_clusters, max_clusters)
 
@@ -113,7 +115,7 @@ class DocumentClusterer:
             direction="decreasing"
         )
         k_opt = knee_locator.knee
-        print(f"Optimal number of clusters: {k_opt}")
+        #print(f"Optimal number of clusters: {k_opt}")
 
         kmeans = KMeans(n_clusters=k_opt, random_state=SEED)
         clusters = kmeans.fit_predict(embeddings)
