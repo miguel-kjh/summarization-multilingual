@@ -16,7 +16,7 @@ class SummaryGenerator:
         self.tokenizer = tokenizer
 
     def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.0001) -> Tuple[str, float]:
-        inputs = self.tokenizer(text, return_tensors="pt").to(self.device)
+        inputs = self.tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
         inputs_length = len(inputs["input_ids"][0])
         with torch.inference_mode():
             start = time.time()
