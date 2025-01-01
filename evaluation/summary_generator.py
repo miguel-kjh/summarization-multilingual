@@ -90,8 +90,10 @@ class SummaryGenerator:
                 )
                 #join_summary.append(summary)
                 #times.append(time)
-            except torch.cuda.OutOfMemoryError:
-                pass
+            except Exception as e:
+                print(e)
+                torch.cuda.empty_cache()
+                continue
             torch.cuda.empty_cache()
             summaries.append({
                 'document': input, 
