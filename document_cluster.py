@@ -28,7 +28,11 @@ class DocumentClusterer:
             range_clusters (List[int]): List of number of clusters to evaluate.
         """
         self.embedding_model = embedding_model
-        self.nlp = spacy.load(spacy_model)
+        self.nlp = spacy.load(
+            spacy_model,
+            disable=["tagger", "parser", "ner"]
+        )
+        self.nlp.add_pipe('sentencizer')
         self.top_k_sents = top_k_sents
 
         tokenizer = self.embedding_model.tokenizer
