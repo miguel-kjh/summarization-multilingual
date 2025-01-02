@@ -84,7 +84,7 @@ def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=
     k_opt = knee_locator.knee
 
     if k_opt is None:
-        raise ValueError("No 'knee' could be found in the inertia curve.")
+        k_opt = min_clusters
 
     return k_opt
 
