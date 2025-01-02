@@ -75,12 +75,12 @@ class SummaryGenerator:
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
             instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
-            result = document_clusterer.cluster_and_assign(input)
             #join_summary = []
             #times = []
             #for (doc_parts, _) in result:
             #    text = " ".join(doc_parts)
             try:
+                result = document_clusterer.cluster_and_assign(input)   
                 prompt  = generate_prompt(instruction, result)
                 summary, time = self.summarize(
                     model, 
