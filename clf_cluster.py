@@ -13,6 +13,8 @@ class CustomDataset(Dataset):
         with open(dataset_path, 'rb') as f:
             data = pickle.load(f)
         self.samples = torch.tensor(data["sample"], dtype=torch.float32)
+        # normalize the samples
+        self.samples = (self.samples - self.samples.mean()) / self.samples.std()
         self.labels = torch.tensor(data["label"], dtype=torch.long)
 
     def __len__(self):
@@ -70,15 +72,15 @@ class MLPModel(pl.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr)
+        return torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=1e-5)
 
 # Main function
 def main():
     pl.seed_everything(SEED)
     # Paths to datasets
-    dataset_train_path = "data/02-processed/spanish/clusters_clf_train.pkl"
-    dataset_validation_path = "data/02-processed/spanish/clusters_clf_validation.pkl"
-    dataset_test_path = "data/02-processed/spanish/clusters_clf_test.pkl"
+    dataset_train_path = "data/02-processed/spanish/train_cluster.pkl_train.pkl"
+    dataset_validation_path = "data/02-processed/spanish/train_cluster.pkl_validation.pkl"
+    dataset_test_path = "data/02-processed/spanish/train_cluster.pkl_test.pkl"
 
     # Load datasets
     train_dataset = CustomDataset(dataset_train_path)
