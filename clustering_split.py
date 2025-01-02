@@ -22,7 +22,7 @@ dataset_path = "data/02-processed/spanish"
 embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
 model_spacy = 'es_core_news_sm'
 distance_metric = 'cosine'
-name_new_dataset = "data/02-processed/spanish/train_cluster.pkl"
+name_new_dataset = "data/02-processed/spanish/clusters_clf"
 number_samples = 0.01
 top_k_sents = None
 
