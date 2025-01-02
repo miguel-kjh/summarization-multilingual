@@ -118,17 +118,21 @@ def create_dataset(dataset, model, model_spacy):
         text = data['input']
         test = data['output']
 
-        doc = process_text(text, model_spacy)
-        embeddings = generate_embeddings(doc, model)
-        k_opt = find_optimal_clusters(embeddings)
-        kmeans, _ = cluster_sentences(embeddings, k_opt)
-        train_centroids = kmeans.cluster_centers_
+        try:
+            doc = process_text(text, model_spacy)
+            embeddings = generate_embeddings(doc, model)
+            k_opt = find_optimal_clusters(embeddings)
+            kmeans, _ = cluster_sentences(embeddings, k_opt)
+            train_centroids = kmeans.cluster_centers_
 
-        doc_test = process_text(test, model_spacy)
-        embeddings_test = generate_embeddings(doc_test, model)
-        k_opt_test = find_optimal_clusters(embeddings_test)
-        kmeans_test, _ = cluster_sentences(embeddings_test, k_opt_test)
-        test_centroids = kmeans_test.cluster_centers_
+            doc_test = process_text(test, model_spacy)
+            embeddings_test = generate_embeddings(doc_test, model)
+            k_opt_test = find_optimal_clusters(embeddings_test)
+            kmeans_test, _ = cluster_sentences(embeddings_test, k_opt_test)
+            test_centroids = kmeans_test.cluster_centers_
+        except Exception as e:
+            print(f"Error: {e}")
+            continue
 
         distances = cdist(test_centroids, train_centroids, metric=distance_metric)
         closest_clusters = distances.argmin(axis=1)
