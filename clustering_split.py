@@ -12,6 +12,7 @@ from scipy.spatial.distance import cdist
 import pickle
 # not warnings
 import warnings
+from joblib import Parallel, delayed
 warnings.filterwarnings("ignore")
 
 from utils import SEED
@@ -22,7 +23,7 @@ embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base
 model_spacy = 'es_core_news_sm'
 distance_metric = 'cosine'
 name_new_dataset = "data/02-processed/spanish/train_cluster.pkl"
-number_samples = None
+number_samples = 0.01
 top_k_sents = None
 
 def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tuple:
@@ -41,46 +42,49 @@ def generate_embeddings(doc, model):
     embeddings = model.encode(sentences)
     return embeddings
 
-def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=5):
+def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=5, n_jobs=-1):
     """
-    Encuentra el número óptimo de clusters usando el método del codo.
+    Finds the optimal number of clusters using the elbow method, with parallelized computations.
 
     Parameters:
-        embeddings (ndarray): Matriz de embeddings para clustering.
-        seed (int): Semilla para reproducibilidad.
-        max_clusters (int): Máximo número de clusters a considerar.
-        min_clusters (int): Mínimo número de clusters a considerar.
+        embeddings (ndarray): Embedding matrix for clustering.
+        seed (int): Random seed for reproducibility.
+        max_clusters (int): Maximum number of clusters to consider.
+        min_clusters (int): Minimum number of clusters to consider.
+        n_jobs (int): Number of parallel processes (-1 to use all available cores).
 
     Returns:
-        int: Número óptimo de clusters.
+        int: Optimal number of clusters.
     """
     n_samples = embeddings.shape[0]
     cluster_range = range(min_clusters, min(max_clusters, n_samples))
     
     if len(cluster_range) == 0:
-        raise ValueError("El rango de clusters es inválido. Revisa la entrada de datos.")
+        raise ValueError("The cluster range is invalid. Check the input data.")
 
-    # Prealocar la lista para evitar el overhead del append.
-    inertia_values = np.zeros(len(cluster_range))
-
-    # Calcular KMeans para cada número de clusters en paralelo.
-    for i, n_clusters in enumerate(cluster_range):
+    # Auxiliary function for computing inertia
+    def compute_inertia(n_clusters):
         kmeans = KMeans(
             n_clusters=n_clusters, 
             random_state=seed, 
-            n_init="auto",
+            n_init="auto", 
             init="k-means++"
         ).fit(embeddings)
-        inertia_values[i] = kmeans.inertia_
+        return kmeans.inertia_
 
-    # Identificar el codo en la curva de inercia.
+    # Parallelized computation of inertia values for each number of clusters
+    inertia_values = Parallel(n_jobs=n_jobs)(
+        delayed(compute_inertia)(n_clusters) for n_clusters in cluster_range
+    )
+
+    # Identify the elbow in the inertia curve
     knee_locator = KneeLocator(
         cluster_range, inertia_values, curve="convex", direction="decreasing"
     )
     k_opt = knee_locator.knee
 
     if k_opt is None:
-        raise ValueError("No se pudo encontrar un 'knee' en la curva de inercia.")
+        raise ValueError("No 'knee' could be found in the inertia curve.")
 
     return k_opt
 
