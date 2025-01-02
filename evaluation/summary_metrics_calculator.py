@@ -31,7 +31,7 @@ class SummaryMetricsCalculator:
         bertscore_raw = self.bertscore.compute(
             predictions=generated_summaries,
             references=reference_summaries,
-            lang=lang
+            lang=lang #TODO: may need to change this
         )
 
         # Calculate average precision, recall, and F1 using numpy
