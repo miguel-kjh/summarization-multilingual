@@ -16,7 +16,7 @@ class CustomDataset(Dataset):
             data = pickle.load(f)
         self.samples = torch.tensor(data["sample"], dtype=torch.float32)
         # normalize the samples
-        self.samples = (self.samples - self.samples.mean()) / self.samples.std()
+        #self.samples = (self.samples - self.samples.mean()) / self.samples.std()
         self.labels = torch.tensor(data["label"], dtype=torch.long)
 
     def __len__(self):
@@ -33,8 +33,10 @@ class MLPModel(pl.LightningModule):
         self.model = nn.Sequential(
             nn.Linear(input_size, 128),
             nn.ReLU(),
+            nn.BatchNorm1d(128),
             nn.Linear(128, 64),
             nn.ReLU(),
+            nn.BatchNorm1d(64),
             nn.Linear(64, 1),
             nn.Sigmoid()
         )
@@ -91,9 +93,9 @@ class MLPModel(pl.LightningModule):
 def main():
     pl.seed_everything(SEED)
     # Paths to datasets
-    dataset_train_path = "data/02-processed/spanish/clusters_clf_test.pkl"
-    dataset_validation_path = "data/02-processed/spanish/clusters_clf_train.pkl"
-    dataset_test_path = "data/02-processed/spanish/clusters_clf_validation.pkl"
+    dataset_train_path = "data/02-processed/spanish/train_cluster.pkl_train.pkl"
+    dataset_validation_path = "data/02-processed/spanish/train_cluster.pkl_validation.pkl"
+    dataset_test_path = "data/02-processed/spanish/train_cluster.pkl_test.pkl"
 
     # Load datasets
     train_dataset = CustomDataset(dataset_train_path)
@@ -101,9 +103,9 @@ def main():
     test_dataset = CustomDataset(dataset_test_path)
 
     # Dataloaders
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=31)
-    val_loader = DataLoader(val_dataset, batch_size=32, num_workers=31)
-    test_loader = DataLoader(test_dataset, batch_size=32, num_workers=31)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=10)
+    val_loader = DataLoader(val_dataset, batch_size=32, num_workers=10)
+    test_loader = DataLoader(test_dataset, batch_size=32, num_workers=10)
 
     # Get input size from dataset
     input_size = train_dataset.samples.shape[1]
