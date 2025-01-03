@@ -13,6 +13,7 @@ import pickle
 # not warnings
 import warnings
 from joblib import Parallel, delayed
+from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore")
 
 from utils import SEED
@@ -22,8 +23,8 @@ dataset_path = "data/02-processed/spanish"
 embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
 model_spacy = 'es_core_news_sm'
 distance_metric = 'cosine'
-name_new_dataset = "data/02-processed/spanish/train_cluster.pkl"
-number_samples = None
+name_new_dataset = "data/02-processed/spanish/cluster"
+number_samples = 0.02
 top_k_sents = None
 
 def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tuple:
@@ -40,6 +41,7 @@ def process_text(text, model_spacy):
 def generate_embeddings(doc, model):
     sentences  = list(sent.text for sent in doc.sents)
     embeddings = model.encode(sentences)
+    embeddings = StandardScaler().fit_transform(embeddings)
     return embeddings
 
 def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=5, n_jobs=-1):
