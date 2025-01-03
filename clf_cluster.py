@@ -5,6 +5,8 @@ import torch.nn as nn
 import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
+from sklearn.metrics import f1_score, roc_auc_score
+
 from utils import SEED
 
 # Custom Dataset class
@@ -46,9 +48,12 @@ class MLPModel(pl.LightningModule):
         y = y.float()
         preds = self(x)
         loss = self.criterion(preds, y)
-        accuracy = ((preds > 0.5) == y).float().mean()
+        preds_binary = (preds > 0.5).float()
+        accuracy = (preds_binary == y).float().mean()
+        f1 = f1_score(y.cpu(), preds_binary.cpu(), zero_division=1)
         self.log("train_loss", loss, prog_bar=True)
         self.log("train_accuracy", accuracy, prog_bar=True)
+        self.log("train_f1", f1, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -56,9 +61,12 @@ class MLPModel(pl.LightningModule):
         y = y.float()
         preds = self(x)
         loss = self.criterion(preds, y)
-        accuracy = ((preds > 0.5) == y).float().mean()
+        preds_binary = (preds > 0.5).float()
+        accuracy = (preds_binary == y).float().mean()
+        f1 = f1_score(y.cpu(), preds_binary.cpu(), zero_division=1)
         self.log("val_loss", loss, prog_bar=True)
         self.log("val_accuracy", accuracy, prog_bar=True)
+        self.log("val_f1", f1, prog_bar=True)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -66,21 +74,26 @@ class MLPModel(pl.LightningModule):
         y = y.float()
         preds = self(x)
         loss = self.criterion(preds, y)
-        accuracy = ((preds > 0.5) == y).float().mean()
+        preds_binary = (preds > 0.5).float()
+        accuracy = (preds_binary == y).float().mean()
+        f1 = f1_score(y.cpu(), preds_binary.cpu(), zero_division=1)
         self.log("test_loss", loss, prog_bar=True)
         self.log("test_accuracy", accuracy, prog_bar=True)
+        self.log("test_f1", f1, prog_bar=True)
         return loss
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=1e-5)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=1e-3)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10)
+        return [optimizer], [scheduler]
 
 # Main function
 def main():
     pl.seed_everything(SEED)
     # Paths to datasets
-    dataset_train_path = "data/02-processed/spanish/train_cluster.pkl_train.pkl"
-    dataset_validation_path = "data/02-processed/spanish/train_cluster.pkl_validation.pkl"
-    dataset_test_path = "data/02-processed/spanish/train_cluster.pkl_test.pkl"
+    dataset_train_path = "data/02-processed/spanish/clusters_clf_test.pkl"
+    dataset_validation_path = "data/02-processed/spanish/clusters_clf_train.pkl"
+    dataset_test_path = "data/02-processed/spanish/clusters_clf_validation.pkl"
 
     # Load datasets
     train_dataset = CustomDataset(dataset_train_path)
