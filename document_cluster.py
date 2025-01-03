@@ -11,6 +11,7 @@ import networkx as nx
 from kneed import KneeLocator
 
 from utils import SEED
+from clustering_split import generate_embeddings, find_optimal_clusters, cluster_sentences
 
 class DocumentClusterer:
     def __init__(
@@ -93,33 +94,10 @@ class DocumentClusterer:
     
     def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> str:
         doc = self.nlp(document)
-        sentences = list(sent.text for sent in doc.sents)
-        embeddings = self.embedding_model.encode(sentences)
-        inertia_values = []
-        silhouette_scores = []
-        cluster_range = range(min_clusters, max_clusters)
+        embeddings = generate_embeddings(doc, self.embedding_model)
+        k_opt = find_optimal_clusters(embeddings, min_clusters=min_clusters, max_clusters=max_clusters)
 
-        for n_clusters in cluster_range:
-            if n_clusters == 1:
-                kmeans = KMeans(n_clusters=n_clusters, random_state=SEED).fit(embeddings)
-                inertia_values.append(kmeans.inertia_)
-                silhouette_scores.append(None)
-            else:
-                kmeans = KMeans(n_clusters=n_clusters, random_state=SEED).fit(embeddings)
-                inertia_values.append(kmeans.inertia_)
-                silhouette_avg = silhouette_score(embeddings, kmeans.labels_)
-                silhouette_scores.append(silhouette_avg)
-
-        knee_locator = KneeLocator(
-            cluster_range, 
-            inertia_values, 
-            curve="convex", 
-            direction="decreasing",
-        )
-        k_opt = knee_locator.knee
-
-        kmeans = KMeans(n_clusters=k_opt, random_state=SEED)
-        clusters = kmeans.fit_predict(embeddings)
+        _, clusters = cluster_sentences(embeddings, k_opt)
 
         cluster_phrases = {i: [] for i in range(k_opt)}
         cluster_embeddings = {i: [] for i in range(k_opt)}
@@ -176,7 +154,7 @@ if __name__ == '__main__':
     # Initialize the embedding model and text splitter
     embedding_model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-mpnet-base-v2')
     model_spacy     = 'es_core_news_sm'
-    top_k_sents     = 1
+    top_k_sents     = 3
 
     # Create the DocumentClusterer instance
     clusterer = DocumentClusterer(embedding_model, model_spacy, top_k_sents=top_k_sents)
@@ -184,7 +162,7 @@ if __name__ == '__main__':
     from datasets import load_from_disk
 
     dataset = load_from_disk("data/02-processed/spanish")
-    document = dataset["test"]['input'][2]
+    document = dataset["test"]['input'][10]
 
     # Perform clustering and assignment
     result = clusterer.cluster_and_assign(document)
