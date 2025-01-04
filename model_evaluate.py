@@ -67,7 +67,7 @@ def main(model, enable_wandb, verbose=True):
         results = calculator.calculate_metrics(
             reference_summaries=dataset["expected_summary"],
             generated_summaries=dataset["generated_summary"],
-            lang=lang
+            lang="es"
         )
 
         # Display results
