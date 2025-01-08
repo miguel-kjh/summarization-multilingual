@@ -1,10 +1,10 @@
 import numpy as np
-from sklearn.cluster import Birch, KMeans
+from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from typing import List, Tuple, Dict
+from typing import Any, List, Tuple, Dict
 from scipy.spatial.distance import cosine
 import spacy
 import networkx as nx
@@ -13,12 +13,13 @@ from kneed import KneeLocator
 from utils import SEED
 from clustering_split import generate_embeddings, find_optimal_clusters, cluster_sentences
 
+
 class DocumentClusterer:
+
     def __init__(
             self, 
             embedding_model: SentenceTransformer, 
             spacy_model: str,
-            top_k_sents: int = 3
         ):
         """
         Initialize the class with the embedding model, text splitter, and number of clusters.
@@ -26,7 +27,6 @@ class DocumentClusterer:
         Args:
             embedding_model (SentenceTransformer): Pretrained embedding model.
             spacy_model (str): Spacy model to use for tokenization sents.
-            range_clusters (List[int]): List of number of clusters to evaluate.
         """
         self.embedding_model = embedding_model
         self.nlp = spacy.load(
@@ -34,7 +34,6 @@ class DocumentClusterer:
             disable=["tagger", "parser", "ner"]
         )
         self.nlp.add_pipe('sentencizer')
-        self.top_k_sents = top_k_sents
 
         tokenizer = self.embedding_model.tokenizer
 
@@ -45,54 +44,83 @@ class DocumentClusterer:
                 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
                 self.embedding_model.resize_token_embeddings(len(tokenizer))
 
-    """def cluster_and_assign(self, document: str, summary: str) -> str:
+
+    def cluster_and_assign(self, document: str) -> List[str]:
+        raise NotImplementedError("Method 'cluster_and_assign' must be implemented in a subclass.")
+    
+
+class DocumentClustererKMeans(DocumentClusterer):
+
+    def __init__(
+            self,
+            embedding_model: SentenceTransformer,
+            spacy_model: str,
+            clf: Any,
+        ):
+        """
+        Initialize the class with the embedding model, text splitter, and number of clusters.
+        """
+        super().__init__(embedding_model, spacy_model)
+        self.clf = clf
+
+    
+    def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> List[str]:
         
-        Processes the document and summary to cluster document parts and assign summary parts to clusters.
+        """Processes the document and summary to cluster document parts and assign summary parts to clusters.
         
         Args:
             document (str): The full text of the document to be clustered.
-            summary (str): The summary text to be assigned to clusters.
         
         Returns:
-            List[Tuple[List[str], List[str]]]: A list of tuples where:
-                - The first element is a list of document parts in the cluster.
-                - The second element is a list of summary parts assigned to the cluster.
-        # Split the document into parts
-        document_parts: List[str] = [doc.page_content for doc in self.text_splitter.create_documents([document])]
+            List[str]: A list of strings, each representing a cluster of the document.
+        """
         
-        # Generate embeddings for document parts
-        document_embeddings = self.embedding_model.encode(document_parts)
+        doc = self.nlp(document)
+        embeddings = generate_embeddings(doc, self.embedding_model)
+        k_opt = find_optimal_clusters(embeddings, min_clusters=min_clusters, max_clusters=max_clusters)
 
-        # Perform clustering using Birch
-        clusterer = Birch(n_clusters=self.num_clusters)
-        document_clusters: List[int] = clusterer.fit_predict(document_embeddings)
+        kmeans, clusters = cluster_sentences(embeddings, k_opt)
+        # get centroids
+        centroids = kmeans.cluster_centers_
 
-        # Split the summary into parts
-        summary_parts: List[str] = [sum.page_content for sum in self.text_splitter.create_documents([summary])]
+        # clf the centroids
+        preds = self.clf.predict(centroids)
+        useful_clusters = [i for i in range(len(preds)) if preds[i] == 1]
 
-        # Generate embeddings for summary parts
-        summary_embeddings = self.embedding_model.encode(summary_parts)
+        cluster_phrases = {i: [] for i in range(k_opt)}
 
-        # Assign each summary part to the closest document cluster
-        cluster_to_summaries: Dict[int, List[str]] = {}
-        for i, summary_embedding in enumerate(summary_embeddings):
-            similarities = cosine_similarity(summary_embedding.reshape(1, -1), document_embeddings)
-            closest_cluster = document_clusters[similarities.argmax()]
-            if closest_cluster not in cluster_to_summaries:
-                cluster_to_summaries[closest_cluster] = []
-            cluster_to_summaries[closest_cluster].append(summary_parts[i])
+        for sentence, cluster_id in zip(list(doc.sents), clusters):
+            if cluster_id in useful_clusters:
+                cluster_phrases[cluster_id].append(sentence)
 
-        # Build the result: clusters with both document and summary parts
-        result: List[Tuple[List[str], List[str]]] = []
-        for cluster_id in set(document_clusters):
-            if cluster_id in cluster_to_summaries:
-                cluster_documents = [document_parts[i] for i, cluster in enumerate(document_clusters) if cluster == cluster_id]
-                cluster_summaries = cluster_to_summaries[cluster_id]
-                result.append((cluster_documents, cluster_summaries))
-        
-        return result"""
+        # reordena las frases en base a la posición original en cada key
+        for cluster_id in cluster_phrases.keys():
+            cluster_phrases[cluster_id] = sorted(
+                cluster_phrases[cluster_id], 
+                key=lambda x: list(doc.sents).index(x)
+            )
+
+        # tener una lista con las frases pertenecientes a los clusters útiles
+        results = [
+            " ".join([str(phrase) for phrase in phrases])
+            for phrases in cluster_phrases.values() if len(phrases) > 0
+        ]
+
+        return results
+
+
+class DocumentClustererTopKSentences(DocumentClusterer):
+
+    def __init__(
+            self,
+            embedding_model: SentenceTransformer,
+            spacy_model: str,
+            top_k_sents: int = 3,
+        ):
+        super().__init__(embedding_model, spacy_model)
+        self.top_k_sents = top_k_sents
     
-    def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> str:
+    def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> List[str]:
         doc = self.nlp(document)
         embeddings = generate_embeddings(doc, self.embedding_model)
         k_opt = find_optimal_clusters(embeddings, min_clusters=min_clusters, max_clusters=max_clusters)
@@ -139,7 +167,7 @@ class DocumentClusterer:
             all_significant_phrases, key=lambda x: list(doc.sents).index(x)
         )
 
-        return " ".join([str(phrase) for phrase in ordered_phrases])
+        return [" ".join([str(phrase) for phrase in ordered_phrases])]
 
 
 
@@ -148,6 +176,8 @@ if __name__ == '__main__':
 
     # delete warnings
     import warnings
+    import joblib
+
     warnings.filterwarnings("ignore")
 
     
@@ -157,7 +187,12 @@ if __name__ == '__main__':
     top_k_sents     = 3
 
     # Create the DocumentClusterer instance
-    clusterer = DocumentClusterer(embedding_model, model_spacy, top_k_sents=top_k_sents)
+    #clusterer = DocumentClustererTopKSentences(embedding_model, model_spacy, top_k_sents=top_k_sents)
+    # load the model
+    file = "models/RandomForest_best_model.pkl"
+    loaded_model = joblib.load(file)
+    print(loaded_model)
+    clusterer = DocumentClustererKMeans(embedding_model, model_spacy, loaded_model)
     # Example document and summary
     from datasets import load_from_disk
 
@@ -169,6 +204,7 @@ if __name__ == '__main__':
 
     #calcular la reducción
     print(f"Original: {len(document)} caracteres")
-    print(f"Compacto: {len(result)} caracteres")
-    print(f"Reducción: {1 - len(result) / len(document):.2%}")
+    for i, cluster in enumerate(result):
+        print(f"Cluster {i}: {len(cluster)} caracteres")
+        print(f"Reducción: {1 - len(cluster) / len(document):.2%}")
 

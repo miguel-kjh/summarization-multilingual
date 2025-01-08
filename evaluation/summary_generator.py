@@ -56,40 +56,32 @@ class SummaryGenerator:
     def generate_summaries_from_cluster(
             self, 
             model, 
-            embedding_model: SentenceTransformer,
-            spacy_model: str,
-            top_k_sents: int,
+            document_clusterer: DocumentClusterer,
             dataset: Dataset, 
             num_samples: int=5, 
             max_new_tokens: int=256, 
             temperature: float=0.0001,
         ) -> list:
 
-        document_clusterer = DocumentClusterer(
-            embedding_model, 
-            spacy_model, 
-            top_k_sents=top_k_sents,
-        )
         summaries = []
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
             instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
-            #join_summary = []
-            #times = []
-            #for (doc_parts, _) in result:
-            #    text = " ".join(doc_parts)
             try:
-                result = document_clusterer.cluster_and_assign(input)   
-                prompt  = generate_prompt(instruction, result)
-                summary, time = self.summarize(
-                    model, 
-                    prompt, 
-                    max_new_tokens=max_new_tokens, 
-                    temperature=temperature
-                )
-                #join_summary.append(summary)
-                #times.append(time)
+                join_summary = []
+                times = []
+                result = document_clusterer.cluster_and_assign(input) 
+                for doc_parts in result:
+                    prompt  = generate_prompt(instruction, doc_parts)
+                    summary, time = self.summarize(
+                        model, 
+                        prompt, 
+                        max_new_tokens=max_new_tokens, 
+                        temperature=temperature
+                    )
+                    join_summary.append(summary)
+                    times.append(time)
             except Exception as e:
                 print(e)
                 torch.cuda.empty_cache()
@@ -98,8 +90,8 @@ class SummaryGenerator:
             summaries.append({
                 'document': input, 
                 'expected_summary': output,
-                'generated_summary': summary, #" ".join(join_summary),
+                'generated_summary': (" ".join(join_summary)).strip(),
                 'language': language,
-                'time': time, #np.mean(times),
+                'time': np.mean(times),
             })
         return summaries
