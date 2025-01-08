@@ -34,7 +34,7 @@ LANGUAGES = ['portuguese', 'spanish', 'english', 'german', 'italian']
 """
 
 # Default filenames
-DATASET_FILENAME = "test_summary.xlsx"
+DATASET_FILENAME = "test_summary_clf.xlsx"
 RESULTS_FILENAME = "result_metrics.json"
 
 SEED = 3407
