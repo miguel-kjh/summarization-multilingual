@@ -42,7 +42,7 @@ def log_metrics_to_wandb(metrics: dict):
         wandb.log({f"{lang}/bertscore": metrics["bertscore"]})
     wandb.finish()
 
-def main(model, enable_wandb, verbose=True):
+def main(model, enable_wandb, verbose=True, method="normal"):
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
 
@@ -56,7 +56,9 @@ def main(model, enable_wandb, verbose=True):
         )
 
     # Load the dataset
-    dataset = load_dataset(model, DATASET_FILENAME)
+    name_dataset = f"{DATASET_FILENAME}_{method}.xlsx"
+    print(name_dataset)
+    dataset = load_dataset(model, name_dataset)
 
     # split for language
     dataset_gropby_lang = dataset.groupby("language")
@@ -65,9 +67,8 @@ def main(model, enable_wandb, verbose=True):
     for lang, dataset in dataset_gropby_lang:
         metrics[lang] = {}
         results = calculator.calculate_metrics(
-            reference_summaries=dataset["expected_summary"],
-            generated_summaries=dataset["generated_summary"],
-            lang="es"
+            reference_summaries=dataset["expected_summary"].to_list(),
+            generated_summaries=dataset["generated_summary"].to_list(),
         )
 
         # Display results
@@ -107,6 +108,13 @@ if __name__ == "__main__":
         default=True,
         help="Enable verbose output. Set to True to enable."
     )
+    parser.add_argument(
+        "--method",
+        type=str,
+        default="normal",
+        help="Method to use for generating summaries. Options: normal, topk, clf."
+    )
 
     args = parser.parse_args()
-    main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose)
+    assert args.method in ["normal", "topk", "clf"], f"Invalid method: {args.method}"
+    main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose, method=args.method)

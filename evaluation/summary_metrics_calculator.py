@@ -1,17 +1,15 @@
 import numpy as np
 from evaluate import load
+from bert_score import BERTScorer
 from typing import List
 
 class SummaryMetricsCalculator:
     def __init__(self):
-        """
-        Initializes the class with the specified language for BERTScore.
-        :param lang: Language to use for BERTScore. Example: 'en', 'es'.
-        """
+        
         self.rouge = load("rouge")
-        self.bertscore = load("bertscore")
+        self.bertscore = BERTScorer(model_type='bert-base-multilingual-cased')
 
-    def calculate_metrics(self, reference_summaries: List[str], generated_summaries: List[str], lang: str="en"):
+    def calculate_metrics(self, reference_summaries: List[str], generated_summaries: List[str]):
         """
         Calculates ROUGE and BERTScore metrics for the given lists of summaries.
         :param reference_summaries: List of reference summaries.
@@ -28,17 +26,13 @@ class SummaryMetricsCalculator:
         )
         
         # Calculate BERTScore metrics
-        bertscore_raw = self.bertscore.compute(
-            predictions=generated_summaries,
-            references=reference_summaries,
-            lang=lang #TODO: may need to change this
-        )
+        P, R, F1 = self.bertscore.score(generated_summaries, reference_summaries)
 
         # Calculate average precision, recall, and F1 using numpy
         bertscore_results = {
-            "bertscore_precision": np.mean(bertscore_raw["precision"]),
-            "bertscore_recall": np.mean(bertscore_raw["recall"]),
-            "bertscore_f1": np.mean(bertscore_raw["f1"]),
+            "bertscore_precision": P.mean().item(),
+            "bertscore_recall": R.mean().item(),
+            "bertscore_f1": F1.mean().item(),
         }
 
         # Return results
@@ -57,7 +51,7 @@ if __name__ == "__main__":
     ]
 
     calculator = SummaryMetricsCalculator()
-    results = calculator.calculate_metrics(reference_summaries, generated_summaries, lang="en")
+    results = calculator.calculate_metrics(reference_summaries, generated_summaries)
     print("ROUGE Results:", results["rouge"])
     print("BERTScore Results:", results["bertscore"])
 
