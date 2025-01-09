@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
-from datasets import load_from_disk
+from datasets import load_from_disk, Dataset
 from kneed import KneeLocator
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import spacy
@@ -38,11 +38,28 @@ def process_text(text, model_spacy):
     doc = nlp(text)
     return doc
 
-def generate_embeddings(doc, model):
+def generate_embeddings(doc, model, get_sentences=False):
     sentences  = list(sent.text for sent in doc.sents)
     embeddings = model.encode(sentences)
     embeddings = StandardScaler().fit_transform(embeddings)
-    return embeddings
+    return embeddings if not get_sentences else embeddings, sentences
+
+def build_semantic_paragraph(sentences, clusters, useful_clusters, k_opt) -> dict:
+    cluster_phrases = {i: [] for i in range(k_opt)}
+
+    for sentence, cluster_id in zip(sentences, clusters):
+        if cluster_id in useful_clusters:
+            cluster_phrases[cluster_id].append(sentence)
+
+    # reordena las frases en base a la posición original en cada key
+    for cluster_id in cluster_phrases.keys():
+        cluster_phrases[cluster_id] = " ".join(sorted(
+            cluster_phrases[cluster_id], 
+            key=lambda x: sentences.index(x)
+        ))
+    
+    return cluster_phrases
+
 
 def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=5, n_jobs=-1):
     """
@@ -111,30 +128,42 @@ def compact_text_representation(doc, significant_phrases, tokenizer, original_te
     print(f"Compacto: {compact_representation_len} caracteres")
     print(f"Reducción: {1 - compact_representation_len / original_text_len:.2%}")
 
+# TODO: Do this
 def create_dataset(dataset, model, model_spacy):
-    new_dataset = {
+    embeddings_dataset = {
         "sample": [],
         "label": [],
     }
+    column_of_dataset = ['instruction', 'input', 'output', 'text', 'language']
+    new_dataset = Dataset.from_dict(
+        {
+            "instruction": [],
+            "input": [],
+            "output": [],
+            "text": [],
+            "language": [],
+        }
+    )
     for data in tqdm(dataset, desc="Creating dataset"):
         text = data['input']
         test = data['output']
 
         try:
             doc = process_text(text, model_spacy)
-            embeddings = generate_embeddings(doc, model)
+            embeddings, setences = generate_embeddings(doc, model, get_sentences=True)
             k_opt = find_optimal_clusters(embeddings)
-            kmeans, _ = cluster_sentences(embeddings, k_opt)
+            kmeans, cluster_train = cluster_sentences(embeddings, k_opt)
             train_centroids = kmeans.cluster_centers_
 
             doc_test = process_text(test, model_spacy)
-            embeddings_test = generate_embeddings(doc_test, model)
+            embeddings_test, setences_test = generate_embeddings(doc_test, model)
             k_opt_test = find_optimal_clusters(embeddings_test)
-            kmeans_test, _ = cluster_sentences(embeddings_test, k_opt_test)
+            kmeans_test, cluster_test = cluster_sentences(embeddings_test, k_opt_test)
             test_centroids = kmeans_test.cluster_centers_
         except Exception as e:
             print(f"Error: {e}")
             continue
+
 
         distances = cdist(test_centroids, train_centroids, metric=distance_metric)
         closest_clusters = distances.argmin(axis=1)
@@ -148,10 +177,12 @@ def create_dataset(dataset, model, model_spacy):
 
         y = [1 if len(dict_clusters[i]) > 0 else 0 for i in range(k_opt)]
 
-        new_dataset["sample"] += train_centroids.tolist()
-        new_dataset["label"]  += y
+        embeddings_dataset["sample"] += train_centroids.tolist()
+        embeddings_dataset["label"]  += y
 
-    return new_dataset
+
+
+    return embeddings_dataset
 
 def save_dataset(new_dataset, name_new_dataset):
     with open(name_new_dataset, "wb") as f:
@@ -169,7 +200,7 @@ def main():
 
     train_dataset = get_sample(dataset["train"], number_samples)
     train_dataset_cluster = create_dataset(train_dataset, model, model_spacy)
-    save_dataset(train_dataset_cluster, f"{name_new_dataset}_train.pkl")
+    """save_dataset(train_dataset_cluster, f"{name_new_dataset}_train.pkl")
 
     validation_dataset = get_sample(dataset["validation"], number_samples)
     validation_dataset_cluster = create_dataset(validation_dataset, model, model_spacy)
@@ -177,7 +208,7 @@ def main():
 
     test_dataset = get_sample(dataset["test"], number_samples)
     test_dataset_cluster = create_dataset(test_dataset, model, model_spacy)
-    save_dataset(test_dataset_cluster, f"{name_new_dataset}_test.pkl")
+    save_dataset(test_dataset_cluster, f"{name_new_dataset}_test.pkl")"""
     
 
 
