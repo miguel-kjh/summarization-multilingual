@@ -1,25 +1,26 @@
 #!/bin/bash
 
 # model architecture
-model_name="BSC-LT/salamandra-7b"
+model_name="EleutherAI/pythia-14m"
 # peft and quantization
 lora=True
 quantization=True
 lora_r=4
 lora_alpha=8
 lora_dropout=0.05
-lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+#lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
+lora_target_modules="query_key_value,dense,dense_h_to_4h,dense_4h_to_h"
 
 # hyperparameters
 batch_size=2
 learning_rate=1e-4
 num_train_epochs=10
 weight_decay=0.
-context_length=256
+context_length=1024
 
 # data
-dataset_name="data/02-processed/spanish"
-wandb=True
+dataset_name="data/03-combined/spanish_sentences_clustering"
+wandb=False
 # run
 python finetuning.py \
     --model_name_or_path $model_name \

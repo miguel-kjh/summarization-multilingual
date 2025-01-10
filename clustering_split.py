@@ -1,6 +1,6 @@
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
-from datasets import load_from_disk, Dataset
+from datasets import load_from_disk, Dataset, DatasetDict
 from kneed import KneeLocator
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import spacy
@@ -16,15 +16,19 @@ from joblib import Parallel, delayed
 from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore")
 
-from utils import SEED
+
+from utils import SEED, generate_training_prompt
+
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 dataset_path = "data/02-processed/spanish"
 embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
 model_spacy = 'es_core_news_sm'
 distance_metric = 'cosine'
-name_new_dataset = "data/02-processed/spanish/cluster"
-number_samples = None
+name_new_dataset = "data/03-combined/spanish_sentences_clustering"
+percentage_of_data = 0.01
 top_k_sents = None
 
 def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tuple:
@@ -135,15 +139,13 @@ def create_dataset(dataset, model, model_spacy):
         "label": [],
     }
     column_of_dataset = ['instruction', 'input', 'output', 'text', 'language']
-    new_dataset = Dataset.from_dict(
-        {
+    new_dataset = {
             "instruction": [],
             "input": [],
             "output": [],
             "text": [],
             "language": [],
         }
-    )
     for data in tqdm(dataset, desc="Creating dataset"):
         text = data['input']
         test = data['output']
@@ -154,6 +156,7 @@ def create_dataset(dataset, model, model_spacy):
             k_opt = find_optimal_clusters(embeddings)
             kmeans, cluster_train = cluster_sentences(embeddings, k_opt)
             train_centroids = kmeans.cluster_centers_
+
 
             doc_test = process_text(test, model_spacy)
             embeddings_test, setences_test = generate_embeddings(doc_test, model)
@@ -180,9 +183,27 @@ def create_dataset(dataset, model, model_spacy):
         embeddings_dataset["sample"] += train_centroids.tolist()
         embeddings_dataset["label"]  += y
 
+        # get the list of index of train centroids that the label is 1
+        index_train = [i for i, label in enumerate(y) if label == 1]
+        
+        train_paragraphs = build_semantic_paragraph(setences, cluster_train, index_train, k_opt)
+        test_paragraphs = build_semantic_paragraph(setences_test, cluster_test, range(k_opt_test), k_opt_test)
 
+        # link the paragraphs
+        for index in index_train:
+            list_index_summary = dict_clusters[index]
+            summary = " ".join([test_paragraphs[i] for i in list_index_summary])
 
-    return embeddings_dataset
+            new_dataset["instruction"].append(data["instruction"])
+            new_dataset["input"].append(train_paragraphs[index])
+            new_dataset["output"].append(summary)
+            text = generate_training_prompt(data["instruction"], train_paragraphs[index], summary)
+            new_dataset["text"].append(text)
+            new_dataset["language"].append(data["language"])
+    
+    new_dataset = Dataset.from_dict(new_dataset)
+
+    return embeddings_dataset, new_dataset
 
 def save_dataset(new_dataset, name_new_dataset):
     with open(name_new_dataset, "wb") as f:
@@ -198,17 +219,26 @@ def main():
 
     dataset, model = load_dataset_and_model(dataset_path, embedding_model_path)
 
-    train_dataset = get_sample(dataset["train"], number_samples)
-    train_dataset_cluster = create_dataset(train_dataset, model, model_spacy)
-    """save_dataset(train_dataset_cluster, f"{name_new_dataset}_train.pkl")
+    train_dataset = get_sample(dataset["train"], percentage_of_data)
+    train_dataset_cluster, new_train_dataset = create_dataset(train_dataset, model, model_spacy)
 
-    validation_dataset = get_sample(dataset["validation"], number_samples)
-    validation_dataset_cluster = create_dataset(validation_dataset, model, model_spacy)
-    save_dataset(validation_dataset_cluster, f"{name_new_dataset}_validation.pkl")
+    validation_dataset = get_sample(dataset["validation"], percentage_of_data)
+    validation_dataset_cluster, new_validation_dataset = create_dataset(validation_dataset, model, model_spacy)
 
-    test_dataset = get_sample(dataset["test"], number_samples)
-    test_dataset_cluster = create_dataset(test_dataset, model, model_spacy)
-    save_dataset(test_dataset_cluster, f"{name_new_dataset}_test.pkl")"""
+    test_dataset = get_sample(dataset["test"], percentage_of_data)
+    test_dataset_cluster, new_test_dataset = create_dataset(test_dataset, model, model_spacy)
+
+    new_dataset = DatasetDict({
+        "train": new_train_dataset,
+        "validation": new_validation_dataset,
+        "test": new_test_dataset
+    }) 
+
+    new_dataset.save_to_disk(name_new_dataset)
+    save_dataset(train_dataset_cluster, f"{name_new_dataset}/clustring_embedding_train.pkl")
+    save_dataset(validation_dataset_cluster, f"{name_new_dataset}/clustring_embedding_validation.pkl")
+    save_dataset(test_dataset_cluster, f"{name_new_dataset}/clustring_embedding_test.pkl")
+    
     
 
 
