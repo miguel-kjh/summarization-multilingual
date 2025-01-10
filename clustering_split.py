@@ -138,7 +138,6 @@ def create_dataset(dataset, model, model_spacy):
         "sample": [],
         "label": [],
     }
-    column_of_dataset = ['instruction', 'input', 'output', 'text', 'language']
     new_dataset = {
             "instruction": [],
             "input": [],

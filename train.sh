@@ -5,21 +5,21 @@ model_name="meta-llama/Llama-3.2-1B"
 # peft and quantization
 lora=True
 quantization=True
-lora_r=4
-lora_alpha=8
+lora_r=8
+lora_alpha=16
 lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
 batch_size=2
 learning_rate=1e-4
-num_train_epochs=10
+num_train_epochs=1
 weight_decay=0.
-context_length=2048
+context_length=1024
 
 # data
 dataset_name="data/03-combined/spanish_sentences_clustering"
-wandb=False
+wandb=True
 # run
 python finetuning.py \
     --model_name_or_path $model_name \
