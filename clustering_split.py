@@ -28,7 +28,7 @@ embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base
 model_spacy = 'es_core_news_sm'
 distance_metric = 'cosine'
 name_new_dataset = "data/03-combined/spanish_sentences_clustering"
-percentage_of_data = 0.01
+percentage_of_data = None
 top_k_sents = None
 
 def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tuple:
