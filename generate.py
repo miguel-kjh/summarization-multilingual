@@ -11,7 +11,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from document_cluster import DocumentClustererKMeans, DocumentClustererTopKSentences
 
-model_name = "models/Llama-3.2-1B-spanish-e10-b4-lr0.0001-wd0.0-c512-r8-a16-d0.05-quant-2024-12-12-13-19-24"
+model_name = "models/Llama-3.2-1B-spanish_sentences_clustering-e1-b2-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-10-17-39-44"
 dataset = "data/02-processed/spanish"
 data_sample = 50
 max_new_tokens = 512

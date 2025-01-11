@@ -76,7 +76,7 @@ class DocumentClustererKMeans(DocumentClusterer):
         """
         
         doc = self.nlp(document)
-        embeddings = generate_embeddings(doc, self.embedding_model)
+        embeddings, _ = generate_embeddings(doc, self.embedding_model)
         k_opt = find_optimal_clusters(embeddings, min_clusters=min_clusters, max_clusters=max_clusters)
 
         kmeans, clusters = cluster_sentences(embeddings, k_opt)
@@ -122,7 +122,7 @@ class DocumentClustererTopKSentences(DocumentClusterer):
     
     def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> List[str]:
         doc = self.nlp(document)
-        embeddings = generate_embeddings(doc, self.embedding_model)
+        embeddings, _ = generate_embeddings(doc, self.embedding_model)
         k_opt = find_optimal_clusters(embeddings, min_clusters=min_clusters, max_clusters=max_clusters)
 
         _, clusters = cluster_sentences(embeddings, k_opt)
