@@ -2,8 +2,8 @@ import os
 import re
 from openai import OpenAI
 
-class DocumentSummaryEvaluator:
-    def __init__(self, api_key, prompt_files):
+class DocumentSummaryOpenAiEvaluator:
+    def __init__(self, api_key):
         """
         Initialize the evaluator.
 
@@ -14,7 +14,12 @@ class DocumentSummaryEvaluator:
         self.client = OpenAI(
             api_key=api_key,  # This is the default and can be omitted
         )
-        self.prompt_files = prompt_files
+        self.prompt_files = {
+            "coherence": "coh.txt",
+            "consistency": "con.txt",
+            "fluency": "flu.txt",
+            "relevance": "rel.txt"
+        }
 
     def _load_prompts(self, language="spanish"):
         """
@@ -96,7 +101,7 @@ if __name__ == "__main__":
     with open("../api/key.json", "r") as file:
         api_key = json.load(file)
 
-    evaluator = DocumentSummaryEvaluator(api_key["key"], prompt_files)
+    evaluator = DocumentSummaryOpenAiEvaluator(api_key["key"])
 
     # Sample document and summary
     document = """
@@ -175,3 +180,23 @@ Véase la versión consolidada.
 
     results = evaluator.evaluate(document, summary, language=language)
     print(results)
+
+    def calculate_weighted_mean(metrics: dict) -> float:
+        """
+        Calculate a normalized mean for metrics with different ranges.
+
+        :param metrics: Dictionary of metrics and their values.
+        :param max_values: Dictionary of metrics and their maximum possible values.
+        :return: scaled mean (1-max of scale).
+        """
+        max_values = {'coherence': 5.0, 'consistency': 5.0, 'fluency': 3.0, 'relevance': 5.0}
+        normalized_values = [value / max_values[metric] for metric, value in metrics.items()]
+        normalized_mean = sum(normalized_values) / len(normalized_values)
+        
+        # Optionally scale the mean to a desired range (e.g., 1 to 5)
+        scaled_mean = normalized_mean * max(max_values.values())
+    
+        return scaled_mean
+    
+    scaled_mean = calculate_weighted_mean(results)
+    print(f"Scaled Mean (1-5): {scaled_mean}")

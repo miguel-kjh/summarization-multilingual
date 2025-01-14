@@ -2,11 +2,13 @@ from collections import defaultdict
 import json
 import os
 import argparse
+import numpy as np
 import wandb
 import pandas as pd
 from distutils.util import strtobool
 from evaluation.summary_metrics_calculator import SummaryMetricsCalculator
-from utils import DATASET_FILENAME, PROJECT_NAME, RESULTS_FILENAME, seed_everything, SEED
+from evaluation.document_summary_openai_evaluator import DocumentSummaryOpenAiEvaluator
+from utils import DATASET_FILENAME, PROJECT_NAME, RESULTS_FILENAME, seed_everything, SEED, calculate_weighted_mean
 
 def load_dataset(model_path, filename):
     """
@@ -45,6 +47,9 @@ def log_metrics_to_wandb(metrics: dict):
 def main(model, enable_wandb, verbose=True, method="normal"):
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
+    with open("../api/key.json", "r") as file:
+        api_key = json.load(file)
+    openai_evaluator = DocumentSummaryOpenAiEvaluator(api_key)
 
     # Initialize wandb if enabled
     if enable_wandb:
@@ -71,14 +76,45 @@ def main(model, enable_wandb, verbose=True, method="normal"):
             generated_summaries=dataset["generated_summary"].to_list(),
         )
 
+        metrics[lang]["rouge"] = results["rouge"]
+        metrics[lang]["bertscore"] = results["bertscore"]
+
+        # OpenAI evaluation
+        openai_metrics = {
+            'coherence': [],
+            'consistency': [],
+            'fluency': [], 
+            'relevance': [],
+            'average': [],
+        }
+        for _, row in dataset.iterrows():
+            openai_results = openai_evaluator.evaluate_summary(
+                row["expected_summary"], 
+                row["generated_summary"],
+            )
+            openai_metrics['coherence'].append(openai_results['coherence'])
+            openai_metrics['consistency'].append(openai_results['consistency'])
+            openai_metrics['fluency'].append(openai_results['fluency'])
+            openai_metrics['relevance'].append(openai_results['relevance'])
+            openai_metrics['average'].append(calculate_weighted_mean(openai_results))
+        
+        metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
+        metrics[lang]["consistency"] = np.mean(openai_metrics['consistency'])
+        metrics[lang]["fluency"] = np.mean(openai_metrics['fluency'])
+        metrics[lang]["relevance"] = np.mean(openai_metrics['relevance'])
+        metrics[lang]["average"] = np.mean(openai_metrics['average'])
+
         # Display results
         if verbose:
             print(f"Results for {lang}")
-            print("ROUGE Results:", results["rouge"])
-            print("BERTScore Results:", results["bertscore"])
-
-        metrics[lang]["rouge"] = results["rouge"]
-        metrics[lang]["bertscore"] = results["bertscore"]
+            print("ROUGE Results:", metrics[lang]["rouge"])
+            print("BERTScore Results:", metrics[lang]["bertscore"])
+            print("OpenAI Evaluation Results:")
+            print("Coherence:", metrics[lang]["coherence"])
+            print("Consistency:", metrics[lang]["consistency"])
+            print("Fluency:", metrics[lang]["fluency"])
+            print("Relevance:", metrics[lang]["relevance"])
+            print("Average:", metrics[lang]["average"])
 
     # Save metrics to a JSON file
     save_metrics_to_json(metrics, model, RESULTS_FILENAME)

@@ -167,3 +167,19 @@ def prepare_embeddings(tokenizer, model, sentences, context=32, stride=16):
 
     # Combinar todos los embeddings en un solo tensor
     return torch.stack(embeddings)
+
+def calculate_weighted_mean(metrics: dict) -> float:
+    """
+    Calculate a normalized mean for metrics with different ranges.
+
+    :param metrics: Dictionary of metrics and their values.
+    :return: scaled mean (1-max of scale).
+    """
+    max_values = {'coherence': 5.0, 'consistency': 5.0, 'fluency': 3.0, 'relevance': 5.0}
+    normalized_values = [value / max_values[metric] for metric, value in metrics.items()]
+    normalized_mean = sum(normalized_values) / len(normalized_values)
+    
+    # Optionally scale the mean to a desired range (e.g., 1 to 5)
+    scaled_mean = normalized_mean * max(max_values.values())
+
+    return scaled_mean
