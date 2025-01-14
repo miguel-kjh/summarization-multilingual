@@ -30,7 +30,7 @@ class DocumentSummaryOpenAiEvaluator:
         """
         prompts = {}
         for criteria, file_path in self.prompt_files.items():
-            file_path = os.path.join("prompts", language, file_path)
+            file_path = os.path.join("evaluation", "prompts", language, file_path)
             with open(file_path, 'r') as file:
                 prompts[criteria] = file.read()
         return prompts
@@ -76,7 +76,6 @@ class DocumentSummaryOpenAiEvaluator:
         :return: The extracted score.
         """
         content = response.choices[0].message.content
-        print(content)
         matched = re.search("^ ?([\d\.]+)", content)
         if (matched):
             try:

@@ -3,6 +3,7 @@ import json
 import os
 import argparse
 import numpy as np
+from tqdm import tqdm
 import wandb
 import pandas as pd
 from distutils.util import strtobool
@@ -47,8 +48,8 @@ def log_metrics_to_wandb(metrics: dict):
 def main(model, enable_wandb, verbose=True, method="normal"):
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
-    with open("../api/key.json", "r") as file:
-        api_key = json.load(file)
+    with open("api/key.json", "r") as file:
+        api_key = json.load(file)["key"]
     openai_evaluator = DocumentSummaryOpenAiEvaluator(api_key)
 
     # Initialize wandb if enabled
@@ -62,7 +63,6 @@ def main(model, enable_wandb, verbose=True, method="normal"):
 
     # Load the dataset
     name_dataset = f"{DATASET_FILENAME}_{method}.xlsx"
-    print(name_dataset)
     dataset = load_dataset(model, name_dataset)
 
     # split for language
@@ -87,16 +87,19 @@ def main(model, enable_wandb, verbose=True, method="normal"):
             'relevance': [],
             'average': [],
         }
-        for _, row in dataset.iterrows():
-            openai_results = openai_evaluator.evaluate_summary(
-                row["expected_summary"], 
-                row["generated_summary"],
-            )
-            openai_metrics['coherence'].append(openai_results['coherence'])
-            openai_metrics['consistency'].append(openai_results['consistency'])
-            openai_metrics['fluency'].append(openai_results['fluency'])
-            openai_metrics['relevance'].append(openai_results['relevance'])
-            openai_metrics['average'].append(calculate_weighted_mean(openai_results))
+        for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
+            try:
+                openai_results = openai_evaluator.evaluate(
+                    row["expected_summary"], 
+                    row["generated_summary"],
+                )
+                openai_metrics['coherence'].append(openai_results['coherence'])
+                openai_metrics['consistency'].append(openai_results['consistency'])
+                openai_metrics['fluency'].append(openai_results['fluency'])
+                openai_metrics['relevance'].append(openai_results['relevance'])
+                openai_metrics['average'].append(calculate_weighted_mean(openai_results))
+            except Exception as e:
+                continue
         
         metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
         metrics[lang]["consistency"] = np.mean(openai_metrics['consistency'])
