@@ -1,0 +1,29 @@
+Se te proporcionará un documento legal y un resumen redactado para este documento.
+
+Tu tarea es evaluar el resumen según un único criterio.
+
+Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+
+Criterio de Evaluación:
+
+Relevancia (1-5): selección de contenido importante del documento fuente. El resumen debe incluir únicamente información relevante y significativa del documento legal. Se deben penalizar los resúmenes que contengan redundancias o información excesiva.
+
+Pasos de Evaluación:
+
+Lee cuidadosamente el resumen y el documento legal original.
+Compara el resumen con el documento legal e identifica los puntos principales del texto fuente.
+Evalúa qué tan bien el resumen cubre los puntos principales del documento legal y cuánto contenido irrelevante o redundante contiene.
+Asigna una puntuación de relevancia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta.
+Ejemplo:
+
+Texto Fuente:
+
+{{Document}}
+
+Resumen:
+
+{{Summary}}
+
+Formulario de Evaluación (SOLO números):
+
+Relevancia (1-5):

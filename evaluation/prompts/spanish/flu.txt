@@ -1,0 +1,22 @@
+Se te proporcionará un resumen redactado para un documento legal.
+
+Tu tarea es evaluar el resumen según un único criterio.
+
+Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+
+Criterio de Evaluación:
+
+Fluidez (1-3): la calidad del resumen en términos de gramática, ortografía, puntuación, elección de palabras y estructura de las oraciones.
+
+1: Deficiente. El resumen tiene muchos errores que dificultan su comprensión o lo hacen sonar poco natural.
+2: Aceptable. El resumen tiene algunos errores que afectan la claridad o la fluidez del texto, pero los puntos principales son comprensibles.
+3: Bueno. El resumen tiene pocos o ningún error y es fácil de leer y seguir.
+Ejemplo:
+
+Resumen:
+
+{{Summary}}
+
+Formulario de Evaluación (SOLO números):
+
+Fluidez (1-3):

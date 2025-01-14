@@ -1,0 +1,28 @@
+Se te proporcionará un documento legal. A continuación, se te proporcionará un resumen redactado para este documento.
+
+Tu tarea es evaluar el resumen según un único criterio.
+
+Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+
+Criterio de Evaluación:
+
+Consistencia (1-5): la alineación factual entre el resumen y el documento original. Un resumen factualmente consistente contiene únicamente afirmaciones respaldadas por el documento legal. Se deben penalizar los resúmenes que incluyan hechos inventados o inconsistencias.
+
+Pasos de Evaluación:
+
+Lee el documento legal detenidamente e identifica los hechos y detalles principales que presenta.
+Lee el resumen y compáralo con el documento legal. Verifica si el resumen contiene errores factuales que no estén respaldados por el documento.
+Asigna una puntuación de consistencia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta, basándote en el criterio de evaluación.
+Ejemplo:
+
+Texto Fuente:
+
+{{Document}}
+
+Resumen:
+
+{{Summary}}
+
+Formulario de Evaluación (SOLO números):
+
+Consistencia (1-5):

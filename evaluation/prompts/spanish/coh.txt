@@ -1,0 +1,28 @@
+Se te proporcionará un resumen redactado para un documento legal.
+
+Tu tarea es evaluar el resumen según un único criterio.
+
+Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+
+Criterio de Evaluación:
+
+Coherencia (1-5): calidad colectiva de todas las oraciones. Este criterio se alinea con la definición de estructura y coherencia establecida por los estándares legales, donde "el resumen debe estar bien estructurado y organizado. No debe ser simplemente un conjunto de información relacionada, sino que debe desarrollar un cuerpo coherente y lógico de información sobre el documento legal."
+
+Pasos de Evaluación:
+
+Lee el documento legal detenidamente e identifica el tema principal y los puntos clave.
+Lee el resumen y compáralo con el documento legal. Verifica si el resumen abarca el tema principal y los puntos clave del documento legal, y si los presenta de manera clara y lógica.
+Asigna una puntuación de coherencia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta, basándote en el criterio de evaluación.
+Ejemplo:
+
+Texto Fuente:
+
+{{Document}}
+
+Resumen:
+
+{{Summary}}
+
+Formulario de Evaluación (SOLO números):
+
+Coherencia (1-5):
