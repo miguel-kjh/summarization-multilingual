@@ -122,7 +122,6 @@ def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=
     if k_opt is None:
         k_opt = min_clusters
 
-    print(f"Optimal number of clusters: {k_opt}")
     return k_opt
 
 def cluster_sentences(embeddings, k_opt) -> tuple:
