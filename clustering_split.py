@@ -14,6 +14,8 @@ import pickle
 import warnings
 from joblib import Parallel, delayed
 from sklearn.preprocessing import StandardScaler
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_openai.embeddings import OpenAIEmbeddings
 warnings.filterwarnings("ignore")
 
 
@@ -25,10 +27,10 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 dataset_path = "data/02-processed/spanish"
 embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
-model_spacy = 'es_core_news_sm'
+model_spacy = None # None or 'es_core_news_sm'
 distance_metric = 'cosine'
-name_new_dataset = "data/03-combined/spanish_sentences_clustering"
-percentage_of_data = None
+name_new_dataset = "data/03-combined/spanish_paragraphs_clustering"
+percentage_of_data = 0.01
 top_k_sents = None
 
 def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tuple:
@@ -36,11 +38,22 @@ def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tupl
     model   = SentenceTransformer(embedding_model_path)
     return dataset, model
 
-def process_text(text, model_spacy):
+def process_text_into_sentences(text, model_spacy):
     nlp = spacy.load(model_spacy, disable=["tagger", "parser", "ner"])
     nlp.add_pipe('sentencizer')
     doc = nlp(text)
     return doc
+
+def process_text_into_paragraphs(text):
+    text_splitter = SemanticChunker(OpenAIEmbeddings())
+    docs = text_splitter.create_documents([text])
+    return docs
+
+def generate_embeddings_from_paragraphs(docs, model, get_sentences=False):
+    paragraphs = [doc.page_content for doc in docs]
+    embeddings = model.encode(paragraphs)
+    embeddings = StandardScaler().fit_transform(embeddings)
+    return embeddings if not get_sentences else embeddings, paragraphs
 
 def generate_embeddings(doc, model, get_sentences=False):
     sentences  = list(sent.text for sent in doc.sents)
@@ -65,7 +78,7 @@ def build_semantic_paragraph(sentences, clusters, useful_clusters, k_opt) -> dic
     return cluster_phrases
 
 
-def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=5, n_jobs=-1):
+def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=2, n_jobs=-1):
     """
     Finds the optimal number of clusters using the elbow method, with parallelized computations.
 
@@ -109,6 +122,7 @@ def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=
     if k_opt is None:
         k_opt = min_clusters
 
+    print(f"Optimal number of clusters: {k_opt}")
     return k_opt
 
 def cluster_sentences(embeddings, k_opt) -> tuple:
@@ -150,18 +164,29 @@ def create_dataset(dataset, model, model_spacy):
         test = data['output']
 
         try:
-            doc = process_text(text, model_spacy)
-            embeddings, setences = generate_embeddings(doc, model, get_sentences=True)
+            if model_spacy:
+                doc = process_text_into_sentences(text, model_spacy)
+                embeddings, setences = generate_embeddings(doc, model, get_sentences=True)
+            else:
+                doc = process_text_into_paragraphs(text)
+                embeddings, setences = generate_embeddings_from_paragraphs(doc, model)
             k_opt = find_optimal_clusters(embeddings)
             kmeans, cluster_train = cluster_sentences(embeddings, k_opt)
             train_centroids = kmeans.cluster_centers_
 
 
-            doc_test = process_text(test, model_spacy)
-            embeddings_test, setences_test = generate_embeddings(doc_test, model)
-            k_opt_test = find_optimal_clusters(embeddings_test)
-            kmeans_test, cluster_test = cluster_sentences(embeddings_test, k_opt_test)
-            test_centroids = kmeans_test.cluster_centers_
+            if model_spacy:
+                doc_test = process_text_into_sentences(test, model_spacy)
+                embeddings_test, setences_test = generate_embeddings(doc_test, model, get_sentences=True)
+                k_opt_test = find_optimal_clusters(embeddings_test)
+                kmeans_test, cluster_test = cluster_sentences(embeddings_test, k_opt_test)
+                test_centroids = kmeans_test.cluster_centers_
+            else:
+                doc_test = process_text_into_paragraphs(test)
+                embeddings_test, setences_test = generate_embeddings_from_paragraphs(doc_test, model)
+                test_centroids = embeddings_test
+                k_opt_test = embeddings_test.shape[0]
+                cluster_test = range(k_opt_test)
         except Exception as e:
             print(f"Error: {e}")
             continue
