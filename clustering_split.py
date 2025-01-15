@@ -45,14 +45,19 @@ def process_text_into_sentences(text, model_spacy):
     return doc
 
 def process_text_into_paragraphs(text):
-    text_splitter = SemanticChunker(OpenAIEmbeddings())
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=20,
+        length_function=len,
+        is_separator_regex=False,
+    )
     docs = text_splitter.create_documents([text])
     return docs
 
 def generate_embeddings_from_paragraphs(docs, model, get_sentences=False):
     paragraphs = [doc.page_content for doc in docs]
     embeddings = model.encode(paragraphs)
-    embeddings = StandardScaler().fit_transform(embeddings)
+    #embeddings = StandardScaler().fit_transform(embeddings)
     return embeddings if not get_sentences else embeddings, paragraphs
 
 def generate_embeddings(doc, model, get_sentences=False):
@@ -78,7 +83,7 @@ def build_semantic_paragraph(sentences, clusters, useful_clusters, k_opt) -> dic
     return cluster_phrases
 
 
-def find_optimal_clusters(embeddings, seed=SEED, max_clusters=100, min_clusters=2, n_jobs=-1):
+def find_optimal_clusters(embeddings, seed=SEED, max_clusters=30, min_clusters=2, n_jobs=-1):
     """
     Finds the optimal number of clusters using the elbow method, with parallelized computations.
 
@@ -145,19 +150,19 @@ def compact_text_representation(doc, significant_phrases, tokenizer, original_te
     print(f"Compacto: {compact_representation_len} caracteres")
     print(f"Reducción: {1 - compact_representation_len / original_text_len:.2%}")
 
-# TODO: Do this
+
 def create_dataset(dataset, model, model_spacy):
     embeddings_dataset = {
         "sample": [],
         "label": [],
     }
     new_dataset = {
-            "instruction": [],
-            "input": [],
-            "output": [],
-            "text": [],
-            "language": [],
-        }
+        "instruction": [],
+        "input": [],
+        "output": [],
+        "text": [],
+        "language": [],
+    }
     for data in tqdm(dataset, desc="Creating dataset"):
         text = data['input']
         test = data['output']
@@ -169,6 +174,7 @@ def create_dataset(dataset, model, model_spacy):
             else:
                 doc = process_text_into_paragraphs(text)
                 embeddings, setences = generate_embeddings_from_paragraphs(doc, model)
+
             k_opt = find_optimal_clusters(embeddings)
             kmeans, cluster_train = cluster_sentences(embeddings, k_opt)
             train_centroids = kmeans.cluster_centers_
@@ -177,15 +183,13 @@ def create_dataset(dataset, model, model_spacy):
             if model_spacy:
                 doc_test = process_text_into_sentences(test, model_spacy)
                 embeddings_test, setences_test = generate_embeddings(doc_test, model, get_sentences=True)
-                k_opt_test = find_optimal_clusters(embeddings_test)
-                kmeans_test, cluster_test = cluster_sentences(embeddings_test, k_opt_test)
-                test_centroids = kmeans_test.cluster_centers_
             else:
                 doc_test = process_text_into_paragraphs(test)
                 embeddings_test, setences_test = generate_embeddings_from_paragraphs(doc_test, model)
-                test_centroids = embeddings_test
-                k_opt_test = embeddings_test.shape[0]
-                cluster_test = range(k_opt_test)
+
+            k_opt_test = find_optimal_clusters(embeddings_test)
+            kmeans_test, cluster_test = cluster_sentences(embeddings_test, k_opt_test)
+            test_centroids = kmeans_test.cluster_centers_
         except Exception as e:
             print(f"Error: {e}")
             continue
