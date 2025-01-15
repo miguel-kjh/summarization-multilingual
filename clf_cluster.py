@@ -94,9 +94,9 @@ def main():
     pl.seed_everything(SEED)
     # Paths to datasets
   
-    dataset_train_path = "data/02-processed/spanish/cluster_train.pkl"
-    dataset_validation_path = "data/02-processed/spanish/cluster_validation.pkl"
-    dataset_test_path = "data/02-processed/spanish/cluster_test.pkl"
+    dataset_train_path = "data/03-combined/spanish_paragraphs_clustering/clustring_embedding_test.pkl"
+    dataset_validation_path = "data/03-combined/spanish_paragraphs_clustering/clustring_embedding_train.pkl"
+    dataset_test_path = "data/03-combined/spanish_paragraphs_clustering/clustring_embedding_validation.pkl"
 
     # Load datasets
     train_dataset = CustomDataset(dataset_train_path)
