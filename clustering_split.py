@@ -19,6 +19,7 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 warnings.filterwarnings("ignore")
 
 
+from text2embeddings import Text2EmbeddingsOpenAI, Text2EmbeddingsSetenceTransforms
 from utils import SEED, generate_training_prompt
 
 import os
@@ -26,16 +27,16 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 dataset_path = "data/02-processed/spanish"
-embedding_model_path = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
+embedding_model = "openai" # "openai" or "sentence-transformers"
 model_spacy = None # None or 'es_core_news_sm'
 distance_metric = 'cosine'
 name_new_dataset = "data/03-combined/spanish_paragraphs_clustering"
 percentage_of_data = None
 top_k_sents = None
 
-def load_dataset_and_model(dataset_path: str, embedding_model_path: str) -> tuple:
+def load_dataset_and_model(dataset_path: str, embedding_model: str) -> tuple:
     dataset = load_from_disk(dataset_path)
-    model   = SentenceTransformer(embedding_model_path)
+    model   = Text2EmbeddingsSetenceTransforms("sentence-transformers/paraphrase-multilingual-mpnet-base-v2") if embedding_model == "sentence-transformers" else Text2EmbeddingsOpenAI("text-embedding-3-large")
     return dataset, model
 
 def process_text_into_sentences(text, model_spacy):
@@ -56,13 +57,13 @@ def process_text_into_paragraphs(text):
 
 def generate_embeddings_from_paragraphs(docs, model, get_sentences=False):
     paragraphs = [doc.page_content for doc in docs]
-    embeddings = model.encode(paragraphs)
+    embeddings = model.transform(paragraphs)
     #embeddings = StandardScaler().fit_transform(embeddings)
     return embeddings if not get_sentences else embeddings, paragraphs
 
 def generate_embeddings(doc, model, get_sentences=False):
     sentences  = list(sent.text for sent in doc.sents)
-    embeddings = model.encode(sentences)
+    embeddings = model.transform(sentences)
     embeddings = StandardScaler().fit_transform(embeddings)
     return embeddings if not get_sentences else embeddings, sentences
 
@@ -244,7 +245,7 @@ def get_sample(dataset, num_samples):
 
 def main():
 
-    dataset, model = load_dataset_and_model(dataset_path, embedding_model_path)
+    dataset, model = load_dataset_and_model(dataset_path, embedding_model)
 
     train_dataset = get_sample(dataset["train"], percentage_of_data)
     train_dataset_cluster, new_train_dataset = create_dataset(train_dataset, model, model_spacy)
