@@ -6,18 +6,21 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from sklearn.metrics import f1_score, roc_auc_score
+import pandas as pd
 
 from utils import SEED
 
 # Custom Dataset class
 class CustomDataset(Dataset):
-    def __init__(self, dataset_path):
+    def __init__(self, dataset_path, get_sub_sample=False):
         with open(dataset_path, 'rb') as f:
-            data = pickle.load(f)
-        self.samples = torch.tensor(data["sample"], dtype=torch.float32)
+            data = pd.DataFrame(pickle.load(f))
+        if get_sub_sample:
+            data = data[data['label'] == 0].sample(2300, replace=True)
+        self.samples = torch.tensor(data["sample"].to_list(), dtype=torch.float32)
         # normalize the samples
         #self.samples = (self.samples - self.samples.mean()) / self.samples.std()
-        self.labels = torch.tensor(data["label"], dtype=torch.long)
+        self.labels = torch.tensor(data["label"].to_list(), dtype=torch.long)
 
     def __len__(self):
         return len(self.labels)
@@ -31,13 +34,11 @@ class MLPModel(pl.LightningModule):
         super().__init__()
         self.lr = lr
         self.model = nn.Sequential(
-            nn.Linear(input_size, 128),
+            nn.Linear(input_size, 512),
             nn.ReLU(),
-            nn.BatchNorm1d(128),
-            nn.Linear(128, 64),
+            nn.Linear(512, 128),
             nn.ReLU(),
-            nn.BatchNorm1d(64),
-            nn.Linear(64, 1),
+            nn.Linear(128, 1),
             nn.Sigmoid()
         )
         self.criterion = nn.BCELoss()
@@ -99,7 +100,7 @@ def main():
     dataset_test_path = "data/03-combined/spanish_paragraphs_clustering/clustring_embedding_validation.pkl"
 
     # Load datasets
-    train_dataset = CustomDataset(dataset_train_path)
+    train_dataset = CustomDataset(dataset_train_path, get_sub_sample=True)
     val_dataset = CustomDataset(dataset_validation_path)
     test_dataset = CustomDataset(dataset_test_path)
 
