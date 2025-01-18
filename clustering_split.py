@@ -19,7 +19,7 @@ from langchain_openai.embeddings import OpenAIEmbeddings
 warnings.filterwarnings("ignore")
 
 
-from text2embeddings import Text2EmbeddingsOpenAI, Text2EmbeddingsSetenceTransforms
+from text2embeddings import Text2Embeddings, Text2EmbeddingsOpenAI, Text2EmbeddingsSetenceTransforms
 from utils import SEED, generate_training_prompt
 
 import os
@@ -58,13 +58,11 @@ def process_text_into_paragraphs(text):
 def generate_embeddings_from_paragraphs(docs, model, get_sentences=False):
     paragraphs = [doc.page_content for doc in docs]
     embeddings = model.transform(paragraphs)
-    #embeddings = StandardScaler().fit_transform(embeddings)
     return embeddings if not get_sentences else embeddings, paragraphs
 
 def generate_embeddings(doc, model, get_sentences=False):
     sentences  = list(sent.text for sent in doc.sents)
     embeddings = model.transform(sentences)
-    embeddings = StandardScaler().fit_transform(embeddings)
     return embeddings if not get_sentences else embeddings, sentences
 
 def build_semantic_paragraph(sentences, clusters, useful_clusters, k_opt) -> dict:
@@ -134,23 +132,6 @@ def cluster_sentences(embeddings, k_opt) -> tuple:
     kmeans = KMeans(n_clusters=k_opt, random_state=SEED)
     clusters = kmeans.fit_predict(embeddings)
     return kmeans, clusters
-
-def compact_text_representation(doc, significant_phrases, tokenizer, original_text_len):
-    all_significant_phrases = [
-        phrase for _, phrases in significant_phrases.items() for phrase in phrases
-    ]
-    ordered_phrases = sorted(all_significant_phrases, key=lambda x: list(doc.sents).index(x))
-    compact_representation = " ".join([str(phrase) for phrase in ordered_phrases])
-
-    tokens = tokenizer.tokenize(compact_representation)
-    compact_representation_len = len(tokens)
-
-    print("Representación compacta del texto:")
-    #print(compact_representation)
-    print(f"Original: {original_text_len} caracteres")
-    print(f"Compacto: {compact_representation_len} caracteres")
-    print(f"Reducción: {1 - compact_representation_len / original_text_len:.2%}")
-
 
 def create_dataset(dataset, model, model_spacy):
     embeddings_dataset = {
@@ -242,6 +223,77 @@ def get_sample(dataset, num_samples):
     if num_samples:
         dataset = dataset.shuffle(seed=SEED).select(range(int(num_samples * dataset.num_rows)))
     return dataset
+
+class DocumentSplitter:
+
+    def __init__(self, model: Text2Embeddings):
+        self.model = model
+
+    def create_embeddings_dataset(self, dataset: Dataset) -> tuple:
+        pass
+
+    def create_text_dataset(self, dataset: Dataset) -> Dataset:
+        pass
+
+class DocumentSplitterSentences(DocumentSplitter):
+    
+    def __init__(self, model: Text2Embeddings, model_spacy: str):
+        super().__init__(model)
+        self.model_spacy = model_spacy
+
+    def create_embeddings_dataset(self, dataset: Dataset) -> tuple:
+        embeddings_dataset = {
+            "sample": [],
+            "label": [],
+        }
+        sub_documents = []
+        sub_summaries = []
+        for data in tqdm(dataset, desc="Creating dataset"):
+            text = data['input']
+            test = data['output']
+
+            try:
+                doc = process_text_into_sentences(text, self.model_spacy)
+                embeddings, setences = generate_embeddings(doc, self.model, get_sentences=True)
+                k_opt = find_optimal_clusters(embeddings)
+                kmeans, cluster_train = cluster_sentences(embeddings, k_opt)
+                train_centroids = kmeans.cluster_centers_
+
+                doc_test = process_text_into_sentences(test, self.model_spacy)
+                embeddings_test, setences_test = generate_embeddings(doc_test, self.model, get_sentences=True)
+                k_opt_test = find_optimal_clusters(embeddings_test)
+                kmeans_test, cluster_test = cluster_sentences(embeddings_test, k_opt_test)
+                test_centroids = kmeans_test.cluster_centers_
+            except Exception as e:
+                print(f"Error: {e}")
+                continue
+
+            distances = cdist(test_centroids, train_centroids, metric=distance_metric)
+            closest_clusters = distances.argmin(axis=1)
+
+            dict_clusters = { i:[] for i in range(k_opt) }
+            for i, cluster in enumerate(closest_clusters):
+                if cluster in dict_clusters:
+                    dict_clusters[cluster].append(i)
+                else:
+                    dict_clusters[cluster] = [i]
+
+            y = [1 if len(dict_clusters[i]) > 0 else 0 for i in range(k_opt)]
+
+            embeddings_dataset["sample"] += train_centroids.tolist()
+            embeddings_dataset["label"]  += y
+
+            index_train = [i for i, label in enumerate(y) if label == 1]
+            train_paragraphs = build_semantic_paragraph(setences, cluster_train, index_train, k_opt)
+            sub_documents.append(train_paragraphs)
+            test_paragraphs = build_semantic_paragraph(setences_test, cluster_test, range(k_opt_test), k_opt_test)
+            sub_summaries.append(test_paragraphs)
+
+        return embeddings_dataset, sub_documents, sub_summaries
+    
+#TODO: Implement DocumentSplitterParagraphs and DocumentSplitterSemanticChunks
+#TODO: Add metric for clustering evaluation
+
 
 def main():
 
