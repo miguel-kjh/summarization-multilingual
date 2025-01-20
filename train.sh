@@ -18,7 +18,7 @@ weight_decay=0.
 context_length=1024
 
 # data
-dataset_name="data/03-combined/spanish_sentences_clustering"
+dataset_name="data/03-combined/spanish_paragraphs_clustering"
 wandb=True
 # run
 python finetuning.py \
