@@ -34,7 +34,7 @@ def parse_arguments():
 
     parser.add_argument("--dataset_path", type=str, default="data/02-processed/spanish",
                         help="Path to the dataset to be processed.")
-    parser.add_argument("--method", type=str, choices=["sentences", "chunks"], default="chunks",
+    parser.add_argument("--method", type=str, default="chunks",
                         help="Method to use for processing ('sentences' or 'chunks').")
     parser.add_argument("--embedding_model", type=str, choices=["openai", "sentence-transformers"], default="openai",
                         help="Embedding model to use ('openai' or 'sentence-transformers').")
@@ -42,7 +42,7 @@ def parse_arguments():
                         help="SpaCy model to use (e.g., 'es_core_news_sm') or None.")
     parser.add_argument("--distance_metric", type=str, default="cosine",
                         help="Distance metric to use (e.g., 'cosine').")
-    parser.add_argument("--percentage_of_data", type=float, default=0.01,
+    parser.add_argument("--percentage_of_data", type=float, default=None,
                         help="Percentage of data to process (e.g., 0.01 for 1%).")
     parser.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False,
                         help="Flag to enable logging with Weights & Biases.")
@@ -58,9 +58,9 @@ def load_dataset_and_model(dataset_path: str, embedding_model: str) -> Tuple[Dat
     model = None
 
     if embedding_model == "openai":
-        model = OpenAIEmbeddings("text-embedding-3-large")
+        model = Text2EmbeddingsOpenAI(model_name="text-embedding-3-large")
     elif embedding_model == "sentence-transformers":
-        model = SentenceTransformer("paraphrase-multilingual-mpnet-base-v2")
+        model = Text2EmbeddingsSetenceTransforms(model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
     else:
         raise ValueError("Invalid embedding model. Choose 'openai' or 'sentence-transformers'.")
 
@@ -283,12 +283,16 @@ class DocumentSplitter:
         final_metrics = self.initialize_metrics()
 
         for data in tqdm(dataset, desc="Creating dataset"):
-            self.process_data_entry(
-                data,
-                embeddings_dataset,
-                new_dataset,
-                final_metrics
-            )
+            try:
+                self.process_data_entry(
+                    data,
+                    embeddings_dataset,
+                    new_dataset,
+                    final_metrics
+                )
+            except Exception as e:
+                print(f"Error processing data entry: {e}")
+                continue
 
         final_metrics = self.compute_average_metrics(final_metrics)
         new_dataset = Dataset.from_dict(new_dataset)
