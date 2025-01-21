@@ -42,7 +42,7 @@ def parse_arguments():
                         help="SpaCy model to use (e.g., 'es_core_news_sm') or None.")
     parser.add_argument("--distance_metric", type=str, default="cosine",
                         help="Distance metric to use (e.g., 'cosine').")
-    parser.add_argument("--percentage_of_data", type=float, default=0.01,
+    parser.add_argument("--percentage_of_data", type=float, default=None,
                         help="Percentage of data to process (e.g., 0.01 for 1%).")
     parser.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False,
                         help="Flag to enable logging with Weights & Biases.")
