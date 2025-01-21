@@ -34,15 +34,15 @@ def parse_arguments():
 
     parser.add_argument("--dataset_path", type=str, default="data/02-processed/spanish",
                         help="Path to the dataset to be processed.")
-    parser.add_argument("--method", type=str, default="chunks",
-                        help="Method to use for processing ('sentences' or 'chunks').")
-    parser.add_argument("--embedding_model", type=str, choices=["openai", "sentence-transformers"], default="openai",
+    parser.add_argument("--method", type=str, default="paragraphs",
+                        help="Method to use for processing ('sentences', 'paragraphs'. 'chunks').")
+    parser.add_argument("--embedding_model", type=str, choices=["openai", "sentence-transformers"], default="sentence-transformers",
                         help="Embedding model to use ('openai' or 'sentence-transformers').")
     parser.add_argument("--model_spacy", type=str, default="es_core_news_sm",
                         help="SpaCy model to use (e.g., 'es_core_news_sm') or None.")
     parser.add_argument("--distance_metric", type=str, default="cosine",
                         help="Distance metric to use (e.g., 'cosine').")
-    parser.add_argument("--percentage_of_data", type=float, default=None,
+    parser.add_argument("--percentage_of_data", type=float, default=0.01,
                         help="Percentage of data to process (e.g., 0.01 for 1%).")
     parser.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False,
                         help="Flag to enable logging with Weights & Biases.")
@@ -197,6 +197,9 @@ class DocumentSplitter:
             "output": [],
             "text": [],
             "language": [],
+            "original_index_document": [],
+            "original_document": [],
+            "original_summary": [],
         }
 
     def initialize_metrics(self):
@@ -238,7 +241,7 @@ class DocumentSplitter:
             metrics["documents"][key].append(document_metrics[key])
             metrics["summaries"][key].append(summary_metrics[key])
 
-    def update_datasets(self, embeddings_dataset, new_dataset, train_data, test_data, instruction, language):
+    def update_datasets(self, embeddings_dataset, new_dataset, train_data, test_data, original_data):
         distances = cdist(test_data['centroids'], train_data['centroids'], metric='cosine')
         closest_clusters = distances.argmin(axis=1)
 
@@ -259,6 +262,12 @@ class DocumentSplitter:
             test_data['sentences'], test_data['clusters'], range(test_data['k_opt']), test_data['k_opt']
         )
 
+        instruction = original_data['instruction']
+        language = original_data['language']
+        original_index_document = original_data['index']
+        original_document = original_data['input']
+        original_summary = original_data['output']
+
         for index in index_train:
             list_index_summary = dict_clusters[index]
             summary = " ".join([test_paragraphs[i] for i in list_index_summary]).strip()
@@ -271,6 +280,10 @@ class DocumentSplitter:
             new_dataset["text"].append(text)
             new_dataset["language"].append(language)
 
+            new_dataset["original_index_document"].append(original_index_document)
+            new_dataset["original_document"].append(original_document)
+            new_dataset["original_summary"].append(original_summary)
+
     def compute_average_metrics(self, metrics):
         for key in metrics["documents"]:
             metrics["documents"][key] = np.mean(metrics["documents"][key])
@@ -282,13 +295,14 @@ class DocumentSplitter:
         new_dataset = self.initialize_new_dataset()
         final_metrics = self.initialize_metrics()
 
-        for data in tqdm(dataset, desc="Creating dataset"):
+        for index, data in tqdm(enumerate(dataset), total=len(dataset), desc="Creating dataset"):
             try:
+                data['index'] = index
                 self.process_data_entry(
                     data,
                     embeddings_dataset,
                     new_dataset,
-                    final_metrics
+                    final_metrics,
                 )
             except Exception as e:
                 print(f"Error processing data entry: {e}")
@@ -317,8 +331,7 @@ class DocumentSplitterSentences(DocumentSplitter):
             new_dataset,
             train_data,
             test_data,
-            data['instruction'],
-            data['language']
+            data,
         )
 
     
@@ -345,8 +358,7 @@ class DocumentSplitterParagraphs(DocumentSplitter):
             new_dataset,
             train_data,
             test_data,
-            data['instruction'],
-            data['language']
+            data,
         )
 
 class DocumentSplitterChunks(DocumentSplitterParagraphs):

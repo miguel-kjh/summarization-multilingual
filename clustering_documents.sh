@@ -6,7 +6,7 @@ distance_metric="cosine"
 wandb=True
 
 # Define las alternativas para method y embedding_model
-methods=("paragraphs" "chunks", "sentences")
+methods=("chunks" "paragraphs" "sentences")
 embedding_models=("sentence-transformers" "openai")
 
 # Bucle para recorrer todas las combinaciones
