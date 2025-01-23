@@ -35,7 +35,7 @@ class DocumentClusterer:
         )
         self.nlp.add_pipe('sentencizer')
 
-        tokenizer = self.embedding_model.tokenizer
+        tokenizer = self.embedding_model.model.tokenizer
 
         if tokenizer.pad_token is None:
             if tokenizer.eos_token is not None:
@@ -120,12 +120,12 @@ class DocumentClustererTopKSentences(DocumentClusterer):
         super().__init__(embedding_model, spacy_model)
         self.top_k_sents = top_k_sents
     
-    def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 100) -> List[str]:
+    def cluster_and_assign(self, document: str, min_clusters: int = 5, max_clusters: int = 30) -> List[str]:
         doc = self.nlp(document)
         embeddings, _ = generate_embeddings(doc, self.embedding_model)
         k_opt = find_optimal_clusters(embeddings, min_clusters=min_clusters, max_clusters=max_clusters)
 
-        _, clusters = cluster_sentences(embeddings, k_opt)
+        _, clusters, _ = cluster_sentences(embeddings, k_opt)
 
         cluster_phrases = {i: [] for i in range(k_opt)}
         cluster_embeddings = {i: [] for i in range(k_opt)}

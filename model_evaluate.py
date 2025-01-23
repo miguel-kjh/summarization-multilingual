@@ -43,6 +43,11 @@ def log_metrics_to_wandb(metrics: dict):
     for lang, metrics in metrics.items():
         wandb.log({f"{lang}/rouge": metrics["rouge"]})
         wandb.log({f"{lang}/bertscore": metrics["bertscore"]})
+        wandb.log({f"{lang}/coherence": metrics["coherence"]})
+        wandb.log({f"{lang}/consistency": metrics["consistency"]})
+        wandb.log({f"{lang}/fluency": metrics["fluency"]})
+        wandb.log({f"{lang}/relevance": metrics["relevance"]})
+        wandb.log({f"{lang}/average": metrics["average"]})
     wandb.finish()
 
 def main(model, enable_wandb, verbose=True, method="normal"):
@@ -135,9 +140,9 @@ if __name__ == "__main__":
         required=True,
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
-    parser.add_argument(
+    parser.add_argument( 
         "--wandb",
-        type=lambda x: bool(strtobool(x)),
+        type=lambda x: bool(strtobool(x)), 
         default=False,
         help="Enable logging to Weights & Biases (wandb). Set to True to enable."
     )
