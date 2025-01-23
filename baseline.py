@@ -157,7 +157,7 @@ def main():
         baseline = ExtractiveSummarizer(args.model_name)
     else:
         baseline = methods[args.method]() 
-    summaries = generate_summaries(dataset["test"], baseline, num_samples=5)
+    summaries = generate_summaries(dataset["test"], baseline, num_samples=None)
     save_result_baseline(summaries, args.method, args.model_name, name_df)
 
 if __name__ == '__main__':
