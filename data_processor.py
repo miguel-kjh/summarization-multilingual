@@ -52,11 +52,7 @@ def process_reduce():
         dataset_dict = DatasetDict()
         for split in dataset.keys():
             print(f"Processing {split} split for {lang}")
-            try:
-                instructions = transform.generate_instructions(dataset[split], lang)
-            except Exception as e:
-                print(e)
-                continue
+            instructions = transform.generate_instructions(dataset[split], lang)
             dataset_dict[split] = instructions
         dataset_dict.save_to_disk(dataset_it_name)
 

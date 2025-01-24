@@ -42,8 +42,12 @@ class TransformDataReduce(TransformData):
         instructions = []
         for sample in tqdm(dataset, desc=f"Generating reduce instructions for {lang}"):
             template = self.template_json.copy()
+            try:
+                template['input'] = self.summarizer.summarize(sample['text'], lang)
+            except Exception as e:
+                print(f"Error summarizing {e}")
+                continue
             template['instruction'] = INSTRUCTION_TEMPLATE[lang]
-            template['input'] = self.summarizer.summarize(sample['text'], lang)
             template['output'] = sample['summary']
             template['text'] = generate_training_prompt(template['instruction'], template['input'], template['output'])
             template['language'] = lang
