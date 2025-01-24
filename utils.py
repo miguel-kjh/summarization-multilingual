@@ -73,6 +73,7 @@ def setup_environment(args):
         os.environ["WANDB_DISABLED"] = "true"
     else:
         os.environ["WANDB_PROJECT"] = PROJECT_NAME
+        os.environ["WANDB_MODE"] = "offline"
         wandb.init(project=PROJECT_NAME, entity="miguel_kjh", name=args.run_name)
     seed_everything(seed=SEED)
     torch.backends.cudnn.deterministic = True
