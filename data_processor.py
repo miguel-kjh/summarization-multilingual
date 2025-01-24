@@ -4,7 +4,7 @@ import argparse
 from tqdm import tqdm
 from datasets import load_from_disk, DatasetDict
 
-from data_preprare.transform_data import TransformData
+from data_preprare.transform_data import TransformData, TransformDataReduce
 from data_preprare.generate_data_stats import StatsGenerator
 from data_preprare.download_dataset import download_dataset
 from utils import LANGUAGES, RAW_DATA_FOLDER,  FILE_STATS, PROCESS_DATA_FOLDER, COMBINED_DATA_FOLDER
@@ -41,6 +41,25 @@ def process():
             dataset_dict[split] = instructions
         dataset_dict.save_to_disk(dataset_it_name)
 
+def process_reduce():
+    print("Processing data")
+    transform = TransformDataReduce()
+    for lang in LANGUAGES:
+        dataset_name = os.path.join(RAW_DATA_FOLDER, lang)
+        dataset = load_from_disk(dataset_name)
+        dataset_it_name = os.path.join(PROCESS_DATA_FOLDER, f"{lang}_reduce")
+        os.makedirs(dataset_it_name, exist_ok=True)
+        dataset_dict = DatasetDict()
+        for split in dataset.keys():
+            print(f"Processing {split} split for {lang}")
+            try:
+                instructions = transform.generate_instructions(dataset[split], lang)
+            except Exception as e:
+                print(e)
+                continue
+            dataset_dict[split] = instructions
+        dataset_dict.save_to_disk(dataset_it_name)
+
 def combine():
     # generate a tiny dataset for testing using en
     print("Combining data")
@@ -71,6 +90,7 @@ OPERATIONS = {
     "download": download,
     "stats": stats,
     "process": process,
+    "process_reduce": process_reduce,
     "combine": combine,
 }
 

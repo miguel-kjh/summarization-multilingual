@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="meta-llama/Llama-3.2-1B"
+model_name="Qwen/Qwen2.5-0.5B"
 # peft and quantization
 lora=True
 quantization=True
@@ -11,14 +11,14 @@ lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
-batch_size=2
+batch_size=1
 learning_rate=1e-4
 num_train_epochs=1
 weight_decay=0.
 context_length=1024
 
 # data
-dataset_name="data/03-combined/spanish_paragraphs_clustering"
+dataset_name="data/02-processed/spanish"
 wandb=True
 # run
 python finetuning.py \
