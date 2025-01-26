@@ -15,7 +15,7 @@ class SummaryGenerator:
         self.device    = device
         self.tokenizer = tokenizer
 
-    def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.0001) -> Tuple[str, float]:
+    def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.7) -> Tuple[str, float]:
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
         inputs_length = len(inputs["input_ids"][0])
         with torch.inference_mode():
@@ -24,13 +24,15 @@ class SummaryGenerator:
                 **inputs, 
                 max_new_tokens=max_new_tokens,
                 tokenizer=self.tokenizer,
-                temperature=temperature,
+                temperature=0.7,
+                top_k=50,
+                top_p=0.9,
             )
             end = time.time()
             text = self.tokenizer.decode(outputs[0][inputs_length:], skip_special_tokens=True)
         return text, end - start   
 
-    def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.0001) -> list:
+    def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7) -> list:
         summaries = []
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))

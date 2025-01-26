@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="Qwen/Qwen2.5-0.5B"
+model_name="Qwen/Qwen2.5-0.5B-Instruct"
 # peft and quantization
 lora=True
 quantization=True
@@ -13,12 +13,12 @@ lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 # hyperparameters
 batch_size=1
 learning_rate=1e-4
-num_train_epochs=1
+num_train_epochs=2
 weight_decay=0.
 context_length=1024
 
 # data
-dataset_name="data/02-processed/spanish"
+dataset_name="data/04-clustering/spanish-paragraphs-sentence-transformers"
 wandb=True
 # run
 python finetuning.py \
