@@ -1,4 +1,5 @@
 
+import argparse
 import os
 import pandas as pd
 import torch
@@ -9,27 +10,41 @@ from datasets import load_from_disk
 from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from document_cluster import DocumentClustererKMeans, DocumentClustererTopKSentences
 
-model_name = "models/Llama-3.2-1B-spanish_sentences_clustering-e1-b2-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-10-17-39-44"
-dataset = "data/02-processed/spanish"
-data_sample = 50
-max_new_tokens = 512
-using_clustering = "clf" # none, "topk", "clf"
-cluster_embedding_model = 'sentence-transformers/paraphrase-multilingual-mpnet-base-v2'
-spacy_model = "es_dep_news_trf"
+from distutils.util import strtobool
 
-top_k_sents = 1
-clasification_model = "models/RandomForest_best_model.pkl"
+from utils import create_model_and_tokenizer
+
+
+def parse():
+    parser = argparse.ArgumentParser(description="Script para configurar modelos y parámetros por línea de comandos.")
+
+    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen2.5-0.5B-Instruct-spanish-chunks-openai-e2-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-24-20-29-28", help="Model name")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
+    parser.add_argument("--data_sample", type=int, default=50, help="Size of the data sample")
+    parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of new tokens")
+    parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
+    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=True, help="Quantization")
+    parser.add_argument("--cluster_embedding_model", type=str, default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2", help="Embedding model for clustering")
+    parser.add_argument("--spacy_model", type=str, default="es_dep_news_trf", help="SpaCy model")
+    parser.add_argument("--top_k_sents", type=int, default=1, help="Number of top sentences to consider")
+    parser.add_argument("--clasification_model", type=str, default="models/RandomForest_best_model.pkl", help="Path to the classification model")
+
+
+    return parser.parse_args()
 
 #main
 if __name__ == '__main__':
-    model = AutoModelForCausalLM.from_pretrained(model_name).to("cuda")
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    args = parse()
+    tokenizer, model = create_model_and_tokenizer(args)
+    print(model)
+    exit()
+    model = AutoModelForCausalLM.from_pretrained(args.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model.generation_config.pad_token_id = tokenizer.pad_token_id
     tokenizer.pad_token = tokenizer.eos_token
 
-    dataset = load_from_disk(dataset)
+    dataset = load_from_disk(args.dataset)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -40,26 +55,16 @@ if __name__ == '__main__':
 
     print("Generating")
 
-    num_samples = data_sample * dataset["test"].num_rows // 100
+    num_samples = args.data_sample * dataset["test"].num_rows // 100
 
-    if using_clustering:
-        embedding_model = SentenceTransformer(cluster_embedding_model)
-
-        if using_clustering == "topk":
-            clusterer = DocumentClustererTopKSentences(embedding_model, spacy_model, top_k_sents=top_k_sents)
-        elif using_clustering == "clf":
-            loaded_model = joblib.load(clasification_model)
-            clusterer = DocumentClustererKMeans(embedding_model, spacy_model, loaded_model)
-        else:
-            raise ValueError(f"Invalid clustering method: {using_clustering}")
+    if args.using_clustering:
         
-        print("#"*10, f"Using clustering with {using_clustering}", "#"*10)
+        print("#"*10, f"Using clustering", "#"*10)
         summaries = summary_generator.generate_summaries_from_cluster(
             model,
-            clusterer,
             dataset["test"],
             num_samples=num_samples, 
-            max_new_tokens=max_new_tokens, 
+            max_new_tokens=args.max_new_tokens, 
         )
     else:
         print("#"*10, "Normal summarization", "#"*10)
@@ -67,11 +72,11 @@ if __name__ == '__main__':
             model, 
             dataset["test"], 
             num_samples=num_samples, 
-            max_new_tokens=max_new_tokens
+            max_new_tokens=args.max_new_tokens,
         )
     
     
     df_summary = pd.DataFrame(summaries)
-    name_df = f"test_summary_{using_clustering if using_clustering else 'normal'}.xlsx"
-    df_summary.to_excel(os.path.join(model_name, name_df), index=False)
+    name_df = f"test_summary_{'clustering' if args.using_clustering else 'normal'}.xlsx"
+    df_summary.to_excel(os.path.join(args.model_name, name_df), index=False)
     print("Summaries generated")
