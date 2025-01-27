@@ -3,26 +3,22 @@ import argparse
 import os
 import pandas as pd
 import torch
-import joblib
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from evaluation.summary_generator import SummaryGenerator
 from datasets import load_from_disk
-from sentence_transformers import SentenceTransformer
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 from distutils.util import strtobool
 
-from utils import create_model_and_tokenizer
+from utils import create_model_and_tokenizer, seed_everything, SEED
 
 
 def parse():
-    parser = argparse.ArgumentParser(description="Script para configurar modelos y parámetros por línea de comandos.")
+    parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, default="models/Qwen2.5-0.5B-Instruct-spanish-chunks-openai-e2-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-24-20-29-28", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--data_sample", type=int, default=50, help="Size of the data sample")
-    parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of new tokens")
+    parser.add_argument("--max_new_tokens", type=int, default=128, help="Maximum number of new tokens")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=True, help="Quantization")
     parser.add_argument("--cluster_embedding_model", type=str, default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2", help="Embedding model for clustering")
@@ -35,12 +31,9 @@ def parse():
 
 #main
 if __name__ == '__main__':
+    seed_everything(SEED)
     args = parse()
     tokenizer, model = create_model_and_tokenizer(args)
-    print(model)
-    exit()
-    model = AutoModelForCausalLM.from_pretrained(args.model_name)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model.generation_config.pad_token_id = tokenizer.pad_token_id
     tokenizer.pad_token = tokenizer.eos_token
 
@@ -55,11 +48,11 @@ if __name__ == '__main__':
 
     print("Generating")
 
-    num_samples = args.data_sample * dataset["test"].num_rows // 100
 
     if args.using_clustering:
-        
         print("#"*10, f"Using clustering", "#"*10)
+        idxs = max(set(dataset["test"]["original_index_document"]))
+        num_samples = args.data_sample * idxs // 100
         summaries = summary_generator.generate_summaries_from_cluster(
             model,
             dataset["test"],
@@ -67,6 +60,7 @@ if __name__ == '__main__':
             max_new_tokens=args.max_new_tokens, 
         )
     else:
+        num_samples = args.data_sample * dataset["test"].num_rows // 100
         print("#"*10, "Normal summarization", "#"*10)
         summaries = summary_generator.generate_summaries(
             model, 
@@ -78,5 +72,5 @@ if __name__ == '__main__':
     
     df_summary = pd.DataFrame(summaries)
     name_df = f"test_summary_{'clustering' if args.using_clustering else 'normal'}.xlsx"
-    df_summary.to_excel(os.path.join(args.model_name, name_df), index=False)
+    df_summary.to_excel(os.path.join(args.model_name_or_path, name_df), index=False)
     print("Summaries generated")

@@ -58,24 +58,29 @@ class SummaryGenerator:
     def generate_summaries_from_cluster(
             self, 
             model, 
-            document_clusterer: DocumentClusterer,
             dataset: Dataset, 
             num_samples: int=5, 
             max_new_tokens: int=256, 
-            temperature: float=0.0001,
+            temperature: float=0.7,
         ) -> list:
 
         summaries = []
         # get a subset of the dataset
-        shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
-        for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
-            instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
-            try:
-                join_summary = []
-                times = []
-                result = document_clusterer.cluster_and_assign(input) 
-                for doc_parts in result:
-                    prompt  = generate_prompt(instruction, doc_parts)
+        df = dataset.to_pandas()
+        print(f"Number of samples: {num_samples}")
+        df_subset = df[df["original_index_document"] <= num_samples]
+        for index, group in df_subset.groupby('original_index_document'):
+            sub_dataset = Dataset.from_pandas(group)
+            join_summary = []
+            times = []
+            original_input = sub_dataset['original_document'][0]
+            original_sum = sub_dataset['original_summary'][0]
+            language = sub_dataset['language'][0]
+
+            for obj in tqdm(sub_dataset, desc=f"Generating summaries for cluster {index}"):
+                instruction, input = obj['instruction'], obj['input']
+                try:
+                    prompt  = generate_prompt(instruction, input)
                     summary, time = self.summarize(
                         model, 
                         prompt, 
@@ -84,14 +89,15 @@ class SummaryGenerator:
                     )
                     join_summary.append(summary)
                     times.append(time)
-            except Exception as e:
-                print(e)
+                except Exception as e:
+                    print(e)
+                    torch.cuda.empty_cache()
+                    continue
                 torch.cuda.empty_cache()
-                continue
-            torch.cuda.empty_cache()
+
             summaries.append({
-                'document': input, 
-                'expected_summary': output,
+                'document': original_input, 
+                'expected_summary': original_sum,
                 'generated_summary': (" ".join(join_summary)).strip(),
                 'language': language,
                 'time': np.mean(times),
