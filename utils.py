@@ -6,6 +6,7 @@ from datetime import datetime
 import pandas as pd
 from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from peft import prepare_model_for_kbit_training
 import wandb
 from lightning import seed_everything
 import torch
@@ -88,7 +89,7 @@ def generate_names_for_wandb_run(args):
     neftune_noise_alpha = args.neftune_noise_alpha
     context = args.context
     name_experiment  = f"{model_name}-{dataset_name}-e{epochs}-b{batch_size}-lr{lr}-wd{weight_decay}-c{context}"
-    name_experiment += f"-r{args.lora_r}-a{args.lora_alpha}-d{args.lora_dropout}" if args.lora else ""
+    name_experiment += f"-peft-{args.peft_type}-r{args.lora_r}-a{args.lora_alpha}-d{args.lora_dropout}" if args.peft_type else ""
     name_experiment += f"-nna{neftune_noise_alpha}" if neftune_noise_alpha is not None else ""
     name_experiment += "-quant" if args.quantization else ""
     name_experiment += f"-conn-{args.type_connector}" if args.connector else ""
@@ -118,6 +119,7 @@ def create_model_and_tokenizer(args):
             quantization_config=bnb_config,
             device_map={"": 0}
         )
+        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
     else:
         model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
     accelerator = create_accelerator()

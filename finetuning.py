@@ -5,7 +5,7 @@ from distutils.util import strtobool
 import pandas as pd
 import torch
 
-from peft import LoraConfig
+from peft import LoraConfig, VeraConfig, LoKrConfig, LoHaConfig
 from transformers import (
     TrainingArguments,
 )
@@ -45,7 +45,8 @@ def parse_args():
 
     #loras parameters 
     # TODO: add differents adapters (Adapters, dora, etc)
-    parse.add_argument("--lora", type=lambda x: bool(strtobool(x)), default=True)
+    parse.add_argument("--peft_type", type=str, default="lora") # lora, dora, vera, loha, lokr, x-lora?
+
     parse.add_argument("--lora_r", type=int, default=16)
     parse.add_argument("--lora_alpha", type=int, default=32) # a trick use lora_r*2
     parse.add_argument("--lora_dropout", type=float, default=0.05)
@@ -60,6 +61,45 @@ def parse_args():
     args.output_dir = os.path.join(args.output_dir, args.run_name)
     return args
 
+def create_dict_fo_peft_config(script_args) -> dict:
+    return {
+        "lora": LoraConfig(
+            lora_alpha=script_args.lora_alpha,
+            lora_dropout=script_args.lora_dropout,
+            r=script_args.lora_r,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=script_args.lora_target_modules,
+        ),
+        "dora": LoraConfig(
+            lora_alpha=script_args.lora_alpha,
+            use_dora=True,
+            lora_dropout=script_args.lora_dropout,
+            r=script_args.lora_r,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=script_args.lora_target_modules,
+        ),
+        "vera": VeraConfig(
+            r=script_args.lora_r, 
+            target_modules=script_args.lora_target_modules
+        ),
+        "loha": LoHaConfig(
+            r=script_args.lora_r,
+            alpha=script_args.lora_alpha,
+            target_modules=script_args.lora_target_modules,
+            rank_dropout=script_args.lora_dropout,
+            module_dropout=script_args.lora_dropout,
+        ),
+        "lokr": LoKrConfig(
+            r=script_args.lora_r,
+            alpha=script_args.lora_alpha,
+            target_modules=script_args.lora_target_modules,
+            rank_dropout=script_args.lora_dropout,
+            module_dropout=script_args.lora_dropout,
+        )
+    }
+
 if __name__ == "__main__":
     script_args = parse_args()
     setup_environment(script_args)
@@ -68,15 +108,7 @@ if __name__ == "__main__":
     # Model init kwargs & Tokenizer
     ################
     tokenizer, model = create_model_and_tokenizer(script_args)
-
-    """if script_args.connector:
-        if "pythia" in script_args.model_name_or_path:
-            connector = Connector.from_pretraining(script_args.connector)
-            model.gpt_neox.embed_in = torch.nn.Sequential(
-                model.gpt_neox.embed_in,
-                connector
-            )"""
-    
+    peft_hypers = create_dict_fo_peft_config(script_args)
 
     ################
     # Dataset
@@ -87,18 +119,10 @@ if __name__ == "__main__":
     # Training
     ################
     peft_config = None 
-    if script_args.lora:
-        print("### Using Lora ###")
-        peft_config = LoraConfig(
-            lora_alpha=script_args.lora_alpha,
-            lora_dropout=script_args.lora_dropout,
-            r=script_args.lora_r,
-            bias="none",
-            task_type="CAUSAL_LM",
-            target_modules=script_args.lora_target_modules,
-        )
-    
-    if not (script_args.lora or script_args.quantization):
+    if script_args.peft_type in peft_hypers:
+        print(f"### {script_args.peft_type} Finetuning ###")
+        peft_config = peft_hypers[script_args.peft_type]
+    else:
         print("### Full Finetuning ###")
 
     training_arguments = TrainingArguments(

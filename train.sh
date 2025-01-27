@@ -3,9 +3,9 @@
 # model architecture
 model_name="Qwen/Qwen2.5-0.5B-Instruct"
 # peft and quantization
-lora=True
-quantization=True
-lora_r=8
+peft_type="lora" # lora, dora, vera, loha, lokr
+quantization=False
+lora_r=8 # for vera 8*8=64
 lora_alpha=16
 lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
@@ -18,12 +18,12 @@ weight_decay=0.
 context_length=1024
 
 # data
-dataset_name="data/04-clustering/spanish-paragraphs-sentence-transformers"
+dataset_name="data/04-clustering/spanish-chunks-openai"
 wandb=True
 # run
 python finetuning.py \
     --model_name_or_path $model_name \
-    --lora $lora \
+    --peft_type $peft_type \
     --lora_target_modules $lora_target_modules \
     --lora_r $lora_r \
     --lora_alpha $lora_alpha \
@@ -36,6 +36,3 @@ python finetuning.py \
     --dataset_name $dataset_name \
     --wandb $wandb \
     --context $context_length \
-
-
-
