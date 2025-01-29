@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="Qwen/Qwen2.5-0.5B-Instruct"
+model_name="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 # peft and quantization
 peft_type="lora" # lora, dora, vera, loha, lokr
 quantization=False
@@ -15,11 +15,11 @@ batch_size=1
 learning_rate=1e-4
 num_train_epochs=2
 weight_decay=0.
-context_length=1024
+context_length=512
 
 # data
-dataset_name="data/04-clustering/spanish-chunks-openai"
-wandb=True
+dataset_name="data/02-processed/spanish"
+wandb=False
 # run
 python finetuning.py \
     --model_name_or_path $model_name \
