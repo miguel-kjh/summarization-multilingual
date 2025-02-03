@@ -2,7 +2,7 @@ import os
 import json
 import argparse
 from tqdm import tqdm
-from datasets import load_from_disk, DatasetDict
+from datasets import load_from_disk, DatasetDict, concatenate_datasets
 
 from data_preprare.transform_data import TransformData, TransformDataReduce
 from data_preprare.generate_data_stats import StatsGenerator
@@ -59,17 +59,62 @@ def process_reduce():
 def combine():
     # generate a tiny dataset for testing using en
     print("Combining data")
-    lang = "english"
-    dataset_tiny_name = os.path.join(COMBINED_DATA_FOLDER, "tiny")
-    os.makedirs(dataset_tiny_name, exist_ok=True)
-    dataset = load_from_disk(os.path.join(PROCESS_DATA_FOLDER, lang))
-    # take 0.1% of the data
-    dataset_small = DatasetDict()
-    for split in dataset.keys():
-        len_dataset = len(dataset[split])
-        num_samples = int(0.1 * len_dataset)
-        dataset_small[split] = dataset[split].shuffle(seed=42).select(range(num_samples))
-    dataset_small.save_to_disk(dataset_tiny_name)
+    dataset2combine = [
+        # romance
+        ("data/02-processed/spanish", "data/02-processed/portuguese"),
+        ("data/02-processed/spanish", "data/02-processed/french"),
+        ("data/02-processed/spanish", "data/02-processed/italian"),
+        
+        # spanish - non romance
+        ("data/02-processed/spanish", "data/02-processed/german"),
+        ("data/02-processed/spanish", "data/02-processed/english"),
+
+        # non romance
+        ("data/02-processed/english", "data/02-processed/german"),
+        
+    ]
+
+    for lang1, lang2 in dataset2combine:
+
+        dataset1 = load_from_disk(lang1)
+        dataset2 = load_from_disk(lang2)
+        new_dataset = DatasetDict()
+
+        dataset1_train = dataset1["train"]
+        dataset2_train = dataset2["train"]
+
+        combined_dataset = concatenate_datasets([dataset1_train, dataset2_train])
+        new_dataset["train"] = combined_dataset
+        # shuffle
+        new_dataset["train"] = new_dataset["train"].shuffle()
+
+        dataset1_val = dataset1["validation"]
+        dataset2_val = dataset2["validation"]
+
+        combined_dataset = concatenate_datasets([dataset1_val, dataset2_val])
+        new_dataset["validation"] = combined_dataset
+        new_dataset["validation"] = new_dataset["validation"].shuffle()
+
+        dataset1_test = dataset1["test"]
+        dataset2_test = dataset2["test"]
+
+        combined_dataset = concatenate_datasets([dataset1_test, dataset2_test])
+        new_dataset["test"] = combined_dataset
+        new_dataset["test"] = new_dataset["test"].shuffle()
+
+
+        name = f"{os.path.basename(lang1)}-{os.path.basename(lang2)}"
+        combine_dataset_name = os.path.join(COMBINED_DATA_FOLDER, name)
+
+        # PRINT STATS
+        print("Combined dataset stats")
+
+        for split in new_dataset.keys():
+
+            print(f"Split: {split}")
+            print("Number of samples", len(new_dataset[split]))
+
+        new_dataset.save_to_disk(combine_dataset_name)
 
 
 def parse_args():

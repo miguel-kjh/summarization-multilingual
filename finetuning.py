@@ -58,7 +58,9 @@ def parse_args():
     args = parse.parse_args()
     args.lora_target_modules = args.lora_target_modules.split(",")
     args.run_name = generate_names_for_wandb_run(args)
-    args.output_dir = os.path.join(args.output_dir, args.run_name)
+    folder = os.path.join(args.output_dir, args.model_name_or_path)
+    os.makedirs(folder, exist_ok=True)
+    args.output_dir = os.path.join(folder, args.run_name)
     return args
 
 def create_dict_fo_peft_config(script_args) -> dict:
@@ -82,7 +84,9 @@ def create_dict_fo_peft_config(script_args) -> dict:
         ),
         "vera": VeraConfig(
             r=script_args.lora_r, 
-            target_modules=script_args.lora_target_modules
+            target_modules=script_args.lora_target_modules,
+            bias="none",
+            task_type="CAUSAL_LM",
         ),
         "loha": LoHaConfig(
             r=script_args.lora_r,
@@ -90,6 +94,7 @@ def create_dict_fo_peft_config(script_args) -> dict:
             target_modules=script_args.lora_target_modules,
             rank_dropout=script_args.lora_dropout,
             module_dropout=script_args.lora_dropout,
+            task_type="CAUSAL_LM",
         ),
         "lokr": LoKrConfig(
             r=script_args.lora_r,
@@ -97,6 +102,7 @@ def create_dict_fo_peft_config(script_args) -> dict:
             target_modules=script_args.lora_target_modules,
             rank_dropout=script_args.lora_dropout,
             module_dropout=script_args.lora_dropout,
+            task_type="CAUSAL_LM",
         )
     }
 

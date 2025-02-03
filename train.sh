@@ -3,7 +3,7 @@
 # model architecture
 model_name="Qwen/Qwen2.5-0.5B-Instruct"
 # peft and quantization
-peft_type="lora" # lora, dora, vera, loha, lokr
+peft_type="vera" # lora, dora, vera, loha, lokr
 quantization=False
 lora_r=8 # for vera 8*8=64
 lora_alpha=16
@@ -19,7 +19,7 @@ context_length=1024
 
 # data
 dataset_name="data/04-clustering/spanish-chunks-openai"
-wandb=True
+wandb=False
 # run
 python finetuning.py \
     --model_name_or_path $model_name \
