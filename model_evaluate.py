@@ -50,7 +50,7 @@ def log_metrics_to_wandb(metrics: dict):
         wandb.log({f"{lang}/average": metrics["average"]})
     wandb.finish()
 
-def main(model, enable_wandb, verbose=True, method="normal"):
+def main(model, enable_wandb, verbose=True, method="normal", use_openai=False):
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
     with open("api/key.json", "r") as file:
@@ -84,45 +84,48 @@ def main(model, enable_wandb, verbose=True, method="normal"):
         metrics[lang]["rouge"] = results["rouge"]
         metrics[lang]["bertscore"] = results["bertscore"]
 
-        # OpenAI evaluation
-        openai_metrics = {
-            'coherence': [],
-            'consistency': [],
-            'fluency': [], 
-            'relevance': [],
-            'average': [],
-        }
-        for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
-            try:
-                openai_results = openai_evaluator.evaluate(
-                    row["expected_summary"], 
-                    row["generated_summary"],
-                )
-                openai_metrics['coherence'].append(openai_results['coherence'])
-                openai_metrics['consistency'].append(openai_results['consistency'])
-                openai_metrics['fluency'].append(openai_results['fluency'])
-                openai_metrics['relevance'].append(openai_results['relevance'])
-                openai_metrics['average'].append(calculate_weighted_mean(openai_results))
-            except Exception as e:
-                continue
-        
-        metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
-        metrics[lang]["consistency"] = np.mean(openai_metrics['consistency'])
-        metrics[lang]["fluency"] = np.mean(openai_metrics['fluency'])
-        metrics[lang]["relevance"] = np.mean(openai_metrics['relevance'])
-        metrics[lang]["average"] = np.mean(openai_metrics['average'])
+        if use_openai:
+
+            # OpenAI evaluation
+            openai_metrics = {
+                'coherence': [],
+                'consistency': [],
+                'fluency': [], 
+                'relevance': [],
+                'average': [],
+            }
+            for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
+                try:
+                    openai_results = openai_evaluator.evaluate(
+                        row["expected_summary"], 
+                        row["generated_summary"],
+                    )
+                    openai_metrics['coherence'].append(openai_results['coherence'])
+                    openai_metrics['consistency'].append(openai_results['consistency'])
+                    openai_metrics['fluency'].append(openai_results['fluency'])
+                    openai_metrics['relevance'].append(openai_results['relevance'])
+                    openai_metrics['average'].append(calculate_weighted_mean(openai_results))
+                except Exception as e:
+                    continue
+            
+            metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
+            metrics[lang]["consistency"] = np.mean(openai_metrics['consistency'])
+            metrics[lang]["fluency"] = np.mean(openai_metrics['fluency'])
+            metrics[lang]["relevance"] = np.mean(openai_metrics['relevance'])
+            metrics[lang]["average"] = np.mean(openai_metrics['average'])
 
         # Display results
         if verbose:
             print(f"Results for {lang}")
             print("ROUGE Results:", metrics[lang]["rouge"])
             print("BERTScore Results:", metrics[lang]["bertscore"])
-            print("OpenAI Evaluation Results:")
-            print("Coherence:", metrics[lang]["coherence"])
-            print("Consistency:", metrics[lang]["consistency"])
-            print("Fluency:", metrics[lang]["fluency"])
-            print("Relevance:", metrics[lang]["relevance"])
-            print("Average:", metrics[lang]["average"])
+            if use_openai:
+                print("OpenAI Evaluation Results:")
+                print("Coherence:", metrics[lang]["coherence"])
+                print("Consistency:", metrics[lang]["consistency"])
+                print("Fluency:", metrics[lang]["fluency"])
+                print("Relevance:", metrics[lang]["relevance"])
+                print("Average:", metrics[lang]["average"])
 
     # Save metrics to a JSON file
     save_metrics_to_json(metrics, model, RESULTS_FILENAME)
@@ -158,7 +161,12 @@ if __name__ == "__main__":
         default="normal",
         help="Method to use for generating summaries. Options: normal, topk, clf."
     )
+    parser.add_argument(
+        "--use_openai",
+        type=lambda x: bool(strtobool(x)),
+        default=False,
+    )
 
     args = parser.parse_args()
     assert args.method in ["normal", "topk", "clf"], f"Invalid method: {args.method}"
-    main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose, method=args.method)
+    main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose, method=args.method, use_openai=args.use_openai)

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-model="models/Llama-3.2-1B-spanish_sentences_clustering-e1-b2-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-10-17-39-44"
+model="models/Qwen2.5-0.5B-Instruct-spanish-e1-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-24-17-52-58"
 wandb=False
-method="clf"
+method="normal"
 
 # run
 python model_evaluate.py \
