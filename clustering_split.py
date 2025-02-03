@@ -32,7 +32,7 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Process constants for dataset and model configuration.")
 
-    parser.add_argument("--dataset_path", type=str, default="data/02-processed/spanish",
+    parser.add_argument("--dataset_path", type=str, default="data/02-processed/english",
                         help="Path to the dataset to be processed.")
     parser.add_argument("--method", type=str, default="paragraphs",
                         help="Method to use for processing ('sentences', 'paragraphs'. 'chunks').")
@@ -424,10 +424,11 @@ def main():
 
     if args.wandb:
         import wandb
+        language = args.dataset_path.split("/")[-1]
         wandb.init(
             project="clustering_eur_lex_sum",
             entity="miguel_kjh",
-            name=f"clustering_{args.method}_{args.embedding_model}"
+            name=f"clustering_{args.method}_{args.embedding_model}_{language}",
         )
         wandb.log(metrics)
     

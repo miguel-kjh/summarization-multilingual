@@ -27,7 +27,7 @@ COMBINED_DATA_FOLDER  = os.path.join(DATA_FOLDER, "03-combined")
 FILE_STATS = os.path.join(RAW_DATA_FOLDER, "stats.csv")
 
 # Languages to download
-LANGUAGES = ['portuguese', 'spanish', 'english', 'german', 'italian']
+LANGUAGES = ['portuguese', 'spanish', 'english', 'german', 'italian', 'french']
 """
 ['bulgarian', 'czech', 'dutch', 'estonian', 'french', 'greek', '', 'irish', 'latvian', 'maltese', 'portuguese', 'slovak', 
 'spanish', 'croatian', 'danish', 'english', 'finnish', 'german', 'hungarian', 'italian', 'lithuanian', 'polish', 
@@ -45,7 +45,8 @@ INSTRUCTION_TEMPLATE = {
     "spanish": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
     "german": "Bitte fassen Sie den folgenden Text in ein paar Sätzen zusammen und heben Sie die wichtigsten Punkte hervor.",
     "italian": "Per favore, riassumi il seguente testo in poche frasi, evidenziando i punti più importanti.",
-    "portuguese": "Por favor, resuma o texto a seguir em algumas frases, destacando os pontos mais importantes."
+    "portuguese": "Por favor, resuma o texto a seguir em algumas frases, destacando os pontos mais importantes.",
+    "french": "Veuillez résumer le texte suivant en quelques phrases, en mettant en évidence les points les plus importants."
 }
 
 
