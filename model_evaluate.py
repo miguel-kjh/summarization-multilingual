@@ -159,7 +159,7 @@ if __name__ == "__main__":
         "--method",
         type=str,
         default="normal",
-        help="Method to use for generating summaries. Options: normal, topk, clf."
+        help="Method to use for generating summaries. Options: normal, clustering."
     )
     parser.add_argument(
         "--use_openai",
@@ -168,5 +168,5 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    assert args.method in ["normal", "topk", "clf"], f"Invalid method: {args.method}"
+    assert args.method in ["normal", "clustering"], f"Invalid method: {args.method}"
     main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose, method=args.method, use_openai=args.use_openai)
