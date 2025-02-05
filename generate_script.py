@@ -27,17 +27,11 @@ PEFT_TYPES = ["lora", "dora", "vera", "loha", "lokr"]
 DATASET_NAMES = [
     # normal
     "data/02-processed/spanish",
-    "data/02-processed/spanish-reduce",
     "data/02-processed/english",
-    "data/02-processed/english-reduce",
     "data/02-processed/french",
-    "data/02-processed/french-reduce",
     "data/02-processed/german",
-    "data/02-processed/german-reduce",
     "data/02-processed/italian",
-    "data/02-processed/italian-reduce",
     "data/02-processed/portuguese",
-    "data/02-processed/portuguese-reduce",
     # combined
     #"data/03-combined/english-german",
     #"data/03-combined/spanish-english",
