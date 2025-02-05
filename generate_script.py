@@ -39,12 +39,19 @@ DATASET_NAMES = [
     "data/02-processed/portuguese",
     "data/02-processed/portuguese-reduce",
     # combined
-    "data/03-combined/english-german",
-    "data/03-combined/spanish-english",
-    "data/03-combined/spanish-french",
-    "data/03-combined/spanish-german",
-    "data/03-combined/spanish-italian",
-    "data/03-combined/spanish-portuguese",
+    #"data/03-combined/english-german",
+    #"data/03-combined/spanish-english",
+    #"data/03-combined/spanish-french",
+    #"data/03-combined/spanish-german",
+    #"data/03-combined/spanish-italian",
+    #"data/03-combined/spanish-portuguese",
+    # clustering
+    "data/04-clustering/spanish-chunks-sentence-transformers",
+    "data/04-clustering/english-chunks-sentence-transformers",
+    "data/04-clustering/french-chunks-sentence-transformers",
+    "data/04-clustering/german-chunks-sentence-transformers",
+    "data/04-clustering/italian-chunks-sentence-transformers",
+    "data/04-clustering/portuguese-chunks-sentence-transformers",
 ]
 
 # Create an output directory for the scripts

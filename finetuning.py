@@ -58,7 +58,9 @@ def parse_args():
     args = parse.parse_args()
     args.lora_target_modules = args.lora_target_modules.split(",")
     args.run_name = generate_names_for_wandb_run(args)
-    folder = os.path.join(args.output_dir, args.model_name_or_path)
+    dataset_name = args.dataset_name.split("/")[-1]
+    peft = args.peft_type
+    folder = os.path.join(args.output_dir, args.model_name_or_path, dataset_name, peft)
     os.makedirs(folder, exist_ok=True)
     args.output_dir = os.path.join(folder, args.run_name)
     return args
@@ -171,9 +173,9 @@ if __name__ == "__main__":
         script_args.device
     )
 
-    if script_args.wandb:
-        initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
-        upload_to_wandb("Original Summaries", initial_summary)
+    #if script_args.wandb:
+    #    initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
+    #    upload_to_wandb("Original Summaries", initial_summary)
 
     trainer.train(resume_from_checkpoint=None)
     trainer.save_model(script_args.output_dir)
@@ -182,11 +184,11 @@ if __name__ == "__main__":
     #df_summary = pd.DataFrame(test_summary)
     #df_summary.to_excel(os.path.join(script_args.output_dir, "test_summary.xlsx"), index=False)
 
-    if script_args.wandb:
+    #if script_args.wandb:
         # get 5 samples of generated summaries
-        after_training_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=5)
-        upload_to_wandb("Generated Summaries", after_training_summary)
-        wandb_end()
+    #    after_training_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=5)
+    #    upload_to_wandb("Generated Summaries", after_training_summary)
+        #wandb_end()
 
 
 
