@@ -156,8 +156,10 @@ def main():
     if args.method == "extractive":
         baseline = ExtractiveSummarizer(args.model_name)
     else:
-        baseline = methods[args.method]() 
-    summaries = generate_summaries(dataset["test"], baseline, num_samples=None)
+        baseline = methods[args.method]()
+    # get a subset of the dataset
+    subset = dataset["test"].shuffle(seed=42).select(range(20))
+    summaries = generate_summaries(subset, baseline, num_samples=None)
     save_result_baseline(summaries, args.method, args.model_name, name_df)
 
 if __name__ == '__main__':

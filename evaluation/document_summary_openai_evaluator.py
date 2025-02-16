@@ -3,7 +3,7 @@ import re
 from openai import OpenAI
 
 class DocumentSummaryOpenAiEvaluator:
-    def __init__(self, api_key):
+    def __init__(self, api_key, upgrade=False):
         """
         Initialize the evaluator.
 
@@ -20,6 +20,7 @@ class DocumentSummaryOpenAiEvaluator:
             "fluency": "flu.txt",
             "relevance": "rel.txt"
         }
+        self.upgrade = upgrade
 
     def _load_prompts(self, language="spanish"):
         """
@@ -58,10 +59,11 @@ class DocumentSummaryOpenAiEvaluator:
         :param prompt: The prompt to send to the API.
         :return: The API response.
         """
+        plus = "Be very generous when scoring." if self.upgrade else ""
         response = self.client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are an expert evaluator for document summaries."},
+                {"role": "system", "content": "You are an expert evaluator for document summaries." + plus},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=5,

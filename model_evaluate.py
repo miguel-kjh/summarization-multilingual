@@ -50,12 +50,12 @@ def log_metrics_to_wandb(metrics: dict):
         wandb.log({f"{lang}/average": metrics["average"]})
     wandb.finish()
 
-def main(model, enable_wandb, verbose=True, method="normal", use_openai=False):
+def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, up=False):
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
     with open("api/key.json", "r") as file:
         api_key = json.load(file)["key"]
-    openai_evaluator = DocumentSummaryOpenAiEvaluator(api_key)
+    openai_evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=up)
 
     # Initialize wandb if enabled
     if enable_wandb:
@@ -164,9 +164,21 @@ if __name__ == "__main__":
     parser.add_argument(
         "--use_openai",
         type=lambda x: bool(strtobool(x)),
+        default=True,
+    )
+    parser.add_argument(
+        "--up",
+        type=lambda x: bool(strtobool(x)),
         default=False,
     )
 
     args = parser.parse_args()
     assert args.method in ["normal", "clustering"], f"Invalid method: {args.method}"
-    main(model=args.model_name_or_path, enable_wandb=args.wandb, verbose=args.verbose, method=args.method, use_openai=args.use_openai)
+    main(
+        model=args.model_name_or_path, 
+        enable_wandb=args.wandb, 
+        verbose=args.verbose, 
+        method=args.method, 
+        use_openai=args.use_openai,
+        up=args.up,
+    )
