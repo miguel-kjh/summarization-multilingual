@@ -17,9 +17,10 @@ def parse():
 
     parser.add_argument("--model_name_or_path", type=str, default="models/Qwen2.5-0.5B-Instruct-spanish-paragraphs-sentence-transformers-e2-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-25-15-31-30", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/04-clustering/spanish-paragraphs-sentence-transformers", help="Dataset path")
+    parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=True, help="Clustering method to use")
+    
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
     parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of new tokens")
-    parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=True, help="Clustering method to use")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
 
     parser.add_argument("--cluster_embedding_model", type=str, default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2", help="Embedding model for clustering")
