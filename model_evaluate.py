@@ -34,7 +34,7 @@ def save_metrics_to_json(metrics, model_path, filename):
     with open(filepath, "w") as f:
         json.dump(metrics, f, indent=4)
 
-def log_metrics_to_wandb(metrics: dict):
+def log_metrics_to_wandb(metrics: dict, use_openai: bool):
     """
     Log metrics to Weights & Biases (wandb).
 
@@ -43,11 +43,12 @@ def log_metrics_to_wandb(metrics: dict):
     for lang, metrics in metrics.items():
         wandb.log({f"{lang}/rouge": metrics["rouge"]})
         wandb.log({f"{lang}/bertscore": metrics["bertscore"]})
-        wandb.log({f"{lang}/coherence": metrics["coherence"]})
-        wandb.log({f"{lang}/consistency": metrics["consistency"]})
-        wandb.log({f"{lang}/fluency": metrics["fluency"]})
-        wandb.log({f"{lang}/relevance": metrics["relevance"]})
-        wandb.log({f"{lang}/average": metrics["average"]})
+        if use_openai:
+            wandb.log({f"{lang}/coherence": metrics["coherence"]})
+            wandb.log({f"{lang}/consistency": metrics["consistency"]})
+            wandb.log({f"{lang}/fluency": metrics["fluency"]})
+            wandb.log({f"{lang}/relevance": metrics["relevance"]})
+            wandb.log({f"{lang}/average": metrics["average"]})
     wandb.finish()
 
 def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, up=False):
@@ -132,7 +133,7 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
 
     # Log metrics to wandb if enabled
     if enable_wandb:
-        log_metrics_to_wandb(metrics)
+        log_metrics_to_wandb(metrics, use_openai)
 
 if __name__ == "__main__":
     seed_everything(SEED)
