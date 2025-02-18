@@ -15,10 +15,11 @@ from utils import create_model_and_tokenizer, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen2.5-0.5B-Instruct-spanish-paragraphs-sentence-transformers-e2-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-25-15-31-30", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="models/others/Qwen2.5-0.5B-spanish-e2-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-25-07-05-38", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/04-clustering/spanish-paragraphs-sentence-transformers", help="Dataset path")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=True, help="Clustering method to use")
-    
+    parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
+
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
     parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of new tokens")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
@@ -35,6 +36,12 @@ def parse():
 if __name__ == '__main__':
     seed_everything(SEED)
     args = parse()
+    name_df = f"test_summary_{'clustering' if args.using_clustering else 'normal'}.xlsx"
+    name_df_of_summaries = os.path.join(args.model_name_or_path, name_df)
+    if not args.rewrite and os.path.exists(name_df_of_summaries):
+        print("Summaries already generated")
+        exit()
+
     tokenizer, model = create_model_and_tokenizer(args)
     model.generation_config.pad_token_id = tokenizer.pad_token_id
     tokenizer.pad_token = tokenizer.eos_token
@@ -73,6 +80,5 @@ if __name__ == '__main__':
     
     
     df_summary = pd.DataFrame(summaries)
-    name_df = f"test_summary_{'clustering' if args.using_clustering else 'normal'}.xlsx"
-    df_summary.to_excel(os.path.join(args.model_name_or_path, name_df), index=False)
+    df_summary.to_excel(name_df_of_summaries, index=False)
     print("Summaries generated")
