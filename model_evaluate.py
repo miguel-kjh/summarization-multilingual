@@ -82,6 +82,12 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
             generated_summaries=dataset["generated_summary"].to_list(),
         )
 
+        times = dataset["time"].values
+
+        mean = np.mean(times)
+        std_dev = np.std(times, ddof=1)
+        metrics[lang]["times(sec)"] = f"{mean:.2f} ± {std_dev:.2f}"
+
         metrics[lang]["rouge"] = results["rouge"]
         metrics[lang]["bertscore"] = results["bertscore"]
 
@@ -120,6 +126,7 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
             print(f"Results for {lang}")
             print("ROUGE Results:", metrics[lang]["rouge"])
             print("BERTScore Results:", metrics[lang]["bertscore"])
+            print("Time:", metrics[lang]["times(sec)"])
             if use_openai:
                 print("OpenAI Evaluation Results:")
                 print("Coherence:", metrics[lang]["coherence"])

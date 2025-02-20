@@ -26,14 +26,21 @@ class SummaryMetricsCalculator:
         )
         
         # Calculate BERTScore metrics
-        P, R, F1 = self.bertscore.score(generated_summaries, reference_summaries)
+        try:
+            P, R, F1 = self.bertscore.score(generated_summaries, reference_summaries)
 
-        # Calculate average precision, recall, and F1 using numpy
-        bertscore_results = {
-            "bertscore_precision": P.mean().item(),
-            "bertscore_recall": R.mean().item(),
-            "bertscore_f1": F1.mean().item(),
-        }
+            # Calculate average precision, recall, and F1 using numpy
+            bertscore_results = {
+                "bertscore_precision": P.mean().item(),
+                "bertscore_recall": R.mean().item(),
+                "bertscore_f1": F1.mean().item(),
+            }
+        except Exception as e:
+            bertscore_results = {
+                "bertscore_precision": np.nan,
+                "bertscore_recall": np.nan,
+                "bertscore_f1": np.nan,
+            }
 
         # Return results
         return {

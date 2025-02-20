@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # model architecture
-model_name="Qwen/Qwen2.5-0.5B-Instruct"
+model_name="BSC-LT/salamandra-2b"
 # peft and quantization
-peft_type="vera" # lora, dora, vera, loha, lokr
+peft_type="lora" # lora, dora, vera, loha, lokr
 quantization=False
 lora_r=8 # for vera 8*8=64
 lora_alpha=16
@@ -15,7 +15,7 @@ batch_size=1
 learning_rate=1e-4
 num_train_epochs=2
 weight_decay=0.
-context_length=1024
+context_length=256
 
 # data
 dataset_name="data/04-clustering/spanish-chunks-openai"
