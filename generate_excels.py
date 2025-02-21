@@ -14,6 +14,7 @@ def find_and_read_json(base_dir, max_depth):
             if "result_metrics.json" in files:
                 model = root.split(os.sep)[-1]
                 json_path = os.path.join(root, "result_metrics.json")
+                print(f"Leyendo {json_path}")
                 try:
                     with open(json_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
@@ -54,11 +55,12 @@ def save_to_excel(results, output_file):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    base_directory = "models/Qwen/Qwen2.5-0.5B"  # Cambia esto por la ruta base
+    base_directory = "models/baseline"  # Cambia esto por la ruta base
     model = base_directory.split(os.sep)[-1]
-    max_search_depth = 3  # Cambia esto al nivel deseado
+    max_search_depth = 1  # Cambia esto al nivel deseado
     output_excel = os.path.join(base_directory, f"metrics_summary_{model}.xlsx")
     
     results = find_and_read_json(base_directory, max_search_depth)
+    print(f"Resultados encontrados: {results}")
     save_to_excel(results, output_excel)
     print(f"Resultados guardados en {output_excel}")

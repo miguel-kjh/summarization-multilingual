@@ -1,12 +1,14 @@
 import os
 import subprocess
 
-base_path = "models/Qwen"
-target_depth = 5
+base_path = "models/baseline"
+target_depth = 2
 chunks = "chunks"
 datasets = ["data/02-processed", "data/04-clustering"]
 
 for root, dirs, files in os.walk(base_path):
+    if "FacebookAI" in root:
+        continue
     depth = root[len(base_path):].count(os.sep) + 1  # +1 para incluir el base_path como nivel 1
     if depth == target_depth:
         print(f"Directorio en profundidad {target_depth}: {root}")
