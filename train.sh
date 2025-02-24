@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # model architecture
-model_name="Qwen/Qwen2.5-7B"
+model_name="meta-llama/Llama-3.2-3B"
 # peft and quantization
 peft_type="lora" # lora, dora, vera, loha, lokr
-quantization=True
+quantization=False
 lora_r=8 # for vera 8*8=64
 lora_alpha=16
 lora_dropout=0.05
-lora_target_modules="q_proj,k_proj,v_proj"
+lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
 batch_size=1

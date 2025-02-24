@@ -11,17 +11,15 @@ CONSTANTS = {
     "learning_rate": 1e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 512,
-    "quantization": False,
+    "context_length": 256,
+    "quantization": False, 
     "wandb": True
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "meta-llama/Llama-3.2-1B",
-    "meta-llama/Llama-3.2-1B-Instruct",
-    "Qwen/Qwen2.5-1.5B",
-    "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-3B",
+    "meta-llama/Llama-3.2-3B"
 ]
 
 PEFT_TYPES = ["lora"] #["lora", "dora", "vera", "loha", "lokr"]
@@ -56,7 +54,8 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Generate a script for each combination of model, PEFT type, and dataset
 for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODEL_NAMES, PEFT_TYPES, DATASET_NAMES)):
-    script_filename = os.path.join(output_dir, f"train_{i+1}.sh")
+    simple_name = model_name.split("/")[-1]
+    script_filename = os.path.join(output_dir, f"train_{i+1}_{simple_name}.sh")
 
     bash_script = f"""#!/bin/bash
 
