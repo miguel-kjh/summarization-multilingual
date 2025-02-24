@@ -11,15 +11,17 @@ CONSTANTS = {
     "learning_rate": 1e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 256,
+    "context_length": 512,
     "quantization": False,
     "wandb": True
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "BSC-LT/salamandra-2b",
-    "BSC-LT/salamandra-2b-instruct",
+    "meta-llama/Llama-3.2-1B",
+    "meta-llama/Llama-3.2-1B-Instruct",
+    "Qwen/Qwen2.5-1.5B",
+    "Qwen/Qwen2.5-1.5B-Instruct",
 ]
 
 PEFT_TYPES = ["lora"] #["lora", "dora", "vera", "loha", "lokr"]
