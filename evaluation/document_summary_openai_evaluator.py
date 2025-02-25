@@ -63,7 +63,7 @@ class DocumentSummaryOpenAiEvaluator:
         response = self.client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are an expert evaluator for document summaries." + plus},
+                {"role": "system", "content": "You are an expert evaluator for document summaries" + plus},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=5,
