@@ -15,8 +15,8 @@ from utils import create_model_and_tokenizer, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="models/others/Qwen2.5-0.5B-spanish-e2-b1-lr0.0001-wd0.0-c1024-r8-a16-d0.05-quant-2025-01-25-07-05-38", help="Model name")
-    parser.add_argument("--dataset", type=str, default="data/04-clustering/spanish-paragraphs-sentence-transformers", help="Dataset path")
+    parser.add_argument("--model_name_or_path", type=str, default="models/BSC-LT/salamandra-7b/english-chunks-sentence-transformers/lora/salamandra-7b-english-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-quant-2025-02-26-05-11-00", help="Model name")
+    parser.add_argument("--dataset", type=str, default="data/04-clustering/english-paragraphs-sentence-transformers", help="Dataset path")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=True, help="Clustering method to use")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 

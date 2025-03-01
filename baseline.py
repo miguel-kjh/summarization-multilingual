@@ -8,6 +8,8 @@ from tqdm import tqdm
 from transformers import *
 from openai import OpenAI
 from datasets import Dataset
+from langchain_ollama import OllamaLLM
+
 
 from document_cluster import DocumentClustererTopKSentences
 from text2embeddings import Text2EmbeddingsSetenceTransforms
@@ -27,7 +29,7 @@ class Baseline:
 
 class GHIC(Baseline):
 
-    def __init__(self):
+    def __init__(self, model_name: str):
         embedding_model = Text2EmbeddingsSetenceTransforms(
             model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
         )
@@ -53,7 +55,7 @@ class ExtractiveSummarizer(Baseline):
         return summary
     
 class OpenAiSummarizer(Baseline):
-    def __init__(self, model="gpt-4o", type_sumarization="large"):
+    def __init__(self, model="gpt-4o-mini", type_sumarization="large"):
         import json
         with open('api/key.json') as f:
             data = json.load(f)
@@ -82,8 +84,6 @@ Summary requirements:
 2. Style: Neutral.
 3. Language: {language}.
 4. Focus: Main ideas and key points.
-
-If possible, organize the summary into bullet points or short paragraphs for clarity.
 """
         return prompt
 
@@ -108,6 +108,18 @@ If possible, organize the summary into bullet points or short paragraphs for cla
         # Extract the summary from the response
         summary = response.choices[0].message.content
         return summary
+    
+class OllamaSummarizer(OpenAiSummarizer):
+    def __init__(self, model: str = "llama3", type_sumarization: str = "large"):
+        print(f"Using model for Ollama: {model}")
+        self.llm = OllamaLLM(model=model)
+        self.type_sumarization = type_sumarization
+
+    def summarize(self, document, language):
+        prompt = self._generate_prompt(document, language)
+        response = self.llm.invoke(prompt)
+        return response
+    
     
 def generate_summaries(dataset: Dataset, baseline_method: Baseline, num_samples: int=5) -> pd.DataFrame:
         summaries = []
@@ -138,25 +150,27 @@ def generate_summaries(dataset: Dataset, baseline_method: Baseline, num_samples:
 methods = {
     "ghic": GHIC,
     "openai": OpenAiSummarizer,
+    "ollama": OllamaSummarizer,
 }
 
 def save_result_baseline(df_summary, method, model_name, name_df):
-    if method == "extractive":
-        root = f"models/baseline/{name_df}_{method}_{model_name}"
+    if method == "openai" or method == "ghic":
+        root = f"models/baseline/{name_df}/{method}"
     else:
-        root = f"models/baseline/{name_df}_{method}"
+        root = f"models/baseline/{name_df}/{method}/{model_name}"
     os.makedirs(root, exist_ok=True)
     df_summary.to_excel(f"{root}/test_summary_normal.xlsx", index=False)
     print("Summaries generated")
 
 def main():
     args = parse()
+    print(f"Using method: {args.method}")
     dataset = load_from_disk(args.dataset)
     name_df = args.dataset.split("/")[-1]
     if args.method == "extractive":
         baseline = ExtractiveSummarizer(args.model_name)
     else:
-        baseline = methods[args.method]()
+        baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
     subset = dataset["test"].shuffle(seed=42).select(range(20))
     summaries = generate_summaries(subset, baseline, num_samples=None)

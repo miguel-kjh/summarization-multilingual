@@ -1,5 +1,6 @@
 import os
 import re
+from langchain_ollama import OllamaLLM
 from openai import OpenAI
 
 class DocumentSummaryOpenAiEvaluator:
@@ -21,6 +22,8 @@ class DocumentSummaryOpenAiEvaluator:
             "relevance": "rel.txt"
         }
         self.upgrade = upgrade
+        print("OpenAI evaluator initialized.")
+        print(f"Upgrade: {upgrade}")
 
     def _load_prompts(self, language="spanish"):
         """
@@ -87,6 +90,35 @@ class DocumentSummaryOpenAiEvaluator:
         else:
             score = 0
         return score
+    
+class DocumentSummaryOllamaEvaluator(DocumentSummaryOpenAiEvaluator):
+    def __init__(self, api_key = None, upgrade=False):
+        self.llm = OllamaLLM(model="phi4")
+        self.prompt_files = {
+            "coherence": "coh.txt",
+            "consistency": "con.txt",
+            "fluency": "flu.txt",
+            "relevance": "rel.txt"
+        }
+        self.upgrade = upgrade
+
+    def evaluate(self, document, summary, language="spanish"):
+        """
+        Evaluate a summary against a document for all criteria.
+
+        :param document: The source document.
+        :param summary: The summary to evaluate.
+        :return: Dictionary with scores for each evaluation criterion.
+        """
+        results = {}
+        prompts = self._load_prompts(language)
+        for criteria, prompt in prompts.items():
+            evaluation_prompt = prompt.replace("{{Document}}", document).replace("{{Summary}}", summary)
+            response = self.llm.invoke(evaluation_prompt)
+            results[criteria] = self._parse_response(response)
+        return results
+
+    
 
 # Example usage
 if __name__ == "__main__":
@@ -98,11 +130,7 @@ if __name__ == "__main__":
     }
     language = "spanish"
 
-    import json
-    with open("../api/key.json", "r") as file:
-        api_key = json.load(file)
-
-    evaluator = DocumentSummaryOpenAiEvaluator(api_key["key"])
+    evaluator = DocumentSummaryOllamaEvaluator()
 
     # Sample document and summary
     document = """
