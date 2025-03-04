@@ -109,7 +109,7 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                     )
                     openai_metrics['coherence'].append(openai_results['coherence'])
                     openai_metrics['consistency'].append(openai_results['consistency'])
-                    openai_metrics['fluency'].append(openai_results['fluency'])
+                    openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
                     openai_metrics['relevance'].append(openai_results['relevance'])
                     openai_metrics['average'].append(calculate_weighted_mean(openai_results))
                 except Exception as e:

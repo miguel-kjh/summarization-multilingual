@@ -23,16 +23,16 @@ for root, dirs, files in os.walk(base_path):
             "--dataset", data,
             "--using_clustering", "True" if using_clustering else "False",
             "--data_sample", "10" if using_clustering else "5",
-            "--quantization", "True" if "7b" in root else "False",
+            "--quantization", "True",
         ]
 
         # Ejecuta el script y muestra la salida en tiempo real
-        try:
+        """try:
             subprocess.run(command, check=True)
         except:
             print("Error al ejecutar el script")
-        print("Generación finalizada")
-        """print("#"*50)
+        print("Generación finalizada")"""
+        print("#"*50)
         print("Evaluar modelo")
         command_evaluate = [
             "python", "model_evaluate.py",
@@ -40,8 +40,9 @@ for root, dirs, files in os.walk(base_path):
             "--wandb", "False",
             "--method", "normal" if not using_clustering else "clustering",
             "--use_openai", "True",
+            "--up", "True",
         ]
-        subprocess.run(command_evaluate, check=True)"""
+        subprocess.run(command_evaluate, check=True)
 
     elif depth > target_depth:
         dirs.clear()  # Detiene la exploración de niveles más profundos

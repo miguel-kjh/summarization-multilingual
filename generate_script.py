@@ -18,27 +18,12 @@ CONSTANTS = {
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "Qwen/Qwen2.5-3B",
-    "meta-llama/Llama-3.2-3B"
+    "meta-llama/Llama-3.2-3B-Instruct"
 ]
 
 PEFT_TYPES = ["lora"] #["lora", "dora", "vera", "loha", "lokr"]
 
 DATASET_NAMES = [
-    # normal
-    "data/02-processed/spanish",
-    "data/02-processed/english",
-    "data/02-processed/french",
-    "data/02-processed/german",
-    "data/02-processed/italian",
-    "data/02-processed/portuguese",
-    # combined
-    #"data/03-combined/english-german",
-    #"data/03-combined/spanish-english",
-    #"data/03-combined/spanish-french",
-    #"data/03-combined/spanish-german",
-    #"data/03-combined/spanish-italian",
-    #"data/03-combined/spanish-portuguese",
     # clustering
     "data/04-clustering/spanish-chunks-sentence-transformers",
     "data/04-clustering/english-chunks-sentence-transformers",
