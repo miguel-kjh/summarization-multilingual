@@ -32,9 +32,9 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Process constants for dataset and model configuration.")
 
-    parser.add_argument("--dataset_path", type=str, default="data/02-processed/english",
+    parser.add_argument("--dataset_path", type=str, default="data/02-processed/canario",
                         help="Path to the dataset to be processed.")
-    parser.add_argument("--method", type=str, default="paragraphs",
+    parser.add_argument("--method", type=str, default="chunks",
                         help="Method to use for processing ('sentences', 'paragraphs'. 'chunks').")
     parser.add_argument("--embedding_model", type=str, choices=["openai", "sentence-transformers"], default="sentence-transformers",
                         help="Embedding model to use ('openai' or 'sentence-transformers').")

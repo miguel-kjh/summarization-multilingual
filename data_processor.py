@@ -4,15 +4,18 @@ import argparse
 from tqdm import tqdm
 from datasets import load_from_disk, DatasetDict, concatenate_datasets
 
-from data_preprare.transform_data import TransformData, TransformDataReduce
+from data_preprare.transform_data import TransformData, TransformDataReduce, TransformDataCanario
 from data_preprare.generate_data_stats import StatsGenerator
-from data_preprare.download_dataset import download_dataset
+from data_preprare.download_dataset import download_dataset, download_canary_parlament
 from utils import LANGUAGES, RAW_DATA_FOLDER,  FILE_STATS, PROCESS_DATA_FOLDER, COMBINED_DATA_FOLDER
 
 def download():
     for lang in LANGUAGES:
         download_dataset(lang, RAW_DATA_FOLDER)
     print("All datasets downloaded and saved")
+
+def download_canary():
+    download_canary_parlament(RAW_DATA_FOLDER)
 
 def stats():
     print("Generating stats")
@@ -40,6 +43,21 @@ def process():
             instructions = transform.generate_instructions(dataset[split], lang)
             dataset_dict[split] = instructions
         dataset_dict.save_to_disk(dataset_it_name)
+
+def process_canary():
+    print("Processing data")
+    transform = TransformDataCanario()
+    dataset_name = os.path.join(RAW_DATA_FOLDER, "canario")
+    dataset = load_from_disk(dataset_name)
+
+    dataset_it_name = os.path.join(PROCESS_DATA_FOLDER, "canario")
+    os.makedirs(dataset_it_name, exist_ok=True)
+    dataset_dict = DatasetDict()
+    for split in dataset.keys():
+        print(f"Processing {split} split for canario")
+        instructions = transform.generate_instructions(dataset[split])
+        dataset_dict[split] = instructions
+    dataset_dict.save_to_disk(dataset_it_name)
 
 def process_reduce():
     print("Processing data")
@@ -129,9 +147,11 @@ def parse_args():
 
 OPERATIONS = {
     "download": download,
+    "download_canary": download_canary,
     "stats": stats,
     "process": process,
     "process_reduce": process_reduce,
+    "process_canary": process_canary,
     "combine": combine,
 }
 

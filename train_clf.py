@@ -10,18 +10,7 @@ import numpy as np
 from lazypredict.Supervised import LazyClassifier
 
 NAME_DATASET = [
-    "data/04-clustering/english-chunks-sentence-transformers",
-    "data/04-clustering/spanish-chunks-sentence-transformers",
-    "data/04-clustering/french-chunks-sentence-transformers",
-    "data/04-clustering/german-chunks-sentence-transformers",
-    "data/04-clustering/italian-chunks-sentence-transformers",
-    "data/04-clustering/portuguese-chunks-sentence-transformers",
-    "data/04-clustering/spanish-english-chunks-sentence-transformers",
-    "data/04-clustering/spanish-french-chunks-sentence-transformers",
-    "data/04-clustering/spanish-german-chunks-sentence-transformers",
-    "data/04-clustering/spanish-italian-chunks-sentence-transformers",
-    "data/04-clustering/spanish-portuguese-chunks-sentence-transformers",
-    "data/04-clustering/english-german-chunks-sentence-transformers",
+    "data/04-clustering/canario-chunks-sentence-transformers"
 ]
 TINY = False
 

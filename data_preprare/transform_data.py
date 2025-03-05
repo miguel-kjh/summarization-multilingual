@@ -32,6 +32,22 @@ class TransformData:
         print(f"Generated {len(instructions)} instructions for {lang}")
         return Dataset.from_list(instructions)
     
+class TransformDataCanario(TransformData):
+
+    def generate_instructions(self, dataset: Dataset) -> Dataset:
+        instructions = []
+        for sample in tqdm(dataset, desc=f"Generating instructions for canario"):
+            template = self.template_json.copy()
+            template['instruction'] = INSTRUCTION_TEMPLATE["canario"]
+            template['input'] = sample['original_text']
+            template['output'] = sample['summarized_text']
+            template['text'] = generate_training_prompt(template['instruction'], template['input'], template['output'])
+            template['language'] = "canario"
+            instructions.append(template)
+
+        print(f"Generated {len(instructions)} instructions for canario")
+        return Dataset.from_list(instructions)
+    
 class TransformDataReduce(TransformData):
     
     def __init__(self, model_name: str = "bert-base-multilingual-cased"):

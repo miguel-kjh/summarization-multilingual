@@ -17,6 +17,9 @@ PROJECT_NAME = "eur-lex-sum"
 #DATASET
 DATASET = "dennlinger/eur-lex-sum"
 
+# Canary
+DATASET_PAR_CAN = "miguel-kjh/ParCan-Sum"
+
 # Folders
 DATA_FOLDER           = "data"
 RAW_DATA_FOLDER       = os.path.join(DATA_FOLDER, "01-raw")
@@ -43,6 +46,7 @@ SEED = 3407
 INSTRUCTION_TEMPLATE = {
     "english": "Please summarize the following text in a few sentences, highlighting the most important points.",
     "spanish": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
+    "canario": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
     "german": "Bitte fassen Sie den folgenden Text in ein paar Sätzen zusammen und heben Sie die wichtigsten Punkte hervor.",
     "italian": "Per favore, riassumi il seguente testo in poche frasi, evidenziando i punti più importanti.",
     "portuguese": "Por favor, resuma o texto a seguir em algumas frases, destacando os pontos mais importantes.",
