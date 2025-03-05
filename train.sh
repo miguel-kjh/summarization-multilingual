@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="meta-llama/Llama-3.2-3B"
+model_name="Qwen/Qwen2.5-0.5B"
 # peft and quantization
 peft_type="lora" # lora, dora, vera, loha, lokr
 quantization=False
@@ -11,14 +11,14 @@ lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
-batch_size=1
+batch_size=8
 learning_rate=1e-4
 num_train_epochs=2
 weight_decay=0.
-context_length=256
+context_length=512
 
 # data
-dataset_name="data/04-clustering/spanish-chunks-openai"
+dataset_name="data/04-clustering/canario-chunks-sentence-transformers"
 wandb=False
 # run
 python finetuning.py \

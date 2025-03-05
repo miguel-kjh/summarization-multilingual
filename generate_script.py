@@ -7,30 +7,26 @@ CONSTANTS = {
     "lora_alpha": 16,
     "lora_dropout": 0.05,
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
-    "batch_size": 1,
+    "batch_size": 8,
     "learning_rate": 1e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 256,
+    "context_length": 512,
     "quantization": False, 
     "wandb": True
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "meta-llama/Llama-3.2-3B-Instruct"
+    "Qwen/Qwen2.5-0.5B",
+    "Qwen/Qwen2.5-0.5B-Instruct",
 ]
 
-PEFT_TYPES = ["lora"] #["lora", "dora", "vera", "loha", "lokr"]
+PEFT_TYPES = ["lora", "dora", "vera", "loha", "lokr"]
 
 DATASET_NAMES = [
     # clustering
-    "data/04-clustering/spanish-chunks-sentence-transformers",
-    "data/04-clustering/english-chunks-sentence-transformers",
-    "data/04-clustering/french-chunks-sentence-transformers",
-    "data/04-clustering/german-chunks-sentence-transformers",
-    "data/04-clustering/italian-chunks-sentence-transformers",
-    "data/04-clustering/portuguese-chunks-sentence-transformers",
+    "data/04-clustering/canario-chunks-sentence-transformers",
 ]
 
 # Create an output directory for the scripts

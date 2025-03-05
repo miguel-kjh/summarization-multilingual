@@ -3,7 +3,7 @@
 #!/bin/bash
 
 # Lista de idiomas
-declare -a languages=("portuguese" "english" "french" "german" "italian")
+declare -a languages=("canario")
 
 # Iterar sobre la lista de idiomas
 for lang in "${languages[@]}"; do
@@ -11,7 +11,7 @@ for lang in "${languages[@]}"; do
     
     echo "Procesando idioma: $lang"
     
-    python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini"
+    #python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini"
     python3 baseline.py --dataset "$dataset" --method "ghic"
     python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "bert-base-multilingual-cased"
     python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "FacebookAI/xlm-roberta-large"
