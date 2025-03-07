@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-base_path = "models/baseline/canario"
-target_depth = 3
+base_path = "models/meta-llama"
+target_depth = 5
 chunks = "chunks"
 datasets = ["data/04-clustering"]
 
@@ -40,8 +40,12 @@ for root, dirs, files in os.walk(base_path):
             "--wandb", "False",
             "--method", "normal" if not using_clustering else "clustering",
             "--use_openai", "True",
+            "--up", "True",
         ]
-        subprocess.run(command_evaluate, check=True)
+        try:
+            subprocess.run(command_evaluate, check=True)
+        except:
+            print("Error al ejecutar el script de evaluación")
 
     elif depth > target_depth:
         dirs.clear()  # Detiene la exploración de niveles más profundos

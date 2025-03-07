@@ -42,6 +42,13 @@ def save_to_excel(results, output_file):
             row = {"model": base_model_name}
             row.update(metrics["rouge"])
             row.update(metrics["bertscore"])
+            row.update({
+                "coherence": metrics["coherence"],
+                "consistency": metrics["consistency"],
+                "fluency": metrics["fluency"],
+                "relevance": metrics["relevance"],
+                "average": metrics["average"]
+            })
             row["times(sec)"] = metrics["times(sec)"]
             
             language_data[language].append(row)
@@ -54,12 +61,12 @@ def save_to_excel(results, output_file):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    base_directory = "models/baseline"  # Cambia esto por la ruta base
+    base_directory = "models/BSC-LT/salamandra-7b"  # Cambia esto por la ruta base
     model = base_directory.split(os.sep)[-1]
     max_search_depth = 3  # Cambia esto al nivel deseado
     output_excel = os.path.join(base_directory, f"metrics_summary_{model}.xlsx")
     
     results = find_and_read_json(base_directory, max_search_depth)
     print(f"Resultados encontrados: {results}")
-    #save_to_excel(results, output_excel)
+    save_to_excel(results, output_excel)
     print(f"Resultados guardados en {output_excel}")

@@ -7,22 +7,22 @@ CONSTANTS = {
     "lora_alpha": 16,
     "lora_dropout": 0.05,
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
-    "batch_size": 8,
+    "batch_size": 2,
     "learning_rate": 1e-4,
-    "num_train_epochs": 2,
+    "num_train_epochs": 1,
     "weight_decay": 0.0,
-    "context_length": 512,
+    "context_length": 256,
     "quantization": False, 
     "wandb": True
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "Qwen/Qwen2.5-0.5B",
-    "Qwen/Qwen2.5-0.5B-Instruct",
+    "BSC-LT/salamandra-2b",
+    "BSC-LT/salamandra-2b-instruct",
 ]
 
-PEFT_TYPES = ["lora", "dora", "vera", "loha", "lokr"]
+PEFT_TYPES = ["lora", "lora", "dora", "vera", "loha", "lokr"]
 
 DATASET_NAMES = [
     # clustering

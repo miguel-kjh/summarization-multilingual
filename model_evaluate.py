@@ -52,6 +52,12 @@ def log_metrics_to_wandb(metrics: dict, use_openai: bool):
     wandb.finish()
 
 def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, up=False):
+
+    final_folder = os.path.join(model, RESULTS_FILENAME)
+    if os.path.exists(final_folder):
+        print("Metrics already calculated")
+        return
+
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
     with open("api/key.json", "r") as file:
@@ -70,6 +76,7 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
     # Load the dataset
     name_dataset = f"{DATASET_FILENAME}_{method}.xlsx"
     dataset = load_dataset(model, name_dataset)
+    dataset = dataset.dropna(subset=["expected_summary", "generated_summary"])
 
     # split for language
     dataset_gropby_lang = dataset.groupby("language")
@@ -101,7 +108,11 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                 'relevance': [],
                 'average': [],
             }
+            idx_max = 5
+            idx = 0
             for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
+                if idx > idx_max:
+                    break
                 try:
                     openai_results = openai_evaluator.evaluate(
                         row["expected_summary"], 
@@ -112,6 +123,7 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                     openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
                     openai_metrics['relevance'].append(openai_results['relevance'])
                     openai_metrics['average'].append(calculate_weighted_mean(openai_results))
+                    idx += 1
                 except Exception as e:
                     continue
             

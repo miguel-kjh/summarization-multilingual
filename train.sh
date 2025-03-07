@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="Qwen/Qwen2.5-0.5B"
+model_name="BSC-LT/salamandra-2b-instruct"
 # peft and quantization
 peft_type="lora" # lora, dora, vera, loha, lokr
 quantization=False
@@ -11,11 +11,11 @@ lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 
 # hyperparameters
-batch_size=8
+batch_size=2
 learning_rate=1e-4
-num_train_epochs=2
+num_train_epochs=1
 weight_decay=0.
-context_length=512
+context_length=256
 
 # data
 dataset_name="data/04-clustering/canario-chunks-sentence-transformers"
