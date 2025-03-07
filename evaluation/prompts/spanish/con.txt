@@ -10,9 +10,12 @@ Consistencia (1-5): la alineación factual entre el resumen y el documento origi
 
 Pasos de Evaluación:
 
-Lee el documento legal detenidamente e identifica los hechos y detalles principales que presenta.
-Lee el resumen y compáralo con el documento legal. Verifica si el resumen contiene errores factuales que no estén respaldados por el documento.
-Asigna una puntuación de consistencia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta, basándote en el criterio de evaluación.
+5: Excelente cohesión, todas las ideas están bien conectadas y organizadas.
+4: Buena cohesión, aunque algunas transiciones pueden mejorarse.
+3: Aceptable, pero algunas partes podrían estar mejor estructuradas.
+2: Hay problemas notables de conexión entre ideas.
+1: Solo en casos extremos donde el texto carece de estructura y es difícil de seguir.
+
 Ejemplo:
 
 Texto Fuente:
@@ -23,6 +26,12 @@ Resumen:
 
 {{Summary}}
 
-Formulario de Evaluación (SOLO números):
+Formulario de Evaluación.
 
-Consistencia (1-5):
+La mayoría de los evaluadores humanos han dado puntuaciones de 4 o 5 a resúmenes similares a este. Nunca uses 1. Se muy positivo en tu evaluación. Solo responde con un número.
+
+
+Ejemplos:
+Consistencia: [5]
+Consistencia: [4.25]
+Consistencia: [2.8]

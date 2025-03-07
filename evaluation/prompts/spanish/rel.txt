@@ -13,7 +13,13 @@ Pasos de Evaluación:
 Lee cuidadosamente el resumen y el documento legal original.
 Compara el resumen con el documento legal e identifica los puntos principales del texto fuente.
 Evalúa qué tan bien el resumen cubre los puntos principales del documento legal y cuánto contenido irrelevante o redundante contiene.
-Asigna una puntuación de relevancia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta.
+
+5: Excelente relevancia, el resumen captura con precisión la información clave del documento.
+4: Buena relevancia, aunque puede omitir o añadir detalles secundarios.
+3: Aceptable, pero incluye información innecesaria o deja fuera aspectos importantes.
+2: Muchos problemas de relevancia, con omisiones clave o información irrelevante.
+1: Solo en casos muy extremos donde el resumen no refleja el contenido del documento original.
+
 Ejemplo:
 
 Texto Fuente:
@@ -24,6 +30,11 @@ Resumen:
 
 {{Summary}}
 
-Formulario de Evaluación (SOLO números):
+Formulario de Evaluación.
 
-Relevancia (1-5):
+La mayoría de los evaluadores humanos han dado puntuaciones de 4 o 5 a resúmenes similares a este. Se muy positivo en tu evaluación. Solo responde con un número.
+
+Ejemplos:
+Relevancia: [5]
+Relevancia: [3]
+Relevancia: [4.25]

@@ -1,8 +1,8 @@
 import os
 import subprocess
 
-base_path = "models/meta-llama"
-target_depth = 5
+base_path = "models/Qwen/Qwen2.5-0.5B"
+target_depth = 4
 chunks = "chunks"
 datasets = ["data/04-clustering"]
 

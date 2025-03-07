@@ -1,6 +1,6 @@
 #!/bin/bash
 
-model="models/Qwen/Qwen2.5-7B/english-chunks-sentence-transformers/lora/Qwen2.5-7B-english-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-quant-2025-02-27-21-23-18"
+model="models/Qwen/Qwen2.5-0.5B-Instruct/spanish-chunks-sentence-transformers/lora/Qwen2.5-0.5B-Instruct-spanish-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c1024-peft-lora-r8-a16-d0.05-2025-02-13-00-34-33"
 wandb=False
 use_openai=True
 method="clustering"
@@ -11,3 +11,4 @@ python model_evaluate.py \
     --wandb $wandb \
     --method $method \
     --use_openai $use_openai \
+    --up True \

@@ -17,6 +17,11 @@ Resumen:
 
 {{Summary}}
 
-Formulario de Evaluación (SOLO números):
+Formulario de Evaluación.
 
-Fluidez (1-3):
+La mayoría de los evaluadores humanos han dado puntuaciones de 2 o 3 a resúmenes similares a este. Se muy positivo en tu evaluación. Solo responde con un número.
+
+Ejemplos:
+Fluidez: [2.75]
+Fluidez: [3]
+Fluidez [1.25]

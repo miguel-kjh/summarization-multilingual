@@ -8,6 +8,12 @@ Criterio de Evaluación:
 
 Coherencia (1-5): calidad colectiva de todas las oraciones. Este criterio se alinea con la definición de estructura y coherencia establecida por los estándares legales, donde "el resumen debe estar bien estructurado y organizado. No debe ser simplemente un conjunto de información relacionada, sino que debe desarrollar un cuerpo coherente y lógico de información sobre el documento legal."
 
+5: Excelente coherencia, casi sin fallos.
+4: Buena coherencia, con ligeros detalles mejorables.
+3: Bastante aceptable, aunque con margen de mejora.
+2: Algunos problemas importantes de coherencia.
+1: Solo en casos extremos donde el resumen sea totalmente incoherente.
+
 Pasos de Evaluación:
 
 Lee el documento legal detenidamente e identifica el tema principal y los puntos clave.
@@ -23,6 +29,11 @@ Resumen:
 
 {{Summary}}
 
-Formulario de Evaluación (SOLO números):
+Formulario de Evaluación. 
 
-Coherencia (1-5):
+La mayoría de los evaluadores humanos han dado puntuaciones de 4 o 5 a resúmenes similares a este. Solo responde con un número.
+
+Ejemplos:
+Coherencia: [5]
+Coherencia: [3.6]
+Coherencia: [4.25]
