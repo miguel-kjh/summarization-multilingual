@@ -79,8 +79,8 @@ class SummaryGenerator:
 
             for obj in tqdm(sub_dataset, desc=f"Generating summaries for cluster {index}"):
                 instruction, input = obj['instruction'], obj['input']
+                prompt  = generate_prompt(instruction, input)
                 try:
-                    prompt  = generate_prompt(instruction, input)
                     summary, time = self.summarize(
                         model, 
                         prompt, 
@@ -95,7 +95,7 @@ class SummaryGenerator:
                     continue
                 torch.cuda.empty_cache()
 
-            print((" ".join(join_summary)).strip())
+            print( (" ".join(join_summary)).strip())
 
             summaries.append({
                 'document': original_input, 

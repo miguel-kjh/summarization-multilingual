@@ -7,19 +7,17 @@ CONSTANTS = {
     "lora_alpha": 16,
     "lora_dropout": 0.05,
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
-    "batch_size": 2,
+    "batch_size": 1,
     "learning_rate": 1e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 256,
+    "context_length": 512,
     "quantization": False, 
     "wandb": True
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "BSC-LT/salamandra-2b",
-    "BSC-LT/salamandra-2b-instruct",
     "meta-llama/Llama-3.2-3B",
     "meta-llama/Llama-3.2-3B-instruct",
     "Qwen/Qwen2.5-3B",

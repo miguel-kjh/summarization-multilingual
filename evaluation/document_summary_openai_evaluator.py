@@ -140,13 +140,14 @@ if __name__ == "__main__":
     evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
 
     # Sample document and summary
-    file_qwq_trained = "models/Qwen/Qwen2.5-7B/spanish-chunks-sentence-transformers/lora/Qwen2.5-7B-spanish-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-quant-2025-02-27-14-21-42/test_summary_clustering.xlsx"
+    file_qwq_trained = "models/Qwen/Qwen2.5-3B/italian-chunks-sentence-transformers/lora/Qwen2.5-3B-italian-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-2025-02-24-22-12-13/test_summary_clustering.xlsx"
 
     #file_phi4 = "models/baseline/spanish/ollama/phi4/test_summary_normal.xlsx"
 
     #file_openai = "models/baseline/spanish/openai/test_summary_normal.xlsx"
     import pandas as pd
-    df = pd.read_excel(file_qwq_trained)
+    df = pd.read_excel(file_qwq_trained, engine='openpyxl')
+    print(df.head())
     document = df["document"].to_list()
     summary = df["generated_summary"].to_list()
     mean_socore = {
@@ -181,7 +182,7 @@ if __name__ == "__main__":
         scaled_mean = calculate_weighted_mean(results)
         print(f"Scaled Mean (1-5): {scaled_mean}")
 
-        if scaled_mean >= 2:
+        if scaled_mean >= 0:
             for key, value in results.items():
                 mean_socore[key].append(value)
             mean_socore["average"].append(scaled_mean)
