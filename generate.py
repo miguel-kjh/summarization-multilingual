@@ -15,14 +15,14 @@ from utils import create_model_and_tokenizer, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen/Qwen2.5-7B/english-chunks-sentence-transformers/lora/Qwen2.5-7B-english-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-quant-2025-02-27-21-23-18", help="Model name")
-    parser.add_argument("--dataset", type=str, default="data/04-clustering/english-paragraphs-sentence-transformers", help="Dataset path")
+    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen/Qwen2.5-1.5B-Instruct/canario-chunks-sentence-transformers/lora/Qwen2.5-1.5B-Instruct-canario-chunks-sentence-transformers-e1-b4-lr0.0001-wd0.0-c512-peft-lora-r8-a16-d0.05-2025-03-06-22-23-36", help="Model name")
+    parser.add_argument("--dataset", type=str, default="data/04-clustering/canario-chunks-sentence-transformers", help="Dataset path")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=True, help="Clustering method to use")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
     parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of new tokens")
-    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=True, help="Quantization")
+    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
 
     parser.add_argument("--cluster_embedding_model", type=str, default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2", help="Embedding model for clustering")
     parser.add_argument("--spacy_model", type=str, default="es_dep_news_trf", help="SpaCy model")

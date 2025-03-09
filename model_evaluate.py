@@ -108,11 +108,7 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                 'relevance': [],
                 'average': [],
             }
-            idx_max = 5
-            idx = 0
             for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
-                if idx > idx_max:
-                    break
                 try:
                     openai_results = openai_evaluator.evaluate(
                         row["expected_summary"], 
@@ -123,7 +119,6 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                     openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
                     openai_metrics['relevance'].append(openai_results['relevance'])
                     openai_metrics['average'].append(calculate_weighted_mean(openai_results))
-                    idx += 1
                 except Exception as e:
                     continue
             

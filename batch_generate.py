@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-base_path = "models/Qwen/Qwen2.5-0.5B"
+base_path = "models/Qwen/Qwen2.5-1.5B"
 target_depth = 4
 chunks = "chunks"
 datasets = ["data/04-clustering"]
@@ -17,7 +17,7 @@ for root, dirs, files in os.walk(base_path):
 
         print(f"Dataset: {data}")
         print(f"Usando clustering: {using_clustering}")
-        """command = [
+        command = [
             "python", "generate.py",
             "--model_name_or_path", root,
             "--dataset", data,
@@ -30,7 +30,7 @@ for root, dirs, files in os.walk(base_path):
         try:
             subprocess.run(command, check=True)
         except:
-            print("Error al ejecutar el script")"""
+            print("Error al ejecutar el script")
         print("Generación finalizada")
         print("#"*50)
         print("Evaluar modelo")

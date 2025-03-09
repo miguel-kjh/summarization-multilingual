@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # model architecture
-model_name="BSC-LT/salamandra-2b-instruct"
+model_name="meta-llama/Llama-3.2-3B"
 # peft and quantization
 peft_type="lora" # lora, dora, vera, loha, lokr
 quantization=False
