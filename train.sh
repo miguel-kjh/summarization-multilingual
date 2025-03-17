@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # model architecture
-model_name="meta-llama/Llama-3.2-3B"
+model_name="Qwen/Qwen2.5-0.5B"
 # peft and quantization
-peft_type="lora" # lora, dora, vera, loha, lokr
+peft_type="vera" # lora, dora, vera, loha, lokr
 quantization=False
-lora_r=8 # for vera 8*8=64
+lora_r=256 # for vera 8*8=64
 lora_alpha=16
 lora_dropout=0.05
 lora_target_modules="q_proj,k_proj,v_proj"
 
 # hyperparameters
-batch_size=2
+batch_size=4
 learning_rate=1e-4
-num_train_epochs=1
+num_train_epochs=2
 weight_decay=0.
 context_length=512
 

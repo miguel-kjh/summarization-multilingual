@@ -7,20 +7,17 @@ CONSTANTS = {
     "lora_alpha": 16,
     "lora_dropout": 0.05,
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
-    "batch_size": 1,
+    "batch_size": 2,
     "learning_rate": 1e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 512,
+    "context_length": 256,
     "quantization": False, 
-    "wandb": True
+    "wandb": True,
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "meta-llama/Llama-3.2-3B",
-    "meta-llama/Llama-3.2-3B-instruct",
-    "Qwen/Qwen2.5-3B",
     "Qwen/Qwen2.5-3B-instruct",
 ]
 
@@ -28,7 +25,12 @@ PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
     # clustering
-    "data/04-clustering/canario-chunks-sentence-transformers",
+    "data/04-clustering/english-chunks-sentence-transformers",
+    "data/04-clustering/french-chunks-sentence-transformers",
+    "data/04-clustering/german-chunks-sentence-transformers",
+    "data/04-clustering/italian-chunks-sentence-transformers",
+    "data/04-clustering/portuguese-chunks-sentence-transformers",
+    "data/04-clustering/spanish-chunks-sentence-transformers",
 ]
 
 # Create an output directory for the scripts
@@ -38,7 +40,7 @@ os.makedirs(output_dir, exist_ok=True)
 # Generate a script for each combination of model, PEFT type, and dataset
 for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODEL_NAMES, PEFT_TYPES, DATASET_NAMES)):
     simple_name = model_name.split("/")[-1]
-    script_filename = os.path.join(output_dir, f"train_{i+1}_{simple_name}.sh")
+    script_filename = os.path.join(output_dir, f"train_{i+1}_{simple_name}_{peft_type}.sh")
 
     bash_script = f"""#!/bin/bash
 
