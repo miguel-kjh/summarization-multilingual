@@ -18,19 +18,19 @@ CONSTANTS = {
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "Qwen/Qwen2.5-3B-instruct",
+    "BSC-LT/salamandra-2b",
+    "BSC-LT/salamandra-2b-instruct",
+    "Qwen/Qwen2.5-3B",
+    "Qwen/Qwen2.5-3B-Instruct",
+    "meta-llama/Llama-3.2-3B",
+    "meta-llama/Llama-3.2-3B-Instruct",
 ]
 
 PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
     # clustering
-    "data/04-clustering/english-chunks-sentence-transformers",
-    "data/04-clustering/french-chunks-sentence-transformers",
-    "data/04-clustering/german-chunks-sentence-transformers",
-    "data/04-clustering/italian-chunks-sentence-transformers",
-    "data/04-clustering/portuguese-chunks-sentence-transformers",
-    "data/04-clustering/spanish-chunks-sentence-transformers",
+    "data/04-clustering/canario-chunks-sentence-transformers",
 ]
 
 # Create an output directory for the scripts

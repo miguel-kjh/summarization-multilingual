@@ -32,9 +32,9 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Process constants for dataset and model configuration.")
 
-    parser.add_argument("--dataset_path", type=str, default="data/02-processed/canario",
+    parser.add_argument("--dataset_path", type=str, default="data/02-processed/french",
                         help="Path to the dataset to be processed.")
-    parser.add_argument("--method", type=str, default="chunks",
+    parser.add_argument("--method", type=str, default="sentences",
                         help="Method to use for processing ('sentences', 'paragraphs'. 'chunks').")
     parser.add_argument("--embedding_model", type=str, choices=["openai", "sentence-transformers"], default="sentence-transformers",
                         help="Embedding model to use ('openai' or 'sentence-transformers').")
@@ -408,6 +408,9 @@ def main():
     test_dataset = get_sample(dataset["test"], args.percentage_of_data)
     test_dataset_cluster, new_test_dataset, metrics = document_splitter.create_dataset(test_dataset)
 
+    print("Metrics:")
+    print(metrics)
+
     new_dataset = DatasetDict({
         "train": new_train_dataset,
         "validation": new_validation_dataset,
@@ -418,7 +421,7 @@ def main():
     save_dataset(train_dataset_cluster, f"{args.name_new_dataset}/clustring_embedding_train.pkl")
     save_dataset(validation_dataset_cluster, f"{args.name_new_dataset}/clustring_embedding_validation.pkl")
     save_dataset(test_dataset_cluster, f"{args.name_new_dataset}/clustring_embedding_test.pkl")
-    # sace metrics
+    # save metrics
     with open(f"{args.name_new_dataset}/metrics_{args.method}_{args.embedding_model}.pkl", "wb") as f:
         pickle.dump(metrics, f)
 
