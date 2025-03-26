@@ -74,7 +74,7 @@ def process_text_into_sentences(text, model_spacy):
 
 def process_text_into_paragraphs(text):
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
+        chunk_size=2000,
         chunk_overlap=20,
         length_function=len,
         is_separator_regex=False,

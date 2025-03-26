@@ -16,14 +16,14 @@ dataset_path=(
 )
 model_spacy="es_core_news_sm"
 distance_metric="cosine"
-wandb=True
+wandb=False
 
 # Define las alternativas para method y embedding_model
-methods="sentences"
+methods="paragraphs"
 embedding_models=("sentence-transformers")
 
 # Bucle para recorrer todas las combinaciones
-echo "Running clustering with sentences"
+echo "Running clustering"
 for data in "${dataset_path[@]}"; do
     echo "Running with dataset: $data"
     for embedding_model in "${embedding_models[@]}"; do
@@ -36,7 +36,7 @@ for data in "${dataset_path[@]}"; do
             --model_spacy "$model_spacy" \
             --distance_metric "$distance_metric" \
             --wandb "$wandb" \
-            --percentage_of_data 0.3
+            --percentage_of_data 0.2
     done
 done
 

@@ -95,8 +95,6 @@ class SummaryGenerator:
                     continue
                 torch.cuda.empty_cache()
 
-            print( (" ".join(join_summary)).strip())
-
             summaries.append({
                 'document': original_input, 
                 'expected_summary': original_sum,
