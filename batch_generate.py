@@ -2,18 +2,7 @@ import os
 import subprocess
 
 base_paths = [
-    "models/Qwen/Qwen2.5-0.5B",
-    "models/Qwen/Qwen2.5-0.5B-Instruct",
-    "models/Qwen/Qwen2.5-1.5B",
-    "models/Qwen/Qwen2.5-1.5B-Instruct",
-    "models/Qwen/Qwen2.5-3B",
     "models/Qwen/Qwen2.5-3B-instruct",
-    "models/BSC-LT/salamandra-2b",
-    "models/BSC-LT/salamandra-2b-instruct",
-    "models/meta-llama/Llama-3.2-3B",
-    "models/meta-llama/Llama-3.2-3B-instruct",
-    "models/meta-llama/Llama-3.2-1B",
-    "models/meta-llama/Llama-3.2-1B-instruct",
 ]
 target_depth = 4
 chunks = "chunks"
@@ -53,8 +42,8 @@ for base_path in base_paths:
                 "--model_name_or_path", root,
                 "--wandb", "False",
                 "--method", "normal" if not using_clustering else "clustering",
-                "--use_openai", "True",
-                "--up", "True",
+                "--use_openai", "False",
+                "--up", "False",
             ]
             try:
                 subprocess.run(command_evaluate, check=True)

@@ -20,6 +20,8 @@ Evalúa qué tan bien el resumen cubre los puntos principales del documento lega
 2: Muchos problemas de relevancia, con omisiones clave o información irrelevante.
 1: Solo en casos muy extremos donde el resumen no refleja el contenido del documento original.
 
+Los evaluadores humanos han puesto notas den entre 4 a 5, se generoso con la puntuación por favor
+
 Ejemplo:
 
 Texto Fuente:

@@ -70,7 +70,7 @@ def save_to_excel(results, output_file):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    base_directory = "models/BSC-LT/salamandra-2b-instruct"  # Cambia esto por la ruta base
+    base_directory = "models/Qwen/Qwen2.5-0.5B-Instruct"  # Cambia esto por la ruta base
     
     model = base_directory.split(os.sep)[-1]
     max_search_depth = 3  # Cambia esto al nivel deseado

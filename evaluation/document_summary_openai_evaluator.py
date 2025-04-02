@@ -140,8 +140,7 @@ if __name__ == "__main__":
     evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
 
     # Sample document and summary
-    file_qwq_trained = "models/Qwen/Qwen2.5-3B/italian-chunks-sentence-transformers/lora/Qwen2.5-3B-italian-chunks-sentence-transformers-e2-b1-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-2025-02-24-22-12-13/test_summary_clustering.xlsx"
-
+    file_qwq_trained = "models/Qwen/Qwen2.5-3B-instruct/canario-chunks-sentence-transformers/lora/Qwen2.5-3B-instruct-canario-chunks-sentence-transformers-e2-b2-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-2025-03-20-09-03-46/test_summary_clustering.xlsx"
     #file_phi4 = "models/baseline/spanish/ollama/phi4/test_summary_normal.xlsx"
 
     #file_openai = "models/baseline/spanish/openai/test_summary_normal.xlsx"
@@ -159,8 +158,12 @@ if __name__ == "__main__":
     }
 
     for doc, sum in zip(document, summary):
-        results = evaluator.evaluate(doc, sum, language=language)
-        print(results)
+        try:
+            results = evaluator.evaluate(doc, sum, language=language)
+            print(results)
+        except Exception as e:
+            print(f"Error evaluating document: {e}")
+            continue
 
         def calculate_weighted_mean(metrics: dict) -> float:
             """
@@ -182,7 +185,7 @@ if __name__ == "__main__":
         scaled_mean = calculate_weighted_mean(results)
         print(f"Scaled Mean (1-5): {scaled_mean}")
 
-        if scaled_mean >= 0:
+        if scaled_mean >= 3:
             for key, value in results.items():
                 mean_socore[key].append(value)
             mean_socore["average"].append(scaled_mean)
