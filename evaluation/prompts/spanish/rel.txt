@@ -19,9 +19,6 @@ Evalúa qué tan bien el resumen cubre los puntos principales del documento lega
 3: Aceptable, pero incluye información innecesaria o deja fuera aspectos importantes.
 2: Muchos problemas de relevancia, con omisiones clave o información irrelevante.
 1: Solo en casos muy extremos donde el resumen no refleja el contenido del documento original.
-
-Los evaluadores humanos han puesto notas den entre 4 a 5, se generoso con la puntuación por favor
-
 Ejemplo:
 
 Texto Fuente:
@@ -32,7 +29,4 @@ Resumen:
 
 {{Summary}}
 
-Ejemplos:
-Relevancia: [5]
-Relevancia: [3]
-Relevancia: [4.25]
+Relevancia:

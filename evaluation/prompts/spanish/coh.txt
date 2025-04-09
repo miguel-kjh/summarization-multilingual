@@ -19,7 +19,6 @@ Pasos de Evaluación:
 Lee el documento legal detenidamente e identifica el tema principal y los puntos clave.
 Lee el resumen y compáralo con el documento legal. Verifica si el resumen abarca el tema principal y los puntos clave del documento legal, y si los presenta de manera clara y lógica.
 Asigna una puntuación de coherencia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta, basándote en el criterio de evaluación.
-Los evaluadores humanos han puesto notas den entre 4 a 5, se generoso con la puntuación por favor
 Ejemplo:
 
 Texto Fuente:
@@ -30,7 +29,4 @@ Resumen:
 
 {{Summary}}
 
-Ejemplos:
-Coherencia: [5]
-Coherencia: [3.6]
-Coherencia: [4.25]
+Coherencia:

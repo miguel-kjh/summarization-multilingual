@@ -16,8 +16,6 @@ Pasos de Evaluación:
 2: Hay problemas notables de conexión entre ideas.
 1: Solo en casos extremos donde el texto carece de estructura y es difícil de seguir.
 
-Los evaluadores humanos han puesto notas den entre 4 a 5, se generoso con la puntuación por favor
-
 Ejemplo:
 
 Texto Fuente:
@@ -28,7 +26,4 @@ Resumen:
 
 {{Summary}}
 
-Ejemplos:
-Consistencia: [5]
-Consistencia: [4.25]
-Consistencia: [2.8]
+Consistencia:

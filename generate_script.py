@@ -11,26 +11,29 @@ CONSTANTS = {
     "learning_rate": 1e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 256,
+    "context_length": 512,
     "quantization": False, 
     "wandb": True,
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "BSC-LT/salamandra-2b",
-    "BSC-LT/salamandra-2b-instruct",
-    "Qwen/Qwen2.5-3B",
-    "Qwen/Qwen2.5-3B-Instruct",
-    "meta-llama/Llama-3.2-3B",
-    "meta-llama/Llama-3.2-3B-Instruct",
+    "Qwen/Qwen2.5-1.5B",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "meta-llama/Llama-3.2-1B",
+    "meta-llama/Llama-3.2-1B-Instruct",
 ]
 
 PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
     # clustering
-    "data/04-clustering/canario-chunks-sentence-transformers",
+    "data/03-combined/english-german",
+    "data/03-combined/spanish-english",
+    "data/03-combined/spanish-french",
+    "data/03-combined/spanish-german",
+    "data/03-combined/spanish-italian",
+    "data/03-combined/spanish-portuguese",
 ]
 
 # Create an output directory for the scripts
