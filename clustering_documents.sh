@@ -1,25 +1,26 @@
 #!/bin/bash
 
 dataset_path=(
-    "data/02-processed/french" 
-    "data/02-processed/german" 
-    "data/02-processed/italian" 
-    "data/02-processed/portuguese" 
-    "data/02-processed/english"
+    #"data/02-processed/french" 
+    #"data/02-processed/german" 
+    #"data/02-processed/italian" 
+    #"data/02-processed/portuguese" 
+    #"data/02-processed/english"
     "data/03-combined/english-german"
     "data/03-combined/spanish-english"
     "data/03-combined/spanish-french"
     "data/03-combined/spanish-german"
     "data/03-combined/spanish-italian"
     "data/03-combined/spanish-portuguese"
-    "data/02-processed/canario"
+    #"data/02-processed/canario"
+    #"data/02-processed/spanish"
 )
 model_spacy="es_core_news_sm"
 distance_metric="cosine"
 wandb=False
 
 # Define las alternativas para method y embedding_model
-methods="paragraphs"
+methods="chunks"
 embedding_models=("sentence-transformers")
 
 # Bucle para recorrer todas las combinaciones

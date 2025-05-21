@@ -32,9 +32,9 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Process constants for dataset and model configuration.")
 
-    parser.add_argument("--dataset_path", type=str, default="data/02-processed/french",
+    parser.add_argument("--dataset_path", type=str, default="data/02-processed/canario",
                         help="Path to the dataset to be processed.")
-    parser.add_argument("--method", type=str, default="sentences",
+    parser.add_argument("--method", type=str, default="chunks",
                         help="Method to use for processing ('sentences', 'paragraphs'. 'chunks').")
     parser.add_argument("--embedding_model", type=str, choices=["openai", "sentence-transformers"], default="sentence-transformers",
                         help="Embedding model to use ('openai' or 'sentence-transformers').")
@@ -286,8 +286,12 @@ class DocumentSplitter:
 
     def compute_average_metrics(self, metrics):
         for key in metrics["documents"]:
-            metrics["documents"][key] = np.mean(metrics["documents"][key])
-            metrics["summaries"][key] = np.mean(metrics["summaries"][key])
+            document_means = np.mean(metrics["documents"][key])
+            document_stds = np.std(metrics["documents"][key])
+            summary_means = np.mean(metrics["summaries"][key])
+            summary_stds = np.std(metrics["summaries"][key])
+            metrics["documents"][key] = f"{document_means} ± {document_stds}"
+            metrics["summaries"][key] = f"{summary_means} ± {summary_stds}"
         return metrics
 
     def create_dataset(self, dataset: Dataset) -> tuple:
@@ -421,9 +425,13 @@ def main():
     save_dataset(train_dataset_cluster, f"{args.name_new_dataset}/clustring_embedding_train.pkl")
     save_dataset(validation_dataset_cluster, f"{args.name_new_dataset}/clustring_embedding_validation.pkl")
     save_dataset(test_dataset_cluster, f"{args.name_new_dataset}/clustring_embedding_test.pkl")
-    # save metrics
-    with open(f"{args.name_new_dataset}/metrics_{args.method}_{args.embedding_model}.pkl", "wb") as f:
-        pickle.dump(metrics, f)
+    # save metrics in csv
+    file = f"{args.name_new_dataset}/metrics_{args.method}_{args.embedding_model}.csv"
+    # to pandas dataframe
+    import pandas as pd
+    df = pd.DataFrame(metrics)
+    df.to_csv(file, index=True)
+    print(f"Metrics saved to {file}")
 
     if args.wandb:
         import wandb
