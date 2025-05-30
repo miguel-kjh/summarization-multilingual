@@ -64,7 +64,7 @@ class DocumentSummaryOpenAiEvaluator:
         :param prompt: The prompt to send to the API.
         :return: The API response.
         """
-        plus = "Be very generous when scoring." if self.upgrade else ""
+        plus = "Be generous when scoring." if self.upgrade else ""
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -84,7 +84,7 @@ class DocumentSummaryOpenAiEvaluator:
         :return: The extracted score.
         """
         content = response.choices[0].message.content
-        matched = re.search("\w+:\s*\[([\d.]+)\]", content)
+        matched = re.search(".*\[([\d.]+)\]", content)
         if (matched):
             try:
                 score = float(matched.group(1))
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
 
     # Sample document and summary
-    file_qwq_trained = "models/Qwen/Qwen2.5-3B-instruct/canario-chunks-sentence-transformers/lora/Qwen2.5-3B-instruct-canario-chunks-sentence-transformers-e2-b2-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-2025-03-20-09-03-46/test_summary_clustering.xlsx"
+    file_qwq_trained = "models/baseline/spanish/ollama/qwen2.5:0.5b/test_summary_normal.xlsx"
     #file_phi4 = "models/baseline/spanish/ollama/phi4/test_summary_normal.xlsx"
 
     #file_openai = "models/baseline/spanish/openai/test_summary_normal.xlsx"
@@ -185,7 +185,7 @@ if __name__ == "__main__":
         scaled_mean = calculate_weighted_mean(results)
         print(f"Scaled Mean (1-5): {scaled_mean}")
 
-        if scaled_mean >= 3:
+        if scaled_mean >= 3.5:
             for key, value in results.items():
                 mean_socore[key].append(value)
             mean_socore["average"].append(scaled_mean)

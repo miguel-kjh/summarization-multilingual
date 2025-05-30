@@ -15,6 +15,7 @@ Pasos de Evaluación:
 3: Aceptable, pero algunas partes podrían estar mejor estructuradas.
 2: Hay problemas notables de conexión entre ideas.
 1: Solo en casos extremos donde el texto carece de estructura y es difícil de seguir.
+La puntuacion debe de estar en solo formato entre corchetes y el número tipo [número]
 
 Ejemplo:
 

@@ -18,8 +18,8 @@ def parse():
     import argparse
     parser = argparse.ArgumentParser(description='Baseline')
     parser.add_argument('--dataset', type=str, default="data/02-processed/spanish")
-    parser.add_argument('--method', type=str, default="ghic")
-    parser.add_argument('--model_name', type=str, default="bert-base-multilingual-cased")
+    parser.add_argument('--method', type=str, default="ollama")
+    parser.add_argument('--model_name', type=str, default="qwen2.5:0.5b")
     args = parser.parse_args()
     return args
 

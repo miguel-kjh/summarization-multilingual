@@ -24,9 +24,12 @@ class SummaryGenerator:
                 **inputs, 
                 max_new_tokens=max_new_tokens,
                 tokenizer=self.tokenizer,
-                temperature=0.7,
+                temperature=temperature,
                 top_k=50,
                 top_p=0.9,
+                repetition_penalty=1.2,  # Penaliza repetir palabras
+                no_repeat_ngram_size=4,  # Evita repetir grupos de 4 palabras
+                do_sample=True,          # Activar muestreo si no lo tienes ya por defecto
             )
             end = time.time()
             text = self.tokenizer.decode(outputs[0][inputs_length:], skip_special_tokens=True)

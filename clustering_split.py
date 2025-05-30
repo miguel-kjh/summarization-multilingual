@@ -295,12 +295,16 @@ class DocumentSplitter:
         return metrics
 
     def create_dataset(self, dataset: Dataset) -> tuple:
+        import time
         embeddings_dataset = self.initialize_embeddings_dataset()
         new_dataset = self.initialize_new_dataset()
         final_metrics = self.initialize_metrics()
+        times = []
+
 
         for index, data in tqdm(enumerate(dataset), total=len(dataset), desc="Creating dataset"):
             try:
+                start_time = time.time()
                 data['index'] = index
                 self.process_data_entry(
                     data,
@@ -308,11 +312,14 @@ class DocumentSplitter:
                     new_dataset,
                     final_metrics,
                 )
+                end_time = time.time()
+                times.append(end_time - start_time)
             except Exception as e:
                 print(f"Error processing data entry: {e}")
                 continue
 
         final_metrics = self.compute_average_metrics(final_metrics)
+        final_metrics["time"] = f"{np.mean(times)} ± {np.std(times)}"
         new_dataset = Dataset.from_dict(new_dataset)
         return embeddings_dataset, new_dataset, final_metrics
 

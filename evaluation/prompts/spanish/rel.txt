@@ -19,6 +19,9 @@ Evalúa qué tan bien el resumen cubre los puntos principales del documento lega
 3: Aceptable, pero incluye información innecesaria o deja fuera aspectos importantes.
 2: Muchos problemas de relevancia, con omisiones clave o información irrelevante.
 1: Solo en casos muy extremos donde el resumen no refleja el contenido del documento original.
+
+La puntuacion debe de estar en solo formato entre corchetes y el número tipo [número]
+
 Ejemplo:
 
 Texto Fuente:
