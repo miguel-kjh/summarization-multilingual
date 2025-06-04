@@ -395,7 +395,7 @@ class DocumentSplitterChunks(DocumentSplitterParagraphs):
 
     def process_text_into_paragraphs(self, text):
         return self.chunker.create_documents([text])
-
+    
 
 def main():
     args = parse_arguments()

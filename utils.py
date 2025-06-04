@@ -1,15 +1,13 @@
+from unsloth import FastLanguageModel
 import os
 import warnings
 
-from accelerate import Accelerator, FullyShardedDataParallelPlugin
 from datetime import datetime
 import pandas as pd
-from torch.distributed.fsdp.fully_sharded_data_parallel import FullOptimStateDictConfig, FullStateDictConfig
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import prepare_model_for_kbit_training
 import wandb
 from lightning import seed_everything
 import torch
+
 
 #WANDB CONFIG
 PROJECT_NAME = "eur-lex-sum"
@@ -19,6 +17,13 @@ DATASET = "dennlinger/eur-lex-sum"
 
 # Canary
 DATASET_PAR_CAN = "miguel-kjh/ParCan-Sum"
+
+# Models
+CONTEXT_WINDOWS = {
+    "Qwen3": 40000,
+    "llama-3.2": 120000,
+    "salamandra": 8192
+}
 
 # Folders
 DATA_FOLDER           = "data"
@@ -41,7 +46,7 @@ LANGUAGES = ['portuguese', 'spanish', 'english', 'german', 'italian', 'french']
 DATASET_FILENAME = "test_summary"
 RESULTS_FILENAME = "result_metrics.json"
 
-SEED = 3407
+SEED = 123
 
 INSTRUCTION_TEMPLATE = {
     "english": "Please summarize the following text in a few sentences, highlighting the most important points.",
@@ -101,17 +106,9 @@ def generate_names_for_wandb_run(args):
     name_experiment += f"-{get_timestamp()}"
     return name_experiment
 
-def create_accelerator():
-    fsdp_plugin = FullyShardedDataParallelPlugin(
-        state_dict_config=FullStateDictConfig(offload_to_cpu=True, rank0_only=False),
-        optim_state_dict_config=FullOptimStateDictConfig(offload_to_cpu=True, rank0_only=False),
-    )
-
-    return Accelerator(fsdp_plugin=fsdp_plugin)
-
 
 def create_model_and_tokenizer(args):
-    if args.quantization:
+    """if args.quantization:
         print("### Using Quantization ###")
         bnb_config = BitsAndBytesConfig(
             load_in_4bit = True,
@@ -131,6 +128,25 @@ def create_model_and_tokenizer(args):
     model = accelerator.prepare_model(model)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
     tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer, model"""
+
+    context_window = next(
+        (value for key, value in CONTEXT_WINDOWS.items() if key in args.model_name_or_path),
+        None
+    )
+
+    # Lanzar excepción si no se encuentra una coincidencia
+    if context_window is None:
+        raise ValueError(f"Context window not found for model '{args.model_name_or_path}'. Please specify a valid model name.")
+
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name = args.model_name_or_path,
+        max_seq_length = context_window,
+        dtype = None,
+        load_in_4bit = args.quantization, # quantization QLoRA 4-bit
+    )
+    tokenizer.clean_up_tokenization_spaces = False
+
     return tokenizer, model
 
 def upload_to_wandb(table_name: str, summaries: list):
@@ -141,40 +157,6 @@ def upload_to_wandb(table_name: str, summaries: list):
             table_name: wandb.Table(dataframe=df_original)
         }
     )
-
-def wandb_end():
-    wandb.finish()
-
-
-# Preparación de embeddings
-def prepare_embeddings(tokenizer, model, sentences, context=32, stride=16):
-    embeddings = []
-    
-    for sentence in sentences:
-        # Tokenizar la frase completa
-        input_ids = tokenizer(sentence, return_tensors="pt").input_ids.squeeze(0)
-        num_tokens = input_ids.size(0)
-        
-        # Crear ventanas deslizantes
-        windows = [
-            input_ids[i:i + context]
-            for i in range(0, max(1, num_tokens - context + 1), stride)
-        ]
-        
-        # Asegurar que la última ventana siempre se incluya
-        if len(windows) == 0 or windows[-1].size(0) < context:
-            windows.append(input_ids[-context:])
-        
-        # Generar embeddings para cada ventana
-        for window in windows:
-            padded_window = torch.nn.functional.pad(
-                window, (0, context - window.size(0)), value=tokenizer.pad_token_id
-            )  # Rellena si es necesario
-            embedding = model.gpt_neox.embed_in(padded_window.unsqueeze(0)).detach()
-            embeddings.append(embedding.squeeze(0))  # Saca la dimensión del batch
-
-    # Combinar todos los embeddings en un solo tensor
-    return torch.stack(embeddings)
 
 def calculate_weighted_mean(metrics: dict) -> float:
     """
@@ -191,3 +173,11 @@ def calculate_weighted_mean(metrics: dict) -> float:
     scaled_mean = normalized_mean * max(max_values.values())
 
     return scaled_mean
+
+def wandb_end():
+    wandb.finish()
+
+if __name__ == "__main__":
+    print("This is a utility module. It should not be run directly.")
+    print("Use it as a module in your main script.")
+    exit(1)
