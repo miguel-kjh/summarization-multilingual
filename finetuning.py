@@ -177,6 +177,7 @@ if __name__ == "__main__":
     #    initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
     #    upload_to_wandb("Original Summaries", initial_summary)
 
+
     trainer.train(resume_from_checkpoint=None)
     trainer.save_model(script_args.output_dir)
 

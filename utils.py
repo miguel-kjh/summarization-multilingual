@@ -1,4 +1,4 @@
-from unsloth import FastLanguageModel
+import re
 import os
 import warnings
 
@@ -49,13 +49,23 @@ RESULTS_FILENAME = "result_metrics.json"
 SEED = 123
 
 INSTRUCTION_TEMPLATE = {
-    "english": "Please summarize the following text in a few sentences, highlighting the most important points.",
-    "spanish": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
-    "canario": "Por favor, resuma el siguiente texto en unas pocas frases, destacando los puntos más importantes.",
-    "german": "Bitte fassen Sie den folgenden Text in ein paar Sätzen zusammen und heben Sie die wichtigsten Punkte hervor.",
-    "italian": "Per favore, riassumi il seguente testo in poche frasi, evidenziando i punti più importanti.",
-    "portuguese": "Por favor, resuma o texto a seguir em algumas frases, destacando os pontos mais importantes.",
-    "french": "Veuillez résumer le texte suivant en quelques phrases, en mettant en évidence les points les plus importants."
+    "spanish": "Redacta un resumen institucional en español del siguiente documento. Mantén un lenguaje objetivo, enfocado en los hechos y acuerdos:",
+    "canario": "Redacta un resumen institucional en español del siguiente documento. Mantén un lenguaje objetivo, enfocado en los hechos y acuerdos:",
+    "english": "Write an institutional summary in English of the following document. Keep the language objective, focusing on facts and agreements:",
+    "german": "Schreiben Sie eine institutionelle Zusammenfassung des folgenden Dokuments auf Deutsch. Halten Sie die Sprache objektiv und konzentrieren Sie sich auf Fakten und Vereinbarungen:",
+    "french": "Rédigez un résumé institutionnel en français du document suivant. Gardez un langage objectif, axé sur les faits et les accords :",
+    "italian": "Scrivi un riassunto istituzionale in italiano del seguente documento. Mantieni un linguaggio obiettivo, concentrandoti su fatti e accordi:",
+    "portuguese": "Escreva um resumo institucional em português do seguinte documento. Mantenha uma linguagem objetiva, focada em fatos e acordos:",
+}
+
+SYSTEM_PROMPT = {
+    "canario": "Eres un modelo entrenado para generar resúmenes institucionales de actas parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
+    "spanish": "Eres un modelo entrenado para generar resúmenes institucionales de actas parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
+    "english": "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure.",
+    "german": "Sie sind ein Modell, das darauf trainiert ist, institutionelle Zusammenfassungen von Parlamentsprotokollen zu erstellen. Die Zusammenfassungen sollten in formeller Verwaltungssprache verfasst sein, ohne Werturteile, und einer klaren Struktur folgen.",
+    "french": "Vous êtes un modèle entraîné pour générer des résumés institutionnels des procès-verbaux parlementaires. Les résumés doivent être rédigés dans un langage formel-administratif, sans jugements de valeur, et suivre une structure claire.",
+    "italian": "Sei un modello addestrato per generare riassunti istituzionali dei verbali parlamentari. I riassunti devono essere redatti in linguaggio formale-amministrativo, senza giudizi di valore, e seguire una struttura chiara.",
+    "portuguese": "Você é um modelo treinado para gerar resumos institucionais de atas parlamentares. Os resumos devem ser escritos em linguagem formal-administrativa, sem julgamentos de valor, e seguir uma estrutura clara.",
 }
 
 
@@ -96,58 +106,12 @@ def generate_names_for_wandb_run(args):
     batch_size = args.batch_size
     lr = args.lr
     weight_decay = args.weight_decay
-    neftune_noise_alpha = args.neftune_noise_alpha
     context = args.context
     name_experiment  = f"{model_name}-{dataset_name}-e{epochs}-b{batch_size}-lr{lr}-wd{weight_decay}-c{context}"
-    name_experiment += f"-peft-{args.peft_type}-r{args.lora_r}-a{args.lora_alpha}-d{args.lora_dropout}" if args.peft_type else ""
-    name_experiment += f"-nna{neftune_noise_alpha}" if neftune_noise_alpha is not None else ""
+    name_experiment += f"-peft-{args.peft_type}-r{args.lora_r}-a{args.lora_r*2}-d{args.lora_dropout}" if args.peft_type else ""
     name_experiment += "-quant" if args.quantization else ""
-    name_experiment += f"-conn-{args.type_connector}" if args.connector else ""
     name_experiment += f"-{get_timestamp()}"
     return name_experiment
-
-
-def create_model_and_tokenizer(args):
-    """if args.quantization:
-        print("### Using Quantization ###")
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit = True,
-            bnb_4bit_quant_type = "nf4",
-            bnb_4bit_compute_dtype = torch.bfloat16,
-            bnb_4bit_use_double_quant = True,
-        )
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model_name_or_path,
-            quantization_config=bnb_config,
-            device_map={"": 0}
-        )
-        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
-    else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
-    accelerator = create_accelerator()
-    model = accelerator.prepare_model(model)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
-    tokenizer.pad_token = tokenizer.eos_token
-    return tokenizer, model"""
-
-    context_window = next(
-        (value for key, value in CONTEXT_WINDOWS.items() if key in args.model_name_or_path),
-        None
-    )
-
-    # Lanzar excepción si no se encuentra una coincidencia
-    if context_window is None:
-        raise ValueError(f"Context window not found for model '{args.model_name_or_path}'. Please specify a valid model name.")
-
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name = args.model_name_or_path,
-        max_seq_length = context_window,
-        dtype = None,
-        load_in_4bit = args.quantization, # quantization QLoRA 4-bit
-    )
-    tokenizer.clean_up_tokenization_spaces = False
-
-    return tokenizer, model
 
 def upload_to_wandb(table_name: str, summaries: list):
     df_original = pd.DataFrame(summaries)
@@ -177,7 +141,37 @@ def calculate_weighted_mean(metrics: dict) -> float:
 def wandb_end():
     wandb.finish()
 
-if __name__ == "__main__":
-    print("This is a utility module. It should not be run directly.")
-    print("Use it as a module in your main script.")
-    exit(1)
+
+def extract_clean_assistant_response(full_text: str) -> str:
+    # Buscar el último bloque <|assistant|>
+    assistant_start = full_text.rfind("assistant")
+    if assistant_start == -1:
+        assistant_content = full_text
+    else:
+        assistant_content = full_text[assistant_start + len("assistant"):]
+
+    # Eliminar los bloques <think>...</think> si existen
+    assistant_content = re.sub(r"<think>.*?</think>", "", assistant_content, flags=re.DOTALL)
+
+    # Eliminar espacios extra al principio y al final
+    return assistant_content.strip()
+
+def apply_chat_template(instruction: str, system_prompt: str, sample: dict, tokenizer) -> str:
+    """
+    Apply a chat template to the sample.
+    """
+    # Define the chat template
+    empty_prompt = f"{instruction}\n ##Documento {{document}}\n ##Resumen:"
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": empty_prompt.format(document=sample["document"])},
+    ]
+    
+    # Format the chat template with the sample text
+    return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+
+def count_trainable_params(model):
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    percentage = 100 * trainable_params / total_params
+    return trainable_params, total_params, percentage
