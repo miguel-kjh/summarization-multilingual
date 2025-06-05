@@ -11,12 +11,12 @@ from utils import CONTEXT_WINDOWS, SEED, count_trainable_params, setup_environme
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B")
+    parse.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b-instruct")
     parse.add_argument("--batch_size", type=int, default=2)
-    parse.add_argument("--num_train_epochs", type=int, default=2)
+    parse.add_argument("--num_train_epochs", type=int, default=1)
     parse.add_argument("--lr", type=float, default=2e-4)
     parse.add_argument("--weight_decay", type=float, default=0.01)
-    parse.add_argument("--context", type=int, default=2048)  # Context window size, adjust based on model
+    parse.add_argument("--context", type=int, default=8192)  # Context window size, adjust based on model
     parse.add_argument("--dataset_name", type=str, default="data/02-processed/spanish")
     parse.add_argument("--num_proc", type=int, default=1)
     parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
@@ -28,7 +28,7 @@ def parse_args():
     parse.add_argument("--gradient_checkpointing", type=bool, default=True)
     parse.add_argument("--logging_steps", type=int, default=25)
     parse.add_argument("--eval_strategy", type=str, default="steps")
-    parse.add_argument("--eval_steps", type=int, default=100)
+    parse.add_argument("--eval_steps", type=int, default=25)
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
 
     #loras parameters 
@@ -42,7 +42,7 @@ def parse_args():
     # quantization
     parse.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False)
     # is tiny dataset
-    parse.add_argument("--tiny_dataset", type=lambda x: bool(strtobool(x)), default=True)
+    parse.add_argument("--tiny_dataset", type=lambda x: bool(strtobool(x)), default=False)
     args = parse.parse_args()
     args.lora_target_modules = args.lora_target_modules.split(",")
     args.run_name = generate_names_for_wandb_run(args)
@@ -75,15 +75,6 @@ def create_model_and_tokenizer(args):
     tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
     tokenizer.pad_token = tokenizer.eos_token
     return tokenizer, model"""
-
-    context_window = next(
-        (value for key, value in CONTEXT_WINDOWS.items() if key in args.model_name_or_path),
-        None
-    )
-
-    # Lanzar excepción si no se encuentra una coincidencia
-    if context_window is None:
-        raise ValueError(f"Context window not found for model '{args.model_name_or_path}'. Please specify a valid model name.")
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = args.model_name_or_path,
@@ -189,7 +180,8 @@ if __name__ == "__main__":
         report_to="wandb" if script_args.wandb else None,
         logging_steps = 1,  
         eval_strategy="steps",
-        eval_steps=100,  # Evaluate every 100 steps
+        save_strategy="epoch",            # Guarda un checkpoint al final de cada época
+        eval_steps=script_args.eval_steps, 
     )
 
     trainer = SFTTrainer(

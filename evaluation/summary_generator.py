@@ -1,38 +1,72 @@
+import re
 from typing import Tuple
 import torch
 from datasets import Dataset
 from tqdm import tqdm
 import numpy as np
 import time
-from sentence_transformers import SentenceTransformer
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
-from document_cluster import DocumentClusterer
+from transformers import TextStreamer
 from utils import SEED, generate_prompt
+
+def extract_clean_assistant_response(full_text: str) -> str:
+    # Buscar el último bloque <|assistant|>
+    assistant_start = full_text.rfind("assistant")
+    if assistant_start == -1:
+        assistant_content = full_text
+    else:
+        assistant_content = full_text[assistant_start + len("assistant"):]
+
+    # Eliminar los bloques <think>...</think> si existen
+    assistant_content = re.sub(r"<think>.*?</think>", "", assistant_content, flags=re.DOTALL)
+
+    # Eliminar espacios extra al principio y al final
+    return assistant_content.strip()
 
 class SummaryGenerator:
     def __init__(self, tokenizer, device="cpu"):
         self.device    = device
         self.tokenizer = tokenizer
 
+    def generate_summary_in_streamer(self, model, dataset: Dataset, sample_idx: int = 1,  max_new_tokens=100, temperature=0.7):
+        """
+        Generate summaries using a streamer for a specific sample in the dataset.
+        """
+        sample = dataset[sample_idx]
+        prompt = sample['prompt']
+        inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True).to(self.device)
+        
+        streamer = TextStreamer(self.tokenizer)
+        
+        with torch.no_grad():
+            start = time.time()
+            for token in model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                do_sample=True,
+                streamer=streamer
+            ):
+                print(token)
+            end = time.time()
+        
+        return end - start
+
     def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.7) -> Tuple[str, float]:
         inputs = self.tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
         inputs_length = len(inputs["input_ids"][0])
-        with torch.inference_mode():
+        with torch.no_grad():
             start = time.time()
             outputs = model.generate(
                 **inputs, 
                 max_new_tokens=max_new_tokens,
                 tokenizer=self.tokenizer,
                 temperature=temperature,
-                top_k=50,
-                top_p=0.9,
-                repetition_penalty=1.2,  # Penaliza repetir palabras
-                no_repeat_ngram_size=4,  # Evita repetir grupos de 4 palabras
                 do_sample=True,          # Activar muestreo si no lo tienes ya por defecto
             )
             end = time.time()
             text = self.tokenizer.decode(outputs[0][inputs_length:], skip_special_tokens=True)
+        if self.tokenizer.chat_template:
+            text = extract_clean_assistant_response(text)
         return text, end - start   
 
     def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7) -> list:
@@ -40,10 +74,13 @@ class SummaryGenerator:
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
-            instruction, input, output, language = obj['instruction'], obj['input'], obj['output'], obj['language']
+            prompt, input, output, language = obj['prompt'], obj['input'], obj['output'], obj['language']
+            if len(prompt) > 70000:
+                print(f"Skipping long prompt of length {len(prompt)}")
+                continue
             try:
-                prompt  = generate_prompt(instruction, input)
                 summary, time = self.summarize(model, prompt, max_new_tokens=max_new_tokens, temperature=temperature)
+                print(summary)
                 summaries.append({
                     'document': input, 
                     'expected_summary': output,

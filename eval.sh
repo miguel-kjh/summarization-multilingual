@@ -3,16 +3,10 @@
 #model="models/baseline/spanish/ollama/qwen2.5:0.5b"
 path=models/baseline/
 languages=(
-    "canario"
+    "spanish"
 )
 models=(
-    #Qwen/Qwen2.5-3B
-    #BSC-LT/salamandra-2b
-    #BSC-LT/salamandra-2b-instruct
-    models/meta-llama/Llama-3.2-3B-Instruct/canario-chunks-sentence-transformers/lora/Llama-3.2-3B-Instruct-canario-chunks-sentence-transformers-e2-b2-lr0.0001-wd0.0-c256-peft-lora-r8-a16-d0.05-2025-03-21-08-45-16
-    #Qwen/Qwen2.5-0.5B
-    #Qwen/Qwen2.5-1.5B
-    #Qwen/Qwen2.5-3B
+    models/Qwen/Qwen3-0.6B/spanish/lora/Qwen3-0.6B-spanish-e2-b2-lr0.0002-wd0.01-c8192-peft-lora-r16-a32-d0.0-2025-06-04-23-18-28
 
 )
 wandb=False

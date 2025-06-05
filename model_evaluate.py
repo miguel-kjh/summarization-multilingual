@@ -54,9 +54,6 @@ def log_metrics_to_wandb(metrics: dict, use_openai: bool):
 def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, up=False):
 
     final_folder = os.path.join(model, RESULTS_FILENAME)
-    if os.path.exists(final_folder):
-        print("Metrics already calculated")
-        return
 
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
@@ -114,12 +111,16 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                         row["expected_summary"], 
                         row["generated_summary"],
                     )
+                    for value in openai_results.values():
+                        if value < 0:
+                            raise ValueError("OpenAI evaluation returned a negative value, which is unexpected.")
                     openai_metrics['coherence'].append(openai_results['coherence'])
                     openai_metrics['consistency'].append(openai_results['consistency'])
                     openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
                     openai_metrics['relevance'].append(openai_results['relevance'])
                     openai_metrics['average'].append(calculate_weighted_mean(openai_results))
                 except Exception as e:
+                    print(f"Error evaluating {lang} with OpenAI: {e}")
                     continue
             
             metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
@@ -155,7 +156,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        required=True,
+        default="models/others/data_02-processed_spanish/Qwen/Qwen2.5-0.5B",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument( 

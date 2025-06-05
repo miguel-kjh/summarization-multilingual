@@ -21,7 +21,7 @@ DATASET_PAR_CAN = "miguel-kjh/ParCan-Sum"
 # Models
 CONTEXT_WINDOWS = {
     "Qwen3": 40000,
-    "llama-3.2": 120000,
+    "llama": 120000,
     "salamandra": 8192
 }
 

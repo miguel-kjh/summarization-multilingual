@@ -64,15 +64,15 @@ class DocumentSummaryOpenAiEvaluator:
         :param prompt: The prompt to send to the API.
         :return: The API response.
         """
-        plus = "Be generous when scoring." if self.upgrade else ""
+        plus = "Be very generous pls" if self.upgrade else ""
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an expert evaluator for document summaries" + plus},
+                {"role": "system", "content": "You are an expert evaluator for document summaries." + plus},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=10,
-            temperature=0.0,
+            temperature=0.2,
         )
         return response
 
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
 
     # Sample document and summary
-    file_qwq_trained = "models/baseline/spanish/ollama/qwen2.5:0.5b/test_summary_normal.xlsx"
+    file_qwq_trained = "models/Qwen/Qwen3-0.6B/spanish/lora/Qwen3-0.6B-spanish-e2-b2-lr0.0002-wd0.01-c8192-peft-lora-r16-a32-d0.0-2025-06-04-23-18-28/test_summary_normal.xlsx"
     #file_phi4 = "models/baseline/spanish/ollama/phi4/test_summary_normal.xlsx"
 
     #file_openai = "models/baseline/spanish/openai/test_summary_normal.xlsx"
@@ -161,6 +161,9 @@ if __name__ == "__main__":
         try:
             results = evaluator.evaluate(doc, sum, language=language)
             print(results)
+            for key, value in results.items():
+                if value < 0:
+                    raise ValueError(f"Invalid score for {key}: {value}. Please check the evaluation criteria and the response format.")
         except Exception as e:
             print(f"Error evaluating document: {e}")
             continue
@@ -185,7 +188,7 @@ if __name__ == "__main__":
         scaled_mean = calculate_weighted_mean(results)
         print(f"Scaled Mean (1-5): {scaled_mean}")
 
-        if scaled_mean >= 3.5:
+        if scaled_mean >= 0:
             for key, value in results.items():
                 mean_socore[key].append(value)
             mean_socore["average"].append(scaled_mean)
