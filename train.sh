@@ -21,7 +21,7 @@ context_length=512
 dataset_name="data/04-clustering/canario-chunks-sentence-transformers"
 wandb=False
 # run
-python finetuning.py \
+python train.py \
     --model_name_or_path $model_name \
     --peft_type $peft_type \
     --lora_target_modules $lora_target_modules \

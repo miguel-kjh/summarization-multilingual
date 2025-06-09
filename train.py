@@ -5,20 +5,20 @@ from distutils.util import strtobool
 from unsloth import FastLanguageModel
 import torch
 from trl import SFTTrainer, SFTConfig
+from transformers import EarlyStoppingCallback
 from unsloth import is_bfloat16_supported
-from evaluation import summary_generator
-from utils import CONTEXT_WINDOWS, SEED, count_trainable_params, setup_environment, generate_names_for_wandb_run, upload_to_wandb, wandb_end, PROJECT_NAME
+from utils import  SEED, count_trainable_params, setup_environment, generate_names_for_wandb_run, upload_to_wandb, wandb_end
 
 
 def parse_args():
     parse = argparse.ArgumentParser()
     parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name or path")
-    parse.add_argument("--batch_size", type=int, default=2)
+    parse.add_argument("--batch_size", type=int, default=1)
     parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
     parse.add_argument("--weight_decay", type=float, default=0.01)
-    parse.add_argument("--context", type=int, default=512)  # Context window size, adjust based on model 8198
-    parse.add_argument("--dataset_name", type=str, default="data/02-processed/spanish")
+    parse.add_argument("--context", type=int, default=8198)  # Context window size, adjust based on model 8198
+    parse.add_argument("--dataset_name", type=str, default="data/02-processed/spanish", help="Path to the dataset")
     parse.add_argument("--num_proc", type=int, default=1)
     parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
     parse.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False)
@@ -31,12 +31,11 @@ def parse_args():
     parse.add_argument("--eval_strategy", type=str, default="steps")
     parse.add_argument("--eval_steps", type=int, default=25)
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
-    parse.add_argument("--selection_strategy", type=str, default="random")  # random, top_k, top_p #TODO: Implement selection strategy (mAYBE NOT NEEDED)
 
     #loras parameters 
     parse.add_argument("--peft_type", type=str, default="lora") # lora, dora, vera, loha, lokr, x-lora?
 
-    parse.add_argument("--lora_r", type=int, default=16)
+    parse.add_argument("--lora_r", type=int, default=8)
     parse.add_argument("--lora_dropout", type=float, default=0.0)
     parse.add_argument("--lora_bias", type=str, default="none")
     parse.add_argument("--lora_target_modules", type=str, default="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj")
@@ -102,8 +101,14 @@ if __name__ == "__main__":
     if script_args.tiny_dataset:
         print("Using tiny dataset for testing")
         # select a small subset of the dataset for quick testing randomly
-        dataset["train"] = dataset["train"].shuffle(seed=SEED).select(range(500))
-        #dataset["validation"] = dataset["validation"].shuffle(seed=SEED).select(range(5))
+        dataset["train"] = dataset["train"].shuffle(seed=SEED).select(range(100))
+        dataset["validation"] = dataset["validation"].shuffle(seed=SEED).select(range(5))
+    
+    if "canario" in script_args.dataset_name:
+        print("Using canario dataset")
+        # Add system prompt to the dataset
+        dataset["train"] = dataset["train"].shuffle(seed=SEED).select(range(1000))
+        dataset["validation"] = dataset["validation"].shuffle(seed=SEED).select(range(100))
 
     ################
     # Prepare dataset for training
@@ -146,6 +151,11 @@ if __name__ == "__main__":
     # Training
     ################
 
+    early_stopping_callback = EarlyStoppingCallback(
+        early_stopping_patience=3,
+        early_stopping_threshold=0.0
+    )
+
     args = SFTConfig(
         per_device_train_batch_size = script_args.batch_size, # 8 is a good value for 24GB GPU
         gradient_accumulation_steps = 4, # process 4 batches before updating parameters (parameter update == step)
@@ -162,8 +172,12 @@ if __name__ == "__main__":
         report_to="wandb" if script_args.wandb else None,
         logging_steps = 1,  
         eval_strategy="steps",
-        save_strategy="epoch",            # Guarda un checkpoint al final de cada época
         eval_steps=script_args.eval_steps,
+        save_strategy="steps",
+        save_steps=script_args.eval_steps,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
         max_grad_norm = 1.0, 
     )
 
@@ -176,6 +190,7 @@ if __name__ == "__main__":
         dataset_text_field = "text",
         max_seq_length = script_args.context,
         dataset_num_proc = 2,
+        callbacks=[early_stopping_callback],
         args = args,
     )
 

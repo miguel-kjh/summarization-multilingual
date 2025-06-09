@@ -32,7 +32,12 @@ if __name__ == "__main__":
     tokenizer = get_tokenizer(models[args.model])
     data = load_from_disk(args.dataset_path)
 
-    list_of_tokens = [count_tokens(tokenizer, doc) for doc in data["test"]["text"]]
+    def format_text(sample):
+        return sample['input'] + sample['output']
+    
+    data = data.map(lambda x: {"text": format_text(x)})
+
+    list_of_tokens = [count_tokens(tokenizer, doc) for doc in data["train"]["text"]]
     total_tokens = sum(list_of_tokens)
     num_documents = len(list_of_tokens)
     average_tokens = total_tokens / num_documents if num_documents > 0 else 0
@@ -45,6 +50,7 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
     plt.hist(list_of_tokens, bins=50, color='skyblue', edgecolor='black', alpha=0.8)
     plt.axvline(average_tokens, color='red', linestyle='dashed', linewidth=2, label=f"Media = {average_tokens:.2f}")
+    plt.axvline(8192, color='blue', linestyle='dashed', linewidth=2, label=f"Ventana de contexto de entrenamiento")
     plt.axvline(120000, color='green', linestyle='dashed', linewidth=2, label=f"Ventana de contexto de Llama")
     plt.axvline(40000, color='black', linestyle='dashed', linewidth=2, label=f"Ventana de contexto de Qwen")
     plt.title(f"Distribución de Tokens por Documento Parcan", fontsize=14)
