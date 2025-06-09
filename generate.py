@@ -16,8 +16,10 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="meta-llama/Llama-3.2-1B-Instruct", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, 
+    default="models/BSC-LT/salamandra-2b-instruct/spanish/lora/salamandra-2b-instruct-spanish-e1-b2-lr0.0002-wd0.01-c8192-peft-lora-r16-a32-d0.0-2025-06-05-15-03-26", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
+    parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
@@ -47,7 +49,7 @@ def create_model_and_tokenizer(args):
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = args.model_name_or_path,
-        max_seq_length = 30000,  # Context window size
+        max_seq_length = context_window,  # Context window size
         dtype = None,
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
     )
@@ -63,6 +65,7 @@ if __name__ == '__main__':
         general_folder = "models/others"
         lang_folder    = args.dataset.replace("/", "_")
         final_folder   = os.path.join(general_folder, lang_folder, args.model_name_or_path)
+        print(f"Creating folder {final_folder} for summaries")
         os.makedirs(final_folder, exist_ok=True)
         name_df_of_summaries = os.path.join(final_folder, name_df)
         print(f"Saving summaries to {final_folder}")
@@ -90,22 +93,30 @@ if __name__ == '__main__':
             empty_prompt = f"{instruction}\n{{document}}\n"
             messages = [
                 {"role": "system", "content": example["system_prompt"]},
-                {"role": "user", "content": empty_prompt.format(document=example["input"])}
+                {"role": "user", "content": empty_prompt.format(document=example["input"])},
             ]
-            return tokenizer.apply_chat_template(messages, tokenize=False)
+            return tokenizer.apply_chat_template(
+                messages, 
+                tokenize=False,
+                add_generation_prompt = True, # Must add for generation
+                enable_thinking = False, # Disable thinking
+            )
         
-        dataset = dataset.map(lambda x: {"prompt": formatting_func_inference(x)})
+        dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_func_inference(x)})
     else:
         def formatting_prompts_inference(example):
             instruction = example["instruction"]
-            empty_prompt = f"{instruction}\n{{document}}\n\n##Resumen:"
+            empty_prompt = f"### Instruction:{instruction}\n### Input:{{document}}\n### Response:\n"
             prompts = []
-            for doc in example["input"]:
-                inference_prompt = empty_prompt.format(document=doc).replace("\n", " ").strip()
-                prompts.append(inference_prompt)
-            return {"prompt": prompts}
+            inference_prompt = empty_prompt.format(document=example["input"]).replace("\n", " ").strip()
+            prompts.append(inference_prompt)
+            return prompts
         
-        dataset = dataset.map(formatting_prompts_inference, batched=True, remove_columns=dataset.column_names)
+        dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_prompts_inference(x)})
+
+    def count_tokens_in_dataset(example):
+        return {"num_tokens": len(tokenizer(example["prompt"], add_special_tokens=False)["input_ids"])}
+    dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
     ##########
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -117,24 +128,32 @@ if __name__ == '__main__':
 
     print("Generating")
 
-
     if args.using_streamer:
-        print("#"*10, "Using streamer", "#"*10)
+        # get index of th sample whit minimum num_tokens
+        min_idx = dataset["test"]["num_tokens"].index(min(dataset["test"]["num_tokens"]))
+        print(f"Minimum number of tokens in dataset: {dataset['test']['num_tokens'][min_idx]} at index {min_idx}")
+        print("#"*10, "Streamer summarization", "#"*10)
         time = summary_generator.generate_summary_in_streamer(
             model, 
             dataset["test"],
-            sample_idx=0,
+            sample_idx=min_idx,
             max_new_tokens=args.max_new_tokens,
         )
         print(f"Time taken for generation: {time} seconds")
     else:
-        num_samples = args.data_sample * dataset["test"].num_rows // 100
+        
+        target_tokens = args.context_window - args.max_new_tokens
+        # filter dataset to only include samples with num_tokens less than target_tokens
+        dataset["test"] = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
+        print(f"Filtered dataset to {len(dataset['test'])} samples with num_tokens <= {target_tokens}")
+        num_samples = len(dataset["test"])
         print("#"*10, "Normal summarization", "#"*10)
         summaries = summary_generator.generate_summaries(
             model, 
             dataset["test"], 
             num_samples=num_samples, 
             max_new_tokens=args.max_new_tokens,
+            temperature=0.6
         )
     
         df_summary = pd.DataFrame(summaries)

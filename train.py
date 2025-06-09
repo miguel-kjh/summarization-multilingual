@@ -6,17 +6,18 @@ from unsloth import FastLanguageModel
 import torch
 from trl import SFTTrainer, SFTConfig
 from unsloth import is_bfloat16_supported
-from utils import CONTEXT_WINDOWS, SEED, count_trainable_params, setup_environment, generate_names_for_wandb_run, wandb_end, PROJECT_NAME
+from evaluation import summary_generator
+from utils import CONTEXT_WINDOWS, SEED, count_trainable_params, setup_environment, generate_names_for_wandb_run, upload_to_wandb, wandb_end, PROJECT_NAME
 
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b-instruct")
+    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name or path")
     parse.add_argument("--batch_size", type=int, default=2)
-    parse.add_argument("--num_train_epochs", type=int, default=1)
+    parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
     parse.add_argument("--weight_decay", type=float, default=0.01)
-    parse.add_argument("--context", type=int, default=8192)  # Context window size, adjust based on model
+    parse.add_argument("--context", type=int, default=512)  # Context window size, adjust based on model 8198
     parse.add_argument("--dataset_name", type=str, default="data/02-processed/spanish")
     parse.add_argument("--num_proc", type=int, default=1)
     parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
@@ -30,6 +31,7 @@ def parse_args():
     parse.add_argument("--eval_strategy", type=str, default="steps")
     parse.add_argument("--eval_steps", type=int, default=25)
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
+    parse.add_argument("--selection_strategy", type=str, default="random")  # random, top_k, top_p #TODO: Implement selection strategy (mAYBE NOT NEEDED)
 
     #loras parameters 
     parse.add_argument("--peft_type", type=str, default="lora") # lora, dora, vera, loha, lokr, x-lora?
@@ -54,27 +56,6 @@ def parse_args():
     return args
 
 def create_model_and_tokenizer(args):
-    """if args.quantization:
-        print("### Using Quantization ###")
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit = True,
-            bnb_4bit_quant_type = "nf4",
-            bnb_4bit_compute_dtype = torch.bfloat16,
-            bnb_4bit_use_double_quant = True,
-        )
-        model = AutoModelForCausalLM.from_pretrained(
-            args.model_name_or_path,
-            quantization_config=bnb_config,
-            device_map={"": 0}
-        )
-        model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=False)
-    else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
-    accelerator = create_accelerator()
-    model = accelerator.prepare_model(model)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name_or_path)
-    tokenizer.pad_token = tokenizer.eos_token
-    return tokenizer, model"""
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = args.model_name_or_path,
@@ -120,8 +101,9 @@ if __name__ == "__main__":
     dataset = load_from_disk(script_args.dataset_name)
     if script_args.tiny_dataset:
         print("Using tiny dataset for testing")
-        dataset["train"] = dataset["train"].select(range(100))
-        dataset["validation"] = dataset["validation"].select(range(5))
+        # select a small subset of the dataset for quick testing randomly
+        dataset["train"] = dataset["train"].shuffle(seed=SEED).select(range(500))
+        #dataset["validation"] = dataset["validation"].shuffle(seed=SEED).select(range(5))
 
     ################
     # Prepare dataset for training
@@ -143,7 +125,7 @@ if __name__ == "__main__":
         EOS_TOKEN = tokenizer.eos_token
         def formatting_prompts_instruction(example):
             instruction = example["instruction"]
-            empty_prompt = f"{instruction}\n{{document}}\n\nResumen:"
+            empty_prompt = f"### Instruction:{instruction}\n### Input:{{document}}\n### Response:\n"
             training_prompts = []
             inference_prompts = []
             summaries = []
@@ -158,7 +140,7 @@ if __name__ == "__main__":
                 summaries.append(real_sum)
 
             return { "text" : training_prompts, }
-        dataset_train = dataset.map(formatting_prompts_instruction, batched=True, remove_columns=dataset.column_names)
+        dataset_train = dataset.map(formatting_prompts_instruction, batched=True)
 
     ################
     # Training
@@ -181,7 +163,8 @@ if __name__ == "__main__":
         logging_steps = 1,  
         eval_strategy="steps",
         save_strategy="epoch",            # Guarda un checkpoint al final de cada época
-        eval_steps=script_args.eval_steps, 
+        eval_steps=script_args.eval_steps,
+        max_grad_norm = 1.0, 
     )
 
     trainer = SFTTrainer(
@@ -197,7 +180,7 @@ if __name__ == "__main__":
     )
 
     #if script_args.wandb:
-    #    initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=5)
+    #    initial_summary = summary_generator.generate_summaries(model, dataset["test"], num_samples=1)
     #    upload_to_wandb("Original Summaries", initial_summary)
 
     torch.cuda.reset_peak_memory_stats()
@@ -249,7 +232,7 @@ if __name__ == "__main__":
         # get 5 samples of generated summaries
     #    after_training_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=5)
     #    upload_to_wandb("Generated Summaries", after_training_summary)
-        #wandb_end()
+    #    wandb_end()
 
 
 

@@ -42,8 +42,9 @@ class SummaryGenerator:
             for token in model.generate(
                 **inputs,
                 max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                do_sample=True,
+                temperature = 0.7, top_p = 0.8, top_k = 20, # (normal)
+                # temperature = 0.6, top_p = 0.95, top_k = 20, # (thinking)
+                repetition_penalty = 1.0,
                 streamer=streamer
             ):
                 print(token)
@@ -75,9 +76,6 @@ class SummaryGenerator:
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
             prompt, input, output, language = obj['prompt'], obj['input'], obj['output'], obj['language']
-            if len(prompt) > 70000:
-                print(f"Skipping long prompt of length {len(prompt)}")
-                continue
             try:
                 summary, time = self.summarize(model, prompt, max_new_tokens=max_new_tokens, temperature=temperature)
                 print(summary)
