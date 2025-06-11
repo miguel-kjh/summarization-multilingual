@@ -115,8 +115,9 @@ class DocumentSummaryOllamaEvaluator(DocumentSummaryOpenAiEvaluator):
         """
         results = {}
         prompts = self._load_prompts(language)
+        system_message = "You are an expert evaluator for document summaries."
         for criteria, prompt in prompts.items():
-            evaluation_prompt = prompt.replace("{{Document}}", document).replace("{{Summary}}", summary)
+            evaluation_prompt = system_message + "\n" + prompt.replace("{{Document}}", document).replace("{{Summary}}", summary)
             response = self.llm.invoke(evaluation_prompt)
             results[criteria] = self._parse_response(response)
         return results

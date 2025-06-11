@@ -3,37 +3,30 @@ import itertools
 
 # Constants that remain the same for all scripts
 CONSTANTS = {
-    "lora_r": 8,
-    "lora_alpha": 16,
+    "lora_r": 16,
     "lora_dropout": 0.05,
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
     "batch_size": 2,
-    "learning_rate": 1e-4,
+    "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 512,
+    "context_length": 8192,
     "quantization": False, 
     "wandb": True,
 }
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "Qwen/Qwen2.5-1.5B",
-    "Qwen/Qwen2.5-1.5B-Instruct",
-    "meta-llama/Llama-3.2-1B",
-    "meta-llama/Llama-3.2-1B-Instruct",
+    "Qwen/Qwen3-1.7B",
+    "Qwen/Qwen3-4B",
+    "BSC-LT/salamandra-2b-instruct",
 ]
 
 PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
     # clustering
-    "data/03-combined/english-german",
-    "data/03-combined/spanish-english",
-    "data/03-combined/spanish-french",
-    "data/03-combined/spanish-german",
-    "data/03-combined/spanish-italian",
-    "data/03-combined/spanish-portuguese",
+    "data/02-processed/canario"
 ]
 
 # Create an output directory for the scripts
@@ -42,6 +35,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Generate a script for each combination of model, PEFT type, and dataset
 for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODEL_NAMES, PEFT_TYPES, DATASET_NAMES)):
+    max_new_tokens = 1345 if "canario" in dataset_name else 2048
     simple_name = model_name.split("/")[-1]
     script_filename = os.path.join(output_dir, f"train_{i+1}_{simple_name}_{peft_type}.sh")
 
@@ -54,7 +48,6 @@ model_name="{model_name}"
 peft_type="{peft_type}"  # lora, dora, vera, loha, lokr
 quantization={CONSTANTS['quantization']}
 lora_r={CONSTANTS['lora_r'] if peft_type not in ['vera'] else 256}
-lora_alpha={CONSTANTS['lora_alpha']}
 lora_dropout={CONSTANTS['lora_dropout']}
 lora_target_modules="{CONSTANTS['lora_target_modules']}"
 
@@ -70,12 +63,11 @@ dataset_name="{dataset_name}"
 wandb={CONSTANTS['wandb']}
 
 # Run
-python finetuning.py \\
+model_folder=$(python train.py \\
     --model_name_or_path $model_name \\
     --peft_type $peft_type \\
     --lora_target_modules $lora_target_modules \\
     --lora_r $lora_r \\
-    --lora_alpha $lora_alpha \\
     --lora_dropout $lora_dropout \\
     --quantization $quantization \\
     --batch_size $batch_size \\
@@ -84,8 +76,25 @@ python finetuning.py \\
     --weight_decay $weight_decay \\
     --dataset_name $dataset_name \\
     --wandb $wandb \\
-    --context $context_length
-    """
+    --context $context_length 2>&1 >/dev/null)
+
+python generate.py \\
+    --model_name_or_path $model_folder \\
+    --dataset $dataset_name \\
+    --context_window $context_length \\
+    --using_streamer False \\
+    --using_clustering False \\
+    --rewrite False \\
+    --max_new_tokens {max_new_tokens} \\
+    --quantization $quantization \\
+    
+python model_evaluate.py \\
+    --model $model_folder \\
+    --verbose True \\
+    --method "normal" \\
+    --up False
+    
+"""
 
     # Save the script
     with open(script_filename, "w") as file:

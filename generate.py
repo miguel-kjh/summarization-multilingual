@@ -131,12 +131,12 @@ if __name__ == '__main__':
     if args.using_streamer:
         # get index of th sample whit minimum num_tokens
         min_idx = dataset["test"]["num_tokens"].index(min(dataset["test"]["num_tokens"]))
-        print(f"Minimum number of tokens in dataset: {dataset['test']['num_tokens'][min_idx]} at index {min_idx}")
+        print(f"Minimum number of tokens in dataset: {dataset['test']['num_tokens'][0]} at index {min_idx}")
         print("#"*10, "Streamer summarization", "#"*10)
         time = summary_generator.generate_summary_in_streamer(
             model, 
             dataset["test"],
-            sample_idx=min_idx,
+            sample_idx=0,
             max_new_tokens=args.max_new_tokens,
         )
         print(f"Time taken for generation: {time} seconds")
@@ -153,7 +153,7 @@ if __name__ == '__main__':
             dataset["test"], 
             num_samples=num_samples, 
             max_new_tokens=args.max_new_tokens,
-            temperature=0.6
+            temperature=0.7
         )
     
         df_summary = pd.DataFrame(summaries)

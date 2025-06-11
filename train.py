@@ -29,14 +29,14 @@ def parse_args():
     parse.add_argument("--gradient_checkpointing", type=bool, default=True)
     parse.add_argument("--logging_steps", type=int, default=25)
     parse.add_argument("--eval_strategy", type=str, default="steps")
-    parse.add_argument("--eval_steps", type=int, default=25)
+    parse.add_argument("--eval_steps", type=int, default=100)
     parse.add_argument("--push_to_hub", type=lambda x: bool(strtobool(x)), default=False)
 
     #loras parameters 
     parse.add_argument("--peft_type", type=str, default="lora") # lora, dora, vera, loha, lokr, x-lora?
 
-    parse.add_argument("--lora_r", type=int, default=8)
-    parse.add_argument("--lora_dropout", type=float, default=0.0)
+    parse.add_argument("--lora_r", type=int, default=16)
+    parse.add_argument("--lora_dropout", type=float, default=0.05)
     parse.add_argument("--lora_bias", type=str, default="none")
     parse.add_argument("--lora_target_modules", type=str, default="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj")
     parse.add_argument("--train_embeddings", type=lambda x: bool(strtobool(x)), default=False)
@@ -238,6 +238,8 @@ if __name__ == "__main__":
 
     trainer.save_model(script_args.output_dir)
     print(f"Model saved to {script_args.output_dir}")
+
+    exit(script_args.output_dir)
 
     #test_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=len(dataset["test"]))
     #df_summary = pd.DataFrame(test_summary)

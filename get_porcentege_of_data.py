@@ -19,7 +19,7 @@ def count_tokens(tokenizer, text):
 if __name__ == "__main__":
     def parse_arguments():
         parser = argparse.ArgumentParser(description="Get percentage of data from dataset")
-        parser.add_argument("--dataset_path", type=str, default="data/02-processed/canario", help="Path to the dataset")
+        parser.add_argument("--dataset_path", type=str, default="data/02-processed/spanish", help="Path to the dataset")
         parser.add_argument("--model", type=str, default="qwen", help="Model to use (llama or qwen)")
         return parser.parse_args()
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     
     data = data.map(lambda x: {"text": format_text(x)})
 
-    list_of_tokens = [count_tokens(tokenizer, doc) for doc in data["train"]["text"]]
+    list_of_tokens = [count_tokens(tokenizer, doc) for doc in data["test"]["text"]]
     total_tokens = sum(list_of_tokens)
     num_documents = len(list_of_tokens)
     average_tokens = total_tokens / num_documents if num_documents > 0 else 0
