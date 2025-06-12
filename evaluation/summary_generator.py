@@ -62,7 +62,9 @@ class SummaryGenerator:
                 max_new_tokens=max_new_tokens,
                 tokenizer=self.tokenizer,
                 temperature=temperature,
-                do_sample=True,          # Activar muestreo si no lo tienes ya por defecto
+                top_p=0.8,
+                top_k=20,  # Normal
+                repetition_penalty=1.0,  # Normal
             )
             end = time.time()
             text = self.tokenizer.decode(outputs[0][inputs_length:], skip_special_tokens=True)
@@ -78,7 +80,6 @@ class SummaryGenerator:
             prompt, input, output, language = obj['prompt'], obj['input'], obj['output'], obj['language']
             try:
                 summary, time = self.summarize(model, prompt, max_new_tokens=max_new_tokens, temperature=temperature)
-                print(summary)
                 summaries.append({
                     'document': input, 
                     'expected_summary': output,

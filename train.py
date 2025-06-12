@@ -7,17 +7,17 @@ import torch
 from trl import SFTTrainer, SFTConfig
 from transformers import EarlyStoppingCallback
 from unsloth import is_bfloat16_supported
-from utils import  SEED, count_trainable_params, setup_environment, generate_names_for_wandb_run, upload_to_wandb, wandb_end
+from utils import  SEED, count_trainable_params, setup_environment, generate_names_for_wandb_run, wandb_end
 
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name or path")
-    parse.add_argument("--batch_size", type=int, default=1)
+    parse.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b", help="Model name or path")
+    parse.add_argument("--batch_size", type=int, default=2)
     parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
     parse.add_argument("--weight_decay", type=float, default=0.01)
-    parse.add_argument("--context", type=int, default=8198)  # Context window size, adjust based on model 8198
+    parse.add_argument("--context", type=int, default=8192)  # Context window size, adjust based on model 8198
     parse.add_argument("--dataset_name", type=str, default="data/02-processed/spanish", help="Path to the dataset")
     parse.add_argument("--num_proc", type=int, default=1)
     parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
@@ -36,7 +36,7 @@ def parse_args():
     parse.add_argument("--peft_type", type=str, default="lora") # lora, dora, vera, loha, lokr, x-lora?
 
     parse.add_argument("--lora_r", type=int, default=16)
-    parse.add_argument("--lora_dropout", type=float, default=0.05)
+    parse.add_argument("--lora_dropout", type=float, default=0.0)
     parse.add_argument("--lora_bias", type=str, default="none")
     parse.add_argument("--lora_target_modules", type=str, default="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj")
     parse.add_argument("--train_embeddings", type=lambda x: bool(strtobool(x)), default=False)
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     tokenizer, model = create_model_and_tokenizer(script_args)
 
     # When adding special tokens
-    target_modules   = script_args.lora_target_modules
+    target_modules = ["q_proj", "k_proj", "v_proj", "o_proj","gate_proj", "up_proj", "down_proj"]
     train_embeddings = script_args.train_embeddings
 
     if train_embeddings:
@@ -237,9 +237,7 @@ if __name__ == "__main__":
     ################
 
     trainer.save_model(script_args.output_dir)
-    print(f"Model saved to {script_args.output_dir}")
-
-    exit(script_args.output_dir)
+    print(script_args.output_dir)
 
     #test_summary = summary_generator.generate_summaries(trainer.model, dataset["test"], num_samples=len(dataset["test"]))
     #df_summary = pd.DataFrame(test_summary)

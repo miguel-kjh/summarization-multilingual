@@ -17,7 +17,7 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="models/Qwen/Qwen3-4B/spanish/lora/Qwen3-4B-spanish-e2-b2-lr0.0002-wd0.01-c8198-peft-lora-r16-a32-d0.0-2025-06-09-17-12-06", help="Model name")
+    default="Qwen/Qwen3-4B", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
@@ -25,7 +25,7 @@ def parse():
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
-    parser.add_argument("--max_new_tokens", type=int, default=512, help="Maximum number of new tokens")
+    parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
 
     parser.add_argument("--cluster_embedding_model", type=str, default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2", help="Embedding model for clustering")

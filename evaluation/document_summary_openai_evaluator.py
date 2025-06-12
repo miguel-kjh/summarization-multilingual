@@ -95,8 +95,9 @@ class DocumentSummaryOpenAiEvaluator:
         return score
     
 class DocumentSummaryOllamaEvaluator(DocumentSummaryOpenAiEvaluator):
-    def __init__(self, api_key = None, upgrade=False):
-        self.llm = OllamaLLM(model="phi4")
+    def __init__(self, model = None, upgrade=False):
+        assert model is not None, "Model must be specified for Ollama evaluator."
+        self.llm = OllamaLLM(model=model)
         self.prompt_files = {
             "coherence": "coh.txt",
             "consistency": "con.txt",
@@ -138,7 +139,8 @@ if __name__ == "__main__":
     with open(api_key_file, "r") as file:
         api_key = json.load(file)["key"]
 
-    evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
+    #evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
+    evaluator = DocumentSummaryOllamaEvaluator(model="qwen3", upgrade=True)
 
     # Sample document and summary
     file_qwq_trained = "models/Qwen/Qwen3-0.6B/spanish/lora/Qwen3-0.6B-spanish-e2-b2-lr0.0002-wd0.01-c8192-peft-lora-r16-a32-d0.0-2025-06-04-23-18-28/test_summary_normal.xlsx"

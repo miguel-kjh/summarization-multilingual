@@ -4,9 +4,9 @@ import itertools
 # Constants that remain the same for all scripts
 CONSTANTS = {
     "lora_r": 16,
-    "lora_dropout": 0.05,
+    "lora_dropout": 0.0,
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
-    "batch_size": 2,
+    "batch_size": 1,
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
@@ -17,16 +17,20 @@ CONSTANTS = {
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "Qwen/Qwen3-1.7B",
-    "Qwen/Qwen3-4B",
     "BSC-LT/salamandra-2b-instruct",
+    "BSC-LT/salamandra-2b",
 ]
 
 PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
-    # clustering
-    "data/02-processed/canario"
+    "data/02-processed/portuguese",
+    "data/02-processed/french",
+    "data/02-processed/italian",
+    "data/02-processed/german",
+    "data/02-processed/english",
+    "data/02-processed/spanish",
+    "data/02-processed/canario",
 ]
 
 # Create an output directory for the scripts
@@ -76,7 +80,7 @@ model_folder=$(python train.py \\
     --weight_decay $weight_decay \\
     --dataset_name $dataset_name \\
     --wandb $wandb \\
-    --context $context_length 2>&1 >/dev/null)
+    --context $context_length | tail -n 1)
 
 python generate.py \\
     --model_name_or_path $model_folder \\
