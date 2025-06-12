@@ -12,11 +12,11 @@ from utils import  SEED, count_trainable_params, setup_environment, generate_nam
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b", help="Model name or path")
-    parse.add_argument("--batch_size", type=int, default=2)
+    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen2.5-0.5B-Instruct", help="Model name or path")
+    parse.add_argument("--batch_size", type=int, default=1)
     parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
-    parse.add_argument("--weight_decay", type=float, default=0.01)
+    parse.add_argument("--weight_decay", type=float, default=0.0)
     parse.add_argument("--context", type=int, default=8192)  # Context window size, adjust based on model 8198
     parse.add_argument("--dataset_name", type=str, default="data/02-processed/spanish", help="Path to the dataset")
     parse.add_argument("--num_proc", type=int, default=1)

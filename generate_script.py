@@ -17,8 +17,17 @@ CONSTANTS = {
 
 # Lists for varying parameters
 MODEL_NAMES = [
-    "BSC-LT/salamandra-2b-instruct",
-    "BSC-LT/salamandra-2b",
+    # qwen 2.5
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-3B-Instruct",
+    # qwen 3
+    "Qwen/Qwen3-0.6B-Instruct",
+    "Qwen/Qwen3-1.5B-Instruct",
+    "Qwen/Qwen3-4B-Instruct",
+    # llama 3.2
+    "unsloth/Llama-3.2-1B-Instruct",
+    "unsloth/Llama-3.2-3B-Instruct",
 ]
 
 PEFT_TYPES = ["lora"]
@@ -40,6 +49,7 @@ os.makedirs(output_dir, exist_ok=True)
 # Generate a script for each combination of model, PEFT type, and dataset
 for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODEL_NAMES, PEFT_TYPES, DATASET_NAMES)):
     max_new_tokens = 1345 if "canario" in dataset_name else 2048
+    eval_steps = 100 if "llama" in model_name else 1000
     simple_name = model_name.split("/")[-1]
     script_filename = os.path.join(output_dir, f"train_{i+1}_{simple_name}_{peft_type}.sh")
 
@@ -61,6 +71,7 @@ learning_rate={CONSTANTS['learning_rate']}
 num_train_epochs={CONSTANTS['num_train_epochs']}
 weight_decay={CONSTANTS['weight_decay']}
 context_length={CONSTANTS['context_length']}
+eval_steps={eval_steps}  # Define eval_steps if needed
 
 # Data
 dataset_name="{dataset_name}"
@@ -80,6 +91,7 @@ model_folder=$(python train.py \\
     --weight_decay $weight_decay \\
     --dataset_name $dataset_name \\
     --wandb $wandb \\
+    --eval_steps $eval_steps \\
     --context $context_length | tail -n 1)
 
 python generate.py \\

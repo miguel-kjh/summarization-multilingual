@@ -87,7 +87,8 @@ class SummaryGenerator:
                     'language': language,
                     'time': time,
                 })
-            except torch.cuda.OutOfMemoryError:
+            except Exception as e:
+                print(f"Error generating summary: {e}")
                 torch.cuda.empty_cache()
                 continue
                 #print("Out of memory error")
