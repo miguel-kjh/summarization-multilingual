@@ -156,7 +156,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/Qwen/Qwen2.5-3B-Instruct/french/lora/Qwen2.5-3B-Instruct-french-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-22-35-54",
+        default="models/Qwen/Qwen2.5-1.5B-Instruct/italian/lora/Qwen2.5-1.5B-Instruct-italian-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-17-39-54",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument( 

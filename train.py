@@ -12,7 +12,7 @@ from utils import  SEED, count_trainable_params, setup_environment, generate_nam
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen2.5-0.6B", help="Model name or path")
+    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name or path")
     parse.add_argument("--batch_size", type=int, default=1)
     parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
@@ -178,8 +178,7 @@ if __name__ == "__main__":
         load_best_model_at_end=True,
         metric_for_best_model="eval_loss",
         greater_is_better=False,
-        max_grad_norm = 1.0, 
-        max_seq_length = script_args.context,
+        max_grad_norm = 1.0,
     )
 
     trainer = SFTTrainer(
@@ -189,6 +188,7 @@ if __name__ == "__main__":
         eval_dataset = dataset_train["validation"],
         formatting_func=lambda x: x["text"],
         dataset_text_field = "text",
+        max_seq_length = script_args.context,
         dataset_num_proc = 2,
         callbacks=[early_stopping_callback],
         args = args,

@@ -101,7 +101,7 @@ Summary requirements:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are an expert summarization assistant. Your task is to generate concise, accurate, and clear summaries of given texts while adhering to the specified requirements"},
+                {"role": "system", "content": "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -119,6 +119,16 @@ class OllamaSummarizer(OpenAiSummarizer):
         prompt = self._generate_prompt(document, language)
         response = self.llm.invoke(prompt)
         return response
+    
+from summa import summarizer as TextRankSummarizer_model
+class TextRankingSummarizer(Baseline):
+    
+    def __init__(self, model_name: str, ratio: int = 0.3):
+        self.ratio = ratio
+
+    def summarize(self, document: str, language: str):
+        summary = TextRankSummarizer_model(document,  language=language, ratio=self.ratio)
+        return summary
     
     
 def generate_summaries(dataset: Dataset, baseline_method: Baseline, num_samples: int=5) -> pd.DataFrame:
@@ -151,6 +161,7 @@ methods = {
     "ghic": GHIC,
     "openai": OpenAiSummarizer,
     "ollama": OllamaSummarizer,
+    "textranking": TextRankingSummarizer,
 }
 
 def save_result_baseline(df_summary, method, model_name, name_df):
