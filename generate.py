@@ -17,7 +17,7 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="Qwen/Qwen3-4B", help="Model name")
+    default="Qwen/Qwen2.5-1.5B-Instruct", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
@@ -158,4 +158,4 @@ if __name__ == '__main__':
     
         df_summary = pd.DataFrame(summaries)
         df_summary.to_excel(name_df_of_summaries, index=False)
-        print("Summaries generated")
+        print(os.path.dirname(name_df_of_summaries))

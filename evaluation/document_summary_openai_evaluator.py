@@ -64,7 +64,7 @@ class DocumentSummaryOpenAiEvaluator:
         :param prompt: The prompt to send to the API.
         :return: The API response.
         """
-        plus = "Be very generous pls" if self.upgrade else ""
+        plus = "Be very permissive" if self.upgrade else ""
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[

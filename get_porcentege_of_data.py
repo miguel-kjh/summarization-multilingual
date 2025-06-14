@@ -33,7 +33,7 @@ if __name__ == "__main__":
     data = load_from_disk(args.dataset_path)
 
     def format_text(sample):
-        return sample['input'] + sample['output']
+        return sample['input']
     
     data = data.map(lambda x: {"text": format_text(x)})
 
