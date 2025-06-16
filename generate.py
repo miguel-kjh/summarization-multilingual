@@ -17,8 +17,8 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="models/BSC-LT/salamandra-2b-instruct/portuguese/lora/salamandra-2b-instruct-portuguese-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-11-23-39-44", help="Model name")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/portuguese", help="Dataset path")
+    default="models/Qwen/Qwen2.5-1.5B-Instruct/german/lora/Qwen2.5-1.5B-Instruct-german-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-18-19-11", help="Model name")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/german", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")

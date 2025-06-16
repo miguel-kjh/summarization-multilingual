@@ -10,7 +10,7 @@ CONSTANTS = {
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
     "batch_size": 1,
     "learning_rate": 2e-4,
-    "num_train_epochs": 2,
+    "num_train_epochs": 1,
     "weight_decay": 0.0,
     "context_length": 8192, #8192,
     "quantization": False, 
@@ -24,12 +24,12 @@ MODEL_NAMES = [
     #"Qwen/Qwen2.5-1.5B-Instruct",
     #"Qwen/Qwen2.5-3B-Instruct",
     # qwen 3
-    "Qwen/Qwen3-0.6B",
-    "Qwen/Qwen3-1.7B",
-    "Qwen/Qwen3-4B",
+    #"Qwen/Qwen3-0.6B",
+    #"Qwen/Qwen3-1.7B",
+    #"Qwen/Qwen3-4B",
     # llama 3.2
     #"unsloth/Llama-3.2-1B-Instruct",
-    #"unsloth/Llama-3.2-3B-Instruct",
+    "unsloth/Llama-3.2-3B-Instruct",
 ]
 
 PEFT_TYPES = ["lora"]
