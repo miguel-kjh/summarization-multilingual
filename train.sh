@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Model architecture
-model_name="Qwen/Qwen2.5-1.5B-Instruct"  # Qwen/Qwen2.5-1.5B-Instruct, Qwen/Qwen2.5-7B-Instruct, Qwen/Qwen2.5-14B-Instruct
+model_name="Qwen/Qwen3-4B"  # Qwen/Qwen2.5-1.5B-Instruct, Qwen/Qwen2.5-7B-Instruct, Qwen/Qwen2.5-14B-Instruct
 
 # PEFT and quantization
 peft_type="lora"  # lora, dora, vera, loha, lokr
