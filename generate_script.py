@@ -1,7 +1,7 @@
 import os
 import itertools
 
-FOR_TRAINING = False  # Set to True for training scripts, False for generation scripts
+FOR_TRAINING = True  # Set to True for training scripts, False for generation scripts
 
 # Constants that remain the same for all scripts
 CONSTANTS = {

@@ -53,5 +53,5 @@ python model_evaluate.py \
     --model $model_folder \
     --verbose True \
     --method "normal" \
-    --up True
+    --up False
     
