@@ -17,7 +17,7 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="models/BSC-LT/salamandra-2b/spanish/lora/salamandra-2b-spanish-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-11-22-18-23", help="Model name")
+    default="Qwen/Qwen3-0.6B-Base", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
@@ -85,33 +85,33 @@ if __name__ == '__main__':
     # Create prompts
     ##########
 
-    if tokenizer.chat_template:
-        print("Using chat template for inference formatting")
+    if not tokenizer.chat_template:
+        from unsloth.chat_templates import get_chat_template
+
+        tokenizer = get_chat_template(
+            tokenizer,
+            chat_template = "llama-3",
+            mapping = {"role" : "from", "content" : "value", "user" : "human", "assistant" : "gpt"}, # ShareGPT style
+        )
+
+    print("Using chat template for inference formatting")
+    
+    def formatting_func_inference(example):
+        instruction = example["instruction"]
+        empty_prompt = f"{instruction}\n{{document}}\n"
+        messages = [
+            {"role": "system", "content": example["system_prompt"]},
+            {"role": "user", "content": empty_prompt.format(document=example["input"])},
+        ]
+        return tokenizer.apply_chat_template(
+            messages, 
+            tokenize=False,
+            add_generation_prompt = True, # Must add for generation
+            enable_thinking = False, # Disable thinking
+        )
+    
+    dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_func_inference(x)})
         
-        def formatting_func_inference(example):
-            instruction = example["instruction"]
-            empty_prompt = f"{instruction}\n{{document}}\n"
-            messages = [
-                {"role": "system", "content": example["system_prompt"]},
-                {"role": "user", "content": empty_prompt.format(document=example["input"])},
-            ]
-            return tokenizer.apply_chat_template(
-                messages, 
-                tokenize=False,
-                add_generation_prompt = True, # Must add for generation
-                enable_thinking = False, # Disable thinking
-            )
-        
-        dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_func_inference(x)})
-    else:
-        def formatting_prompts_inference(example):
-            instruction = example["instruction"]
-            system_prompt = example["system_prompt"]
-            empty_prompt = f"{system_prompt} ### Instruction:{instruction}\n### Input:{{document}}\n### Response:\n"
-            inference_prompt = empty_prompt.format(document=example["input"]).replace("\n", " ").strip()
-            return inference_prompt
-        
-        dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_prompts_inference(x)})
 
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["prompt"], add_special_tokens=False)["input_ids"])}
