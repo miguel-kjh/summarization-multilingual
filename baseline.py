@@ -75,16 +75,9 @@ class OpenAiSummarizer(Baseline):
         Returns:
             str: The formatted prompt.
         """
-        prompt = f"""Please provide a summary of the following text:
-
-Text: "{document}"
-
-Summary requirements:
-1. Length: {self.type_sumarization}.
-2. Style: Neutral.
-3. Language: {language}.
-4. Focus: Main ideas and key points.
-"""
+        prompt = f"""Write an institutional summary in {language} of the following document. Keep the language objective, focusing on facts and agreements:
+        "{document}"
+        """
         return prompt
 
     def summarize(self, document, language):
@@ -114,9 +107,11 @@ class OllamaSummarizer(OpenAiSummarizer):
         print(f"Using model for Ollama: {model}")
         self.llm = OllamaLLM(model=model)
         self.type_sumarization = type_sumarization
+        self.system_prompt = "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."
 
     def summarize(self, document, language):
         prompt = self._generate_prompt(document, language)
+        prompt = self.system_prompt + prompt
         response = self.llm.invoke(prompt)
         return response
     

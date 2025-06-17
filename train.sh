@@ -19,7 +19,7 @@ context_length=8192
 eval_steps=100  # Define eval_steps if needed
 
 # Data
-dataset_name="data/02-processed/italian"
+dataset_name="data/02-processed/french"
 wandb=False
 
 # Run

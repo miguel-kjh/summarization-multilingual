@@ -12,8 +12,8 @@ from utils import  SEED, count_trainable_params, setup_environment, generate_nam
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name or path")
-    parse.add_argument("--batch_size", type=int, default=1)
+    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen2.5-0.5B", help="Model name or path")
+    parse.add_argument("--batch_size", type=int, default=2)
     parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
     parse.add_argument("--weight_decay", type=float, default=0.0)
@@ -114,39 +114,26 @@ if __name__ == "__main__":
     # Prepare dataset for training
     ################
 
-    if tokenizer.chat_template:
-        print("Using chat template for formatting prompts")
-        def formatting_func(example):
-            instruction = example["instruction"]
-            empty_prompt = f"{instruction}\n{{document}}\n"
-            messages = [
-                {"role": "system", "content": example["system_prompt"]},
-                {"role": "user", "content": empty_prompt.format(document=example["input"])},
-                {"role": "assistant", "content": example["output"]}
-            ]
-            return tokenizer.apply_chat_template(messages, tokenize=False)
-        dataset_train = dataset.map(lambda x: {"text": formatting_func(x)})
-    else:
-        EOS_TOKEN = tokenizer.eos_token
-        def formatting_prompts_instruction(example):
-            instruction = example["instruction"]
-            empty_prompt = f"### Instruction:{instruction}\n### Input:{{document}}\n### Response:\n"
-            training_prompts = []
-            inference_prompts = []
-            summaries = []
-            for doc, sum in zip(example["input"] , example["output"]):
-                inference_prompt = empty_prompt.format(document=doc)
-                real_sum = sum.strip()
-                training_prompt = inference_prompt + sum + EOS_TOKEN
-                training_prompt = training_prompt.replace("\n", " ")  # Remove newlines for better tokenization
-                training_prompt = training_prompt.strip()  # Remove leading/trailing spaces
-                training_prompts.append(training_prompt)
-                inference_prompts.append(inference_prompt)
-                summaries.append(real_sum)
+    if not tokenizer.chat_template:
+        from unsloth.chat_templates import get_chat_template
 
-            return { "text" : training_prompts, }
-        dataset_train = dataset.map(formatting_prompts_instruction, batched=True)
+        tokenizer = get_chat_template(
+            tokenizer,
+            chat_template = "llama-3",
+            mapping = {"role" : "from", "content" : "value", "user" : "human", "assistant" : "gpt"}, # ShareGPT style
+        )
 
+    print("Using chat template for formatting prompts")
+    def formatting_func(example):
+        instruction = example["instruction"]
+        empty_prompt = f"{instruction}\n{{document}}\n"
+        messages = [
+            {"role": "system", "content": example["system_prompt"]},
+            {"role": "user", "content": empty_prompt.format(document=example["input"])},
+            {"role": "assistant", "content": example["output"]}
+        ]
+        return tokenizer.apply_chat_template(messages, tokenize=False)
+    dataset_train = dataset.map(lambda x: {"text": formatting_func(x)})
     ################
     # Training
     ################

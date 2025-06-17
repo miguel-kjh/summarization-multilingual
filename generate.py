@@ -17,8 +17,8 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="models/Qwen/Qwen2.5-1.5B-Instruct/german/lora/Qwen2.5-1.5B-Instruct-german-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-18-19-11", help="Model name")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/german", help="Dataset path")
+    default="models/BSC-LT/salamandra-2b/spanish/lora/salamandra-2b-spanish-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-11-22-18-23", help="Model name")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
@@ -106,11 +106,10 @@ if __name__ == '__main__':
     else:
         def formatting_prompts_inference(example):
             instruction = example["instruction"]
-            empty_prompt = f"### Instruction:{instruction}\n### Input:{{document}}\n### Response:\n"
-            prompts = []
+            system_prompt = example["system_prompt"]
+            empty_prompt = f"{system_prompt} ### Instruction:{instruction}\n### Input:{{document}}\n### Response:\n"
             inference_prompt = empty_prompt.format(document=example["input"]).replace("\n", " ").strip()
-            prompts.append(inference_prompt)
-            return prompts
+            return inference_prompt
         
         dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_prompts_inference(x)})
 
@@ -136,7 +135,7 @@ if __name__ == '__main__':
         time = summary_generator.generate_summary_in_streamer(
             model, 
             dataset["test"],
-            sample_idx=0,
+            sample_idx=min_idx,
             max_new_tokens=args.max_new_tokens,
         )
         print(f"Time taken for generation: {time} seconds")

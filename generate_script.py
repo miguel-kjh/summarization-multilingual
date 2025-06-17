@@ -1,7 +1,7 @@
 import os
 import itertools
 
-FOR_TRAINING = True  # Set to True for training scripts, False for generation scripts
+FOR_TRAINING = False  # Set to True for training scripts, False for generation scripts
 
 # Constants that remain the same for all scripts
 CONSTANTS = {
@@ -10,7 +10,7 @@ CONSTANTS = {
     "lora_target_modules": "q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj",
     "batch_size": 1,
     "learning_rate": 2e-4,
-    "num_train_epochs": 1,
+    "num_train_epochs": 2,
     "weight_decay": 0.0,
     "context_length": 8192, #8192,
     "quantization": False, 
@@ -18,18 +18,27 @@ CONSTANTS = {
 }
 
 # Lists for varying parameters
+# qwen 2.5
+#"Qwen/Qwen2.5-0.5B-Instruct",
+#"Qwen/Qwen2.5-1.5B-Instruct",
+#"Qwen/Qwen2.5-3B-Instruct",
+# qwen 3
+#"Qwen/Qwen3-0.6B",
+#"Qwen/Qwen3-1.7B",
+#"Qwen/Qwen3-4B",
+# llama 3.2
+#"unsloth/Llama-3.2-1B-Instruct",
+#"unsloth/Llama-3.2-3B-Instruct",
 MODEL_NAMES = [
-    # qwen 2.5
-    #"Qwen/Qwen2.5-0.5B-Instruct",
-    #"Qwen/Qwen2.5-1.5B-Instruct",
-    #"Qwen/Qwen2.5-3B-Instruct",
-    # qwen 3
-    #"Qwen/Qwen3-0.6B",
-    #"Qwen/Qwen3-1.7B",
-    #"Qwen/Qwen3-4B",
-    # llama 3.2
-    #"unsloth/Llama-3.2-1B-Instruct",
-    "unsloth/Llama-3.2-3B-Instruct",
+    "Qwen/Qwen2.5-0.5B",
+    "Qwen/Qwen2.5-1.5B",
+    "Qwen/Qwen2.5-3B",
+    "Qwen/Qwen3-0.6B-Base",
+    "Qwen/Qwen3-1.7B-Base",
+    "Qwen/Qwen3-4B-Base",
+    "unsloth/Llama-3.2-1B",
+    "unsloth/Llama-3.2-3B",
+    "BSC-LT/salamandra-2b"
 ]
 
 PEFT_TYPES = ["lora"]
@@ -106,7 +115,7 @@ python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
     --method "normal" \\
-    --up True
+    --up False
     
 """
 
@@ -141,7 +150,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     --model $model_folder \\
     --verbose True \\
     --method "normal" \\
-    --up True
+    --up False
 """
 
 # Create an output directory for the scripts
