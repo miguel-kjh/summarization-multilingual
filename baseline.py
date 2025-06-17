@@ -2,13 +2,12 @@ import os
 import time
 from datasets import load_from_disk
 import pandas as pd
-from sentence_transformers import SentenceTransformer
 from summarizer import Summarizer
 from tqdm import tqdm
-from transformers import *
 from openai import OpenAI
 from datasets import Dataset
 from langchain_ollama import OllamaLLM
+from transformers import AutoConfig, AutoTokenizer, AutoModel
 
 
 from document_cluster import DocumentClustererTopKSentences
@@ -178,7 +177,12 @@ def main():
     else:
         baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
-    subset = dataset["test"].shuffle(seed=42).select(range(20))
+    tokenizer = AutoTokenizer.from_pretrained("BSC-LT/salamandra-2b-instruct")
+    def count_tokens_in_dataset(example):
+        return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
+    dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
+    target_tokens = 8192 #change this for more samples
+    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
     summaries = generate_summaries(subset, baseline, num_samples=None)
     save_result_baseline(summaries, args.method, args.model_name, name_df)
 

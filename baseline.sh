@@ -3,7 +3,7 @@
 #!/bin/bash
 
 # Lista de idiomas
-declare -a languages=("spanish" "english" "french" "german" "italian" "portuguese" "canario")
+declare -a languages=("spanish" "english" "french" "german" "italian" "portuguese")
 # Lista de modelos
 declare -a models=(
     "qwen2.5:7b" 
@@ -16,7 +16,7 @@ for lang in "${languages[@]}"; do
     
     echo "Procesando idioma: $lang"
     
-    #python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini"
+    python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini"
     #python3 baseline.py --dataset "$dataset" --method "ghic"
     #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "bert-base-multilingual-cased"
     #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "FacebookAI/xlm-roberta-large"
@@ -25,10 +25,10 @@ for lang in "${languages[@]}"; do
     #python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "llama3.1"
     #ollama stop llama3.1
 
-    for model_name in "${models[@]}"; do
-        echo "Procesando modelo: $model_name"
-        python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name"
-        ollama stop "$model_name"
-    done
+    #for model_name in "${models[@]}"; do
+    #    echo "Procesando modelo: $model_name"
+    #    python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name"
+    #    ollama stop "$model_name"
+    #done
 
 done

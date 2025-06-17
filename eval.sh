@@ -3,15 +3,20 @@
 #model="models/baseline/spanish/ollama/qwen2.5:0.5b"
 path=models/baseline/
 languages=(
-    "spanish"
+    spanish
+    english
+    french
+    german
+    italian
+    portuguese
+    german
 )
 models=(
-    models/Qwen/Qwen3-0.6B/spanish/lora/Qwen3-0.6B-spanish-e2-b2-lr0.0002-wd0.01-c8192-peft-lora-r16-a32-d0.0-2025-06-04-23-18-28
-
+   openai
 )
 wandb=False
 use_openai=True
-method="clustering"
+method="normal"
 
 # Loop through each model and run the evaluation script
 for lang in "${languages[@]}"; do
