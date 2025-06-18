@@ -139,7 +139,7 @@ if __name__ == "__main__":
     ################
 
     early_stopping_callback = EarlyStoppingCallback(
-        early_stopping_patience=3,
+        early_stopping_patience=2,
         early_stopping_threshold=0.0
     )
 
