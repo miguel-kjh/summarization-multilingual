@@ -104,6 +104,7 @@ class OpenAiSummarizer(Baseline):
 class OllamaSummarizer(OpenAiSummarizer):
     def __init__(self, model: str = "llama3", type_sumarization: str = "large"):
         print(f"Using model for Ollama: {model}")
+        self.model = model
         self.llm = OllamaLLM(model=model)
         self.type_sumarization = type_sumarization
         self.system_prompt = "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."
@@ -112,6 +113,8 @@ class OllamaSummarizer(OpenAiSummarizer):
         prompt = self._generate_prompt(document, language)
         prompt = self.system_prompt + prompt
         response = self.llm.invoke(prompt)
+        if self.model == "qwen3:14b":
+            response = response.split("</think>")[1].strip()
         return response
     
 from summa import summarizer as TextRankSummarizer_model
@@ -121,7 +124,9 @@ class TextRankingSummarizer(Baseline):
         self.ratio = ratio
 
     def summarize(self, document: str, language: str):
-        summary = TextRankSummarizer_model(document,  language=language, ratio=self.ratio)
+        if language == "canario":
+            language = "spanish"
+        summary = TextRankSummarizer_model.summarize(document,  language=language, ratio=self.ratio)
         return summary
     
     
@@ -177,12 +182,12 @@ def main():
     else:
         baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
-    tokenizer = AutoTokenizer.from_pretrained("BSC-LT/salamandra-2b-instruct")
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
     target_tokens = 8192 #change this for more samples
-    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
+    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
     summaries = generate_summaries(subset, baseline, num_samples=None)
     save_result_baseline(summaries, args.method, args.model_name, name_df)
 

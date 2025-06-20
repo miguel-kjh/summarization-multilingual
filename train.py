@@ -177,7 +177,7 @@ if __name__ == "__main__":
         dataset_text_field = "text",
         max_seq_length = script_args.context,
         dataset_num_proc = 2,
-        callbacks=[early_stopping_callback],
+        callbacks=[early_stopping_callback], # Early stopping callback
         args = args,
     )
 
