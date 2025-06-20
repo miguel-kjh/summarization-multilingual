@@ -119,6 +119,13 @@ def combine():
 
         new_dataset.save_to_disk(combine_dataset_name)
 
+def get_tiny():
+    from transformers import AutoTokenizer
+    english_dataset = load_from_disk("data/02-processed/english")
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+
+    
+
 
 def parse_args():
     parse = argparse.ArgumentParser()
@@ -137,6 +144,7 @@ OPERATIONS = {
     "process": process,
     "process_canary": process_canary,
     "combine": combine,
+    "tiny": get_tiny(),
 }
 
 

@@ -17,7 +17,7 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="models/Qwen/Qwen2.5-0.5B/spanish/lora/Qwen2.5-0.5B-spanish-e2-b2-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-17-16-44-47", help="Model name")
+    default="Qwen/Qwen2.5-0.5B", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
@@ -49,6 +49,7 @@ def create_model_and_tokenizer(args):
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = args.model_name_or_path,
+        fast_inference= False,  # Enable fast inference
         max_seq_length = context_window,  # Context window size
         dtype = None,
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit

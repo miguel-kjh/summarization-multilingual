@@ -186,8 +186,8 @@ def main():
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
-    target_tokens = 8192 #change this for more samples
-    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
+    target_tokens = 16000 #change this for more samples
+    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
     summaries = generate_summaries(subset, baseline, num_samples=None)
     save_result_baseline(summaries, args.method, args.model_name, name_df)
 
