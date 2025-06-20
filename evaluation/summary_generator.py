@@ -4,6 +4,7 @@ import torch
 from datasets import Dataset
 from tqdm import tqdm
 import numpy as np
+from vllm import SamplingParams
 import time
 from transformers import TextStreamer
 from utils import SEED, generate_prompt
@@ -53,24 +54,24 @@ class SummaryGenerator:
         return end - start
 
     def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.7) -> Tuple[str, float]:
-        inputs = self.tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
-        inputs_length = len(inputs["input_ids"][0])
+        sampling_params = SamplingParams(
+            temperature=temperature,
+            top_p=0.8,
+            top_k=20,  # Normal
+            repetition_penalty=1.0,  # Normal
+            max_tokens = max_new_tokens,
+        )
         with torch.no_grad():
             start = time.time()
-            outputs = model.generate(
-                **inputs, 
-                max_new_tokens=max_new_tokens,
-                tokenizer=self.tokenizer,
-                temperature=temperature,
-                top_p=0.8,
-                top_k=20,  # Normal
-                repetition_penalty=1.0,  # Normal
-            )
+            output = model.fast_generate(
+                [text],
+                sampling_params = sampling_params,
+                lora_request = None,
+            )[0].outputs[0].text
             end = time.time()
-            text = self.tokenizer.decode(outputs[0][inputs_length:], skip_special_tokens=True)
         if self.tokenizer.chat_template:
-            text = extract_clean_assistant_response(text)
-        return text, end - start   
+            output = extract_clean_assistant_response(output)
+        return output, end - start   
 
     def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7) -> list:
         summaries = []

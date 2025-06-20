@@ -16,7 +16,7 @@ learning_rate=0.0002
 num_train_epochs=1
 weight_decay=0.0
 context_length=8192
-eval_steps=100  # Define eval_steps if needed
+eval_steps=1000  # Define eval_steps if needed
 
 # Data
 dataset_name="data/02-processed/french"

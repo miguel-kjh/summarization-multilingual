@@ -17,9 +17,9 @@ def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
     parser.add_argument("--model_name_or_path", type=str, 
-    default="Qwen/Qwen2.5-0.5B", help="Model name")
+    default="Qwen/Qwen3-4B", help="Model name")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
-    parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
+    parser.add_argument("--context_window", type=int, default=10000, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
@@ -49,8 +49,8 @@ def create_model_and_tokenizer(args):
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = args.model_name_or_path,
-        fast_inference= False,  # Enable fast inference
-        max_seq_length = context_window,  # Context window size
+        fast_inference= True,  # Enable fast inference
+        max_seq_length = args.context_window,  # Context window size
         dtype = None,
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
     )
