@@ -16,8 +16,8 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, 
-    default="Qwen/Qwen3-4B", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen/Qwen2.5-0.5B-Instruct/spanish/lora/Qwen2.5-0.5B-Instruct-spanish-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-14-09-42", help="Model name")
+    parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=10000, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
@@ -153,7 +153,8 @@ if __name__ == '__main__':
             dataset["test"], 
             num_samples=num_samples, 
             max_new_tokens=args.max_new_tokens,
-            temperature=0.7
+            temperature=0.7,
+            adapter_name=args.model_name_or_path if args.is_adapter else "",
         )
     
         df_summary = pd.DataFrame(summaries)

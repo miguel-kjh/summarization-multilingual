@@ -53,7 +53,7 @@ class SummaryGenerator:
         
         return end - start
 
-    def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.7) -> Tuple[str, float]:
+    def summarize(self, model, text: str, max_new_tokens: int = 256, temperature: float = 0.7, adapter_name: str = "") -> Tuple[str, float]:
         sampling_params = SamplingParams(
             temperature=temperature,
             top_p=0.8,
@@ -66,21 +66,21 @@ class SummaryGenerator:
             output = model.fast_generate(
                 [text],
                 sampling_params = sampling_params,
-                lora_request = None,
+                lora_request = None if not adapter_name else model.load_lora(adapter_name),
             )[0].outputs[0].text
             end = time.time()
         if self.tokenizer.chat_template:
             output = extract_clean_assistant_response(output)
         return output, end - start   
 
-    def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7) -> list:
+    def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7, adapter_name: str = "") -> list:
         summaries = []
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
         for obj in tqdm(shuffle_dataset, desc="Generating summaries"):
             prompt, input, output, language = obj['prompt'], obj['input'], obj['output'], obj['language']
             try:
-                summary, time = self.summarize(model, prompt, max_new_tokens=max_new_tokens, temperature=temperature)
+                summary, time = self.summarize(model, prompt, max_new_tokens=max_new_tokens, temperature=temperature, adapter_name=adapter_name)
                 summaries.append({
                     'document': input, 
                     'expected_summary': output,

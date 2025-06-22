@@ -105,7 +105,14 @@ class OllamaSummarizer(OpenAiSummarizer):
     def __init__(self, model: str = "llama3", type_sumarization: str = "large"):
         print(f"Using model for Ollama: {model}")
         self.model = model
-        self.llm = OllamaLLM(model=model)
+        self.llm = OllamaLLM(
+            model=model,
+            temperature=0.7,  # Adjust temperature for more or less randomness
+            max_tokens=2048,  # Adjust max tokens based on your needs
+            top_p=0.8,  # Adjust top_p for nucleus sampling
+            top_k=20,  # Adjust top_k for top-k sampling
+            repetition_penalty=1.0,  # Adjust repetition penalty to avoid repetition
+        )
         self.type_sumarization = type_sumarization
         self.system_prompt = "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."
 
@@ -186,8 +193,8 @@ def main():
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
-    target_tokens = 16000 #change this for more samples
-    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
+    target_tokens = 10000 #change this for more samples
+    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
     summaries = generate_summaries(subset, baseline, num_samples=None)
     save_result_baseline(summaries, args.method, args.model_name, name_df)
 

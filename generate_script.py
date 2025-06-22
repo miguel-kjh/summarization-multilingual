@@ -1,7 +1,7 @@
 import os
 import itertools
 
-FOR_TRAINING = True  # Set to True for training scripts, False for generation scripts
+FOR_TRAINING = False  # Set to True for training scripts, False for generation scripts
 
 # Constants that remain the same for all scripts
 CONSTANTS = {
@@ -12,7 +12,7 @@ CONSTANTS = {
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 8192, #8192,
+    "context_length": 10000,
     "quantization": False, 
     "wandb": True,
 }
@@ -30,15 +30,18 @@ CONSTANTS = {
 #"unsloth/Llama-3.2-1B-Instruct",
 #"unsloth/Llama-3.2-3B-Instruct",
 MODEL_NAMES = [
-    "Qwen/Qwen2.5-0.5B",
-    "Qwen/Qwen2.5-1.5B",
-    "Qwen/Qwen2.5-3B",
-    "Qwen/Qwen3-0.6B-Base",
-    "Qwen/Qwen3-1.7B-Base",
-    "Qwen/Qwen3-4B-Base",
-    "unsloth/Llama-3.2-1B",
-    "unsloth/Llama-3.2-3B",
-    "BSC-LT/salamandra-2b"
+    # qwen 2.5
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-3B-Instruct",
+    # qwen 3
+    "Qwen/Qwen3-0.6B",
+    "Qwen/Qwen3-1.7B",
+    "Qwen/Qwen3-4B",
+    # llama 3.2
+    "unsloth/Llama-3.2-1B-Instruct",
+    "unsloth/Llama-3.2-3B-Instruct",
+    #"BSC-LT/salamandra-2b"
 ]
 
 PEFT_TYPES = ["lora"]
@@ -50,7 +53,7 @@ DATASET_NAMES = [
     "data/02-processed/german",
     "data/02-processed/english",
     "data/02-processed/spanish",
-    "data/02-processed/canario",
+    #"data/02-processed/canario",
 ]
 
 # scripts funct
@@ -162,7 +165,7 @@ for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODE
     max_new_tokens = 1345 if "canario" in dataset_name else 2048
     eval_steps = 1000 
     simple_name = model_name.split("/")[-1]
-    script_filename = os.path.join(output_dir, f"train_{i+1}_{simple_name}_{peft_type}.sh")
+    script_filename = os.path.join(output_dir, f"generate_{i+1}_{simple_name}_{peft_type}.sh")
 
     if FOR_TRAINING:
         bash_script = for_training(
