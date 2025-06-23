@@ -19,7 +19,7 @@ context_length=8192
 eval_steps=1000  # Define eval_steps if needed
 
 # Data
-dataset_name="data/02-processed/french"
+dataset_name="data/02-processed/german"
 wandb=False
 
 # Run
@@ -42,7 +42,8 @@ model_folder=$(python train.py \
 python generate.py \
     --model_name_or_path $model_folder \
     --dataset $dataset_name \
-    --context_window 8192 \
+    --is_adapter True \
+    --context_window 10000 \
     --using_streamer False \
     --using_clustering False \
     --rewrite False \

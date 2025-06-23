@@ -12,6 +12,7 @@ def find_and_read_json(base_dir, max_depth):
         
         if depth == max_depth:
             if "result_metrics.json" in files:
+                print(f"\"{root}\",")
                 model = root.split(os.sep)[-1]
                 json_path = os.path.join(root, "result_metrics.json")
                 try:
@@ -70,13 +71,13 @@ def save_to_excel(results, output_file):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    base_directory = "models/unsloth/Llama-3.2-1B"  # Cambia esto por la ruta base
+    base_directory = "models/unsloth"  # Cambia esto por la ruta base
     
     model = base_directory.split(os.sep)[-1]
-    max_search_depth = 3  # Cambia esto al nivel deseado
+    max_search_depth = 4  # Cambia esto al nivel deseado
     output_excel = os.path.join(base_directory, f"metrics_summary_{model}.xlsx")
     
     results = find_and_read_json(base_directory, max_search_depth)
-    print(f"Resultados encontrados: {results}")
-    save_to_excel(results, output_excel)
-    print(f"Resultados guardados en {output_excel}")
+    #print(f"Resultados encontrados: {results}")
+    #save_to_excel(results, output_excel)
+    #print(f"Resultados guardados en {output_excel}")

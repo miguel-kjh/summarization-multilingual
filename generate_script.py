@@ -30,18 +30,7 @@ CONSTANTS = {
 #"unsloth/Llama-3.2-1B-Instruct",
 #"unsloth/Llama-3.2-3B-Instruct",
 MODEL_NAMES = [
-    # qwen 2.5
-    "Qwen/Qwen2.5-0.5B-Instruct",
-    "Qwen/Qwen2.5-1.5B-Instruct",
-    "Qwen/Qwen2.5-3B-Instruct",
-    # qwen 3
-    "Qwen/Qwen3-0.6B",
-    "Qwen/Qwen3-1.7B",
-    "Qwen/Qwen3-4B",
-    # llama 3.2
-    "unsloth/Llama-3.2-1B-Instruct",
-    "unsloth/Llama-3.2-3B-Instruct",
-    #"BSC-LT/salamandra-2b"
+    
 ]
 
 PEFT_TYPES = ["lora"]

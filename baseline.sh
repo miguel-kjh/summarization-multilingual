@@ -3,18 +3,9 @@
 #!/bin/bash
 
 # Lista de idiomas
-declare -a languages=("spanish" 
-                      "english" 
-                      "french" 
-                      "german" 
-                      "italian" 
-                      "portuguese")
+declare -a languages=("canario")
 # Lista de modelos
 declare -a models=(
-    "qwen2.5:7b" 
-    "llama3.1"
-    "phi4"
-    "qwen2.5:14b"
     "qwen3:14b"
 )
 

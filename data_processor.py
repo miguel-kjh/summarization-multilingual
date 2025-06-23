@@ -4,6 +4,7 @@ import argparse
 from tqdm import tqdm
 from datasets import load_from_disk, DatasetDict, concatenate_datasets
 
+from baseline import OpenAiSummarizer
 from data_preprare.transform_data import TransformData, TransformDataCanario
 from data_preprare.generate_data_stats import StatsGenerator
 from data_preprare.download_dataset import download_dataset, download_canary_parlament
@@ -124,7 +125,40 @@ def get_tiny():
     english_dataset = load_from_disk("data/02-processed/english")
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
 
-    
+    def count_tokens_in_dataset(example):
+        return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
+    english_dataset["train"] = english_dataset["train"].map(count_tokens_in_dataset)
+    english_dataset["validation"] = english_dataset["validation"].map(count_tokens_in_dataset)
+    english_dataset["test"] = english_dataset["test"].map(count_tokens_in_dataset)
+
+
+    #escoge las muestras de train que tenga menos de 100000 tokens y de validation que tenga menos de 100000 tokens
+    english_dataset["train"] = english_dataset["train"].filter(lambda x: x["num_tokens"] <= 100000)
+    english_dataset["validation"] = english_dataset["validation"].filter(lambda x: x["num_tokens"] <= 100000)
+    tiny_dataset = DatasetDict({
+        "train": english_dataset["train"],
+        "validation": english_dataset["validation"],
+        "test": english_dataset["test"].sort("num_tokens").select(range(100)),
+    })
+
+    tiny_dataset_name = os.path.join(PROCESS_DATA_FOLDER, "tiny")
+    os.makedirs(tiny_dataset_name, exist_ok=True)
+    tiny_dataset.save_to_disk(tiny_dataset_name)
+
+def improve_tiny():
+    summarizer = OpenAiSummarizer()
+    tiny_dataset_name = os.path.join(PROCESS_DATA_FOLDER, "tiny")
+    tiny_dataset = load_from_disk(tiny_dataset_name)
+    language = "english"
+
+    tiny_dataset["train"] = tiny_dataset["train"].map(lambda x: {"output": summarizer.summarize(x["input"], language=language)})
+    tiny_dataset["validation"] = tiny_dataset["validation"].map(lambda x: {"output": summarizer.summarize(x["input"], language=language)})
+    tiny_dataset["test"] = tiny_dataset["test"].map(lambda x: {"output": summarizer.summarize(x["input"], language=language)})
+
+    # Save the improved tiny dataset
+    tiny_dataset_name_improved = os.path.join(PROCESS_DATA_FOLDER, "tiny_improved")
+    os.makedirs(tiny_dataset_name_improved, exist_ok=True)
+    tiny_dataset.save_to_disk(tiny_dataset_name_improved)
 
 
 def parse_args():
@@ -144,7 +178,8 @@ OPERATIONS = {
     "process": process,
     "process_canary": process_canary,
     "combine": combine,
-    "tiny": get_tiny(),
+    "tiny": get_tiny,
+    "improve_tiny": improve_tiny,
 }
 
 
