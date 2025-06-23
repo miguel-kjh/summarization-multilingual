@@ -12,25 +12,24 @@ CONSTANTS = {
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 10000,
+    "context_length": 18000,
     "quantization": False, 
     "wandb": True,
 }
 
-# Lists for varying parameters
-# qwen 2.5
-#"Qwen/Qwen2.5-0.5B-Instruct",
-#"Qwen/Qwen2.5-1.5B-Instruct",
-#"Qwen/Qwen2.5-3B-Instruct",
-# qwen 3
-#"Qwen/Qwen3-0.6B",
-#"Qwen/Qwen3-1.7B",
-#"Qwen/Qwen3-4B",
-# llama 3.2
-#"unsloth/Llama-3.2-1B-Instruct",
-#"unsloth/Llama-3.2-3B-Instruct",
 MODEL_NAMES = [
-    
+    # Lists for varying parameters
+    # qwen 2.5
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-3B-Instruct",
+    # qwen 3
+    "Qwen/Qwen3-0.6B",
+    "Qwen/Qwen3-1.7B",
+    "Qwen/Qwen3-4B",
+    # llama 3.2
+    "unsloth/Llama-3.2-1B-Instruct",
+    "unsloth/Llama-3.2-3B-Instruct",
 ]
 
 PEFT_TYPES = ["lora"]
@@ -42,7 +41,7 @@ DATASET_NAMES = [
     "data/02-processed/german",
     "data/02-processed/english",
     "data/02-processed/spanish",
-    #"data/02-processed/canario",
+    "data/02-processed/canario",
 ]
 
 # scripts funct
