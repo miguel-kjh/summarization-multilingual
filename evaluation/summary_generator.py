@@ -7,6 +7,7 @@ import numpy as np
 from vllm import SamplingParams
 import time
 from transformers import TextStreamer
+from more_itertools import chunked  # pip install more-itertools
 from utils import SEED, generate_prompt
 
 def extract_clean_assistant_response(full_text: str) -> str:
@@ -71,9 +72,41 @@ class SummaryGenerator:
             end = time.time()
         if self.tokenizer.chat_template:
             output = extract_clean_assistant_response(output)
-        return output, end - start   
+        return output, end - start  
+    
+    def summarize_batch(self, model, prompts: list, max_new_tokens: int = 256, temperature: float = 0.7,
+                    adapter_name: str = "") -> Tuple[list, list]:
+        sampling_params = SamplingParams(
+            temperature=temperature,
+            top_p=0.8,
+            top_k=20,
+            repetition_penalty=1.0,
+            max_tokens=max_new_tokens,
+        )
 
-    def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7, adapter_name: str = "") -> list:
+        with torch.no_grad():
+            start = time.time()
+            outputs = model.fast_generate(
+                prompts,
+                sampling_params=sampling_params,
+                lora_request=None if not adapter_name else model.load_lora(adapter_name),
+            )
+            end = time.time()
+
+        # outputs es una lista de RequestOutput
+        generated_texts = []
+        for out in outputs:
+            text = out.outputs[0].text
+            if self.tokenizer.chat_template:
+                text = extract_clean_assistant_response(text)
+            generated_texts.append(text)
+
+        # Tiempo promedio por muestra
+        times = [(end - start) / len(prompts)] * len(prompts)
+
+        return generated_texts, times
+
+    """def generate_summaries(self, model, dataset: Dataset, num_samples: int=5, max_new_tokens: int=256, temperature: float=0.7, adapter_name: str = "") -> list:
         summaries = []
         # get a subset of the dataset
         shuffle_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
@@ -94,6 +127,53 @@ class SummaryGenerator:
                 continue
                 #print("Out of memory error")
             torch.cuda.empty_cache()
+        return summaries"""
+    
+    def generate_summaries(self, model, dataset: Dataset, num_samples: int = 5, max_new_tokens: int = 256,
+        temperature: float = 0.7, adapter_name: str = "", batch_size: int = 64) -> list:
+        summaries = []
+        shuffled_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
+
+        for batch in tqdm(chunked(shuffled_dataset, batch_size), desc="Generating summaries in batches"):
+            prompts, inputs, outputs, languages = [], [], [], []
+
+            for obj in batch:
+                prompt = obj['prompt']
+                input_text = obj['input']
+                output = obj['output']
+                language = obj['language']
+
+                # Aquí asumimos que 'prompt' ya es la entrada completa lista para el modelo.
+                prompts.append(prompt)
+                inputs.append(input_text)
+                outputs.append(output)
+                languages.append(language)
+
+            try:
+                generated_summaries, times = self.summarize_batch(
+                    model,
+                    prompts,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    adapter_name=adapter_name
+                )
+
+                for i in range(len(batch)):
+                    summaries.append({
+                        'document': inputs[i],
+                        'expected_summary': outputs[i],
+                        'generated_summary': generated_summaries[i],
+                        'language': languages[i],
+                        'time': times[i],
+                    })
+
+            except Exception as e:
+                print(f"Error generating batch: {e}")
+                torch.cuda.empty_cache()
+                continue
+
+            torch.cuda.empty_cache()
+
         return summaries
     
     def generate_summaries_from_cluster(

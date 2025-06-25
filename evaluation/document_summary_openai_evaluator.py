@@ -64,11 +64,10 @@ class DocumentSummaryOpenAiEvaluator:
         :param prompt: The prompt to send to the API.
         :return: The API response.
         """
-        plus = "Be very permissive" if self.upgrade else ""
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an expert evaluator for document summaries." + plus},
+                {"role": "system", "content": "You are an expert evaluator for document summaries."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=10,
