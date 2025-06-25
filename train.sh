@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Model architecture
-model_name="unsloth/Llama-3.2-1B"  # Qwen/Qwen2.5-1.5B-Instruct, Qwen/Qwen2.5-7B-Instruct, Qwen/Qwen2.5-14B-Instruct
+model_name="Qwen/Qwen3-4B"  # Qwen/Qwen2.5-1.5B-Instruct, Qwen/Qwen2.5-7B-Instruct, Qwen/Qwen2.5-14B-Instruct
 
 # PEFT and quantization
 peft_type="lora"  # lora, dora, vera, loha, lokr
@@ -13,13 +13,13 @@ lora_target_modules="q_proj,k_proj,v_proj,o_proj,gate_proj,up_proj,down_proj"
 # Hyperparameters
 batch_size=1
 learning_rate=0.0002
-num_train_epochs=1
+num_train_epochs=2
 weight_decay=0.0
 context_length=8192
-eval_steps=1000  # Define eval_steps if needed
+eval_steps=100  # Define eval_steps if needed
 
 # Data
-dataset_name="data/02-processed/german"
+dataset_name="data/02-processed/tiny_improved"
 wandb=False
 
 # Run

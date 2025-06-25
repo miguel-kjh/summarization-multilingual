@@ -16,7 +16,7 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-4B", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="None", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
     parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=10000, help="Context window size")
@@ -53,7 +53,7 @@ def create_model_and_tokenizer(args):
         max_seq_length = args.context_window,  # Context window size
         dtype = None,
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
-        float8_kv_cache=True,  # Enable float8 kv cache for faster inference
+        float8_kv_cache=False,  # Enable float8 kv cache for faster inference
     )
     return tokenizer, model
 

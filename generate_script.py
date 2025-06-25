@@ -12,7 +12,7 @@ CONSTANTS = {
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 18000,
+    "context_length": 16384,
     "quantization": False, 
     "wandb": True,
 }
@@ -21,15 +21,22 @@ MODEL_NAMES = [
     # Lists for varying parameters
     # qwen 2.5
     "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-0.5B",
     "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B",
     "Qwen/Qwen2.5-3B-Instruct",
+    "Qwen/Qwen2.5-3B",
     # qwen 3
     "Qwen/Qwen3-0.6B",
+    "Qwen/Qwen3-0.6B-Base",
     "Qwen/Qwen3-1.7B",
-    "Qwen/Qwen3-4B",
+    "Qwen/Qwen3-1.7B-Base",
+    #"Qwen/Qwen3-4B",
     # llama 3.2
-    "unsloth/Llama-3.2-1B-Instruct",
-    "unsloth/Llama-3.2-3B-Instruct",
+    #"unsloth/Llama-3.2-1B-Instruct",
+    #"unsloth/Llama-3.2-1B",
+    #"unsloth/Llama-3.2-3B-Instruct",
+    #"unsloth/Llama-3.2-3B",
 ]
 
 PEFT_TYPES = ["lora"]
