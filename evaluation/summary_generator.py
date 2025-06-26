@@ -130,7 +130,7 @@ class SummaryGenerator:
         return summaries"""
     
     def generate_summaries(self, model, dataset: Dataset, num_samples: int = 5, max_new_tokens: int = 256,
-        temperature: float = 0.7, adapter_name: str = "", batch_size: int = 64) -> list:
+        temperature: float = 0.7, adapter_name: str = "", batch_size: int = 16) -> list:
         summaries = []
         shuffled_dataset = dataset.shuffle(seed=SEED).select(range(num_samples))
 
