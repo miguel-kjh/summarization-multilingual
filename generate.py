@@ -16,9 +16,9 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen2.5-3B-Instruct", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-4B", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=16384, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
@@ -52,8 +52,9 @@ def create_model_and_tokenizer(args):
         fast_inference= True,  # Enable fast inference
         max_seq_length = args.context_window,  # Context window size
         dtype = None,
+        gpu_memory_utilization=0.8,  # GPU memory utilization
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
-        float8_kv_cache=False,  # Enable float8 kv cache for faster inference
+        float8_kv_cache=True,  # Enable float8 kv cache for faster inference
     )
     return tokenizer, model
 

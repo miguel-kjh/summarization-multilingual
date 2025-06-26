@@ -12,7 +12,6 @@ def find_and_read_json(base_dir, max_depth):
         
         if depth == max_depth:
             if "result_metrics.json" in files:
-                print(f"\"{root}\",")
                 model = root.split(os.sep)[-1]
                 json_path = os.path.join(root, "result_metrics.json")
                 try:
@@ -28,6 +27,12 @@ def find_and_read_json(base_dir, max_depth):
     
     return results
 
+def scale_and_round_metrics(metrics_dict):
+    return {k: round(v * 100, 2) for k, v in metrics_dict.items()}
+
+def round_metrics(metrics_dict):
+    return {k: round(v, 2) for k, v in metrics_dict.items()}
+
 def save_to_excel(results, output_file):
     writer = pd.ExcelWriter(output_file, engine='xlsxwriter')
     
@@ -41,15 +46,15 @@ def save_to_excel(results, output_file):
                 language_data[language] = []
             
             row = {"model": base_model_name}
-            row.update(metrics["rouge"])
-            row.update(metrics["bertscore"])
+            row.update(scale_and_round_metrics(metrics["rouge"]))
+            row.update(scale_and_round_metrics(metrics["bertscore"]))
             try:
                 row.update({
-                    "coherence": metrics["coherence"],
-                    "consistency": metrics["consistency"],
-                    "fluency": metrics["fluency"],
-                    "relevance": metrics["relevance"],
-                    "average": metrics["average"]
+                    "coherence": round(metrics["coherence"], 2),
+                    "consistency": round(metrics["consistency"], 2),
+                    "fluency": round(metrics["fluency"], 2),
+                    "relevance": round(metrics["relevance"], 2),
+                    "average": round(metrics["average"], 2)
                 })
             except Exception as e:
                 row.update({
@@ -71,13 +76,19 @@ def save_to_excel(results, output_file):
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    base_directory = "models/unsloth"  # Cambia esto por la ruta base
-    
-    model = base_directory.split(os.sep)[-1]
-    max_search_depth = 4  # Cambia esto al nivel deseado
-    output_excel = os.path.join(base_directory, f"metrics_summary_{model}.xlsx")
-    
-    results = find_and_read_json(base_directory, max_search_depth)
-    #print(f"Resultados encontrados: {results}")
-    #save_to_excel(results, output_excel)
-    #print(f"Resultados guardados en {output_excel}")
+    base_directories = [
+        "models/unsloth/Llama-3.2-3B",
+        "models/unsloth/Llama-3.2-3B-Instruct",
+        "models/unsloth/Llama-3.2-1B",
+        "models/unsloth/Llama-3.2-1B-Instruct",
+    ]
+
+    for directory in base_directories:
+        model = directory.split(os.sep)[-1]
+        max_search_depth = 3  # Cambia esto al nivel deseado
+        output_excel = os.path.join(directory, f"metrics_summary_{model}.xlsx")
+        
+        results = find_and_read_json(directory, max_search_depth)
+        print(f"Resultados encontrados: {results}")
+        save_to_excel(results, output_excel)
+        print(f"Resultados guardados en {output_excel}")
