@@ -2,23 +2,23 @@ import os
 import itertools
 
 CONSTANTS = {
-    "context_length": 16384,
+    "context_length": 8192,
     "quantization": False, 
     "wandb": True,
 }
 
 MODEL_NAMES = [
-    "Qwen/Qwen3-4B",
-    "Qwen/Qwen3-4B-Base",
+    "models/BSC-LT/salamandra-2b-instruct/canario/lora/salamandra-2b-instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-04-18-33",
+    "models/BSC-LT/salamandra-2b/canario/lora/salamandra-2b-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-20-01-50-39"
 ]
 
 DATASET_NAMES = [
-    ("portuguese", "data/02-processed/portuguese"),
-    ("french", "data/02-processed/french") ,
-    ("italian", "data/02-processed/italian"),
-    ("german", "data/02-processed/german"),
-    ("english", "data/02-processed/english"),
-    ("spanish", "data/02-processed/spanish"),
+    #("portuguese", "data/02-processed/portuguese"),
+    #("french", "data/02-processed/french") ,
+    #("italian", "data/02-processed/italian"),
+    #("german", "data/02-processed/german"),
+    #("english", "data/02-processed/english"),
+    #("spanish", "data/02-processed/spanish"),
     ("canario", "data/02-processed/canario"),
 ]
 
@@ -45,8 +45,8 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     --is_adapter True \\
     --context_window $context_length \\
     --using_streamer False \\
-    --using_clustering False \\
     --rewrite True \\
+    --truncate True \\
     --max_new_tokens {max_new_tokens} \\
     --quantization $quantization | tail -n 1)
 
@@ -54,7 +54,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
-    --method "normal" \\
+    --method "truncate" \\
     --up False
 """
 

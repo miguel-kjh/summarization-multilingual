@@ -12,12 +12,14 @@ CONSTANTS = {
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0,
-    "context_length": 16384,
+    "context_length": 8192,
     "quantization": False, 
     "wandb": True,
+    "truncate": True,  # Set to True for truncation, False for normal generation
 }
 
 MODEL_NAMES = [
+    "BSC-LT/salamandra-2b",
     # Lists for varying parameters
     # qwen 2.5
     #"Qwen/Qwen2.5-0.5B-Instruct",
@@ -32,25 +34,23 @@ MODEL_NAMES = [
     #"Qwen/Qwen3-1.7B",
     #"Qwen/Qwen3-1.7B-Base",
     #"Qwen/Qwen3-4B",
+    #"Qwen/Qwen3-4B-Base",
     # llama 3.2
     #"unsloth/Llama-3.2-1B-Instruct",
     #"unsloth/Llama-3.2-1B",
     #"unsloth/Llama-3.2-3B-Instruct",
     #"unsloth/Llama-3.2-3B",
-    # Qwen 3
-    "Qwen/Qwen3-4B",
-    "Qwen/Qwen3-4B-Base",
 ]
 
 PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
-    "data/02-processed/portuguese",
-    "data/02-processed/french",
-    "data/02-processed/italian",
-    "data/02-processed/german",
-    "data/02-processed/english",
-    "data/02-processed/spanish",
+    #"data/02-processed/portuguese",
+    #"data/02-processed/french",
+    #"data/02-processed/italian",
+    #"data/02-processed/german",
+    #"data/02-processed/english",
+    #"data/02-processed/spanish",
     "data/02-processed/canario",
 ]
 
@@ -125,6 +125,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     Generates generation scripts for different combinations of models, PEFT types, and datasets.
     Each script is saved in a specified output directory.
     """
+    method = "normal" if not CONSTANTS['truncate'] else "truncate"
     return f"""
     # Model architecture
     model_name="{model_name}"
@@ -135,14 +136,20 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     # Data
     dataset_name="{dataset_name}"
     context_length={CONSTANTS['context_length']}
+
+    #Truncate
+    truncate={CONSTANTS['truncate']}
+
+    # method
+    method="{method}"
     
     model_folder=$(python generate.py \\
     --model_name_or_path $model_name \\
     --dataset $dataset_name \\
     --context_window $context_length \\
     --using_streamer False \\
-    --using_clustering False \\
     --rewrite True \\
+    --truncate $truncate \\
     --max_new_tokens {max_new_tokens} \\
     --quantization $quantization | tail -n 1)
 
@@ -150,7 +157,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
-    --method "normal" \\
+    --method $method \\
     --up False
 """
 

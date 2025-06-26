@@ -114,13 +114,16 @@ class OllamaSummarizer(OpenAiSummarizer):
             repetition_penalty=1.0,  # Adjust repetition penalty to avoid repetition
         )
         self.type_sumarization = type_sumarization
+        self.qwens = ["qwen3:14b", "qwen3:30b"]
         self.system_prompt = "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."
 
     def summarize(self, document, language):
         prompt = self._generate_prompt(document, language)
         prompt = self.system_prompt + prompt
+        if self.model in self.qwens:
+            prompt += f"/no_think"
         response = self.llm.invoke(prompt)
-        if self.model == "qwen3:14b": #TODO: fix this for not thinking
+        if self.model in self.qwens: #TODO: fix this for not thinking
             response = response.split("</think>")[1].strip()
         return response
     

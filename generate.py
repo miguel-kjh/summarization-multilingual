@@ -16,25 +16,34 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-4B", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b-instruct", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
     parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
-    parser.add_argument("--context_window", type=int, default=16384, help="Context window size")
+    parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
-    parser.add_argument("--using_clustering", type=lambda x: bool(strtobool(x)), default=False, help="Clustering method to use")
+    parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=False, help="Truncate the input to fit the context window")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
     parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
 
-    parser.add_argument("--cluster_embedding_model", type=str, default="sentence-transformers/paraphrase-multilingual-mpnet-base-v2", help="Embedding model for clustering")
-    parser.add_argument("--spacy_model", type=str, default="es_dep_news_trf", help="SpaCy model")
-    parser.add_argument("--top_k_sents", type=int, default=1, help="Number of top sentences to consider")
-    parser.add_argument("--clasification_model", type=str, default="models/RandomForest_best_model.pkl", help="Path to the classification model")
-
 
     return parser.parse_args()
+
+def truncate_text(text, tokenizer, max_tokens):
+    # Tokeniza con truncamiento
+    tokenized = tokenizer(
+        text,
+        max_length=max_tokens,
+        truncation=True,
+        return_tensors=None,  # para que devuelva dict con input_ids
+        return_attention_mask=False,
+        return_token_type_ids=False
+    )
+    # Decodifica para volver a obtener el texto
+    truncated_text = tokenizer.decode(tokenized["input_ids"], skip_special_tokens=True)
+    return truncated_text
 
 def create_model_and_tokenizer(args):
 
@@ -52,9 +61,9 @@ def create_model_and_tokenizer(args):
         fast_inference= True,  # Enable fast inference
         max_seq_length = args.context_window,  # Context window size
         dtype = None,
-        gpu_memory_utilization=0.8,  # GPU memory utilization
+        gpu_memory_utilization=0.5,  # GPU memory utilization
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
-        float8_kv_cache=True,  # Enable float8 kv cache for faster inference
+        float8_kv_cache=False,  # Enable float8 kv cache for faster inference
     )
     return tokenizer, model
 
@@ -62,7 +71,8 @@ def create_model_and_tokenizer(args):
 if __name__ == '__main__':
     seed_everything(SEED)
     args = parse()
-    name_df = f"test_summary_{'clustering' if args.using_clustering else 'normal'}.xlsx"
+    name_df = f"test_summary_{'truncate' if args.truncate else 'normal'}.xlsx"
+    target_tokens = args.context_window - args.max_new_tokens
 
     if not os.path.exists(args.model_name_or_path):
         general_folder = "models/others"
@@ -102,9 +112,13 @@ if __name__ == '__main__':
     def formatting_func_inference(example):
         instruction = example["instruction"]
         empty_prompt = f"{instruction}\n{{document}}\n"
+        if args.truncate:
+            input_text = truncate_text(example["input"], tokenizer, target_tokens)
+        else:
+            input_text = example["input"]
         messages = [
             {"role": "system", "content": example["system_prompt"]},
-            {"role": "user", "content": empty_prompt.format(document=example["input"])},
+            {"role": "user", "content": empty_prompt.format(document=input_text)},
         ]
         return tokenizer.apply_chat_template(
             messages, 
@@ -143,11 +157,14 @@ if __name__ == '__main__':
         )
         print(f"Time taken for generation: {time} seconds")
     else:
-        
-        target_tokens = args.context_window - args.max_new_tokens
         # filter dataset to only include samples with num_tokens less than target_tokens
-        dataset["test"] = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
-        print(f"Filtered dataset to {len(dataset['test'])} samples with num_tokens <= {target_tokens}")
+        if not args.truncate:
+            print(f"Filtering dataset to samples with num_tokens <= {target_tokens}")
+            dataset["test"] = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
+            print(f"Filtered dataset to {len(dataset['test'])} samples with num_tokens <= {target_tokens}")
+        else:
+            print(f"Using all samples in dataset but truncating them to {target_tokens} tokens")
+        
         num_samples = len(dataset["test"])
         print("#"*10, "Normal summarization", "#"*10)
         summaries = summary_generator.generate_summaries(

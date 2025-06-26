@@ -156,7 +156,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/others/data_02-processed_canario/Qwen/Qwen3-4B",
+        default="models/others/data_02-processed_canario/BSC-LT/salamandra-2b-instruct",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument( 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         "--method",
         type=str,
         default="normal",
-        help="Method to use for generating summaries. Options: normal, clustering."
+        help="Method to use for generating summaries. Options: normal, truncate."
     )
     parser.add_argument(
         "--use_openai",
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    assert args.method in ["normal", "clustering"], f"Invalid method: {args.method}"
+    assert args.method in ["normal", "truncate"], f"Invalid method: {args.method}"
     main(
         model=args.model_name_or_path, 
         enable_wandb=args.wandb, 

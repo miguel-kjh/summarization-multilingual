@@ -121,11 +121,102 @@ class DocumentSummaryOllamaEvaluator(DocumentSummaryOpenAiEvaluator):
             response = self.llm.invoke(evaluation_prompt)
             results[criteria] = self._parse_response(response)
         return results
+    
+import os
+import re
+import asyncio
+from openai import AsyncOpenAI
+
+class DocumentSummaryOpenAiEvaluatorAsync:
+    def __init__(self, api_key, language="spanish"):
+        self.client = AsyncOpenAI(api_key=api_key)
+        self.prompt_files = {
+            "coherence": "coh.txt",
+            "consistency": "con.txt",
+            "fluency": "flu.txt",
+            "relevance": "rel.txt"
+        }
+        self.language = language
+        self.prompts = self._load_prompts(language)
+
+    def _load_prompts(self, language):
+        prompts = {}
+        for criteria, file_path in self.prompt_files.items():
+            path = os.path.join("evaluation", "prompts", language, file_path)
+            with open(path, 'r') as file:
+                prompts[criteria] = file.read()
+        return prompts
+
+    async def _call_api(self, prompt):
+        response = await self.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are an expert evaluator for document summaries."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=10,
+            temperature=0.2,
+        )
+        return response.choices[0].message.content
+
+    def _parse_response(self, content):
+        matched = re.search(r".*\[([\d.]+)\]", content)
+        try:
+            return float(matched.group(1)) if matched else -1
+        except:
+            return -1
+
+    async def _evaluate_one_criterion(self, document, summary, criteria):
+        prompt_template = self.prompts[criteria]
+        prompt = prompt_template.replace("{{Document}}", document).replace("{{Summary}}", summary)
+        response_content = await self._call_api(prompt)
+        score = self._parse_response(response_content)
+        return criteria, score
+
+    async def evaluate_pair(self, document, summary):
+        tasks = [
+            self._evaluate_one_criterion(document, summary, criteria)
+            for criteria in self.prompts.keys()
+        ]
+        results = await asyncio.gather(*tasks)
+        return {criteria: score for criteria, score in results}
+
+    async def evaluate_batch(self, pairs):
+        tasks = [self.evaluate_pair(doc, summ) for doc, summ in pairs]
+        return await asyncio.gather(*tasks)
 
     
 
 # Example usage
 if __name__ == "__main__":
+
+    
+    api_key_file = "api/key.json"
+    with open(api_key_file, "r") as file:
+        api_key = json.load(file)["key"]
+
+    import asyncio
+
+    # Inicializa el evaluador
+    evaluator = DocumentSummaryOpenAiEvaluatorAsync(api_key=api_key)
+
+    # Lista de pares (documento, resumen)
+    doc_summary_pairs = [
+        ("Texto documento 1", "Resumen 1"),
+        ("Texto documento 2", "Resumen 2"),
+        # ...
+    ]
+
+    print("Evaluando pares de documentos y resúmenes...")
+
+    # Ejecuta evaluación batch
+    async def func():
+        results = await evaluator.evaluate_batch(doc_summary_pairs)
+        for i, res in enumerate(results):
+            print(f"Par {i + 1}: {res}")
+
+    asyncio.run(func())
+    exit()
     prompt_files = {
         "coherence": "coh.txt",
         "consistency": "con.txt",
@@ -133,10 +224,6 @@ if __name__ == "__main__":
         "relevance": "rel.txt"
     }
     language = "spanish"
-
-    api_key_file = "api/key.json"
-    with open(api_key_file, "r") as file:
-        api_key = json.load(file)["key"]
 
     #evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=True)
     evaluator = DocumentSummaryOllamaEvaluator(model="qwen3", upgrade=True)
