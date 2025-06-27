@@ -37,8 +37,8 @@ for lang in "${languages[@]}"; do
     #    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/openai"
     #fi
     #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "nlpaueb/legal-bert-base-uncased"
-    #python3 baseline.py --dataset "$dataset" --method "ghic"
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ghic"
+    python3 baseline.py --dataset "$dataset" --method "ghic"
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ghic"
     #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "FacebookAI/xlm-roberta-large"
     #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/FacebookAI/xlm-roberta-large"
     #python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "phi4"
@@ -46,11 +46,11 @@ for lang in "${languages[@]}"; do
     #python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "llama3.1"
     #ollama stop llama3.1
 
-    for model_name in "${models[@]}"; do
-        echo "Procesando modelo: $model_name"
-        python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name"
-        python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ollama/$model_name"
-        ollama stop "$model_name"
-    done
+    #for model_name in "${models[@]}"; do
+    #    echo "Procesando modelo: $model_name"
+    #    python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name"
+    #    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ollama/$model_name"
+    #    ollama stop "$model_name"
+    #done
 
 done
