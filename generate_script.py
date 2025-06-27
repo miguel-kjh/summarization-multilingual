@@ -11,8 +11,8 @@ CONSTANTS = {
     "batch_size": 1,
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
-    "weight_decay": 0.0,
-    "context_length": 8192,
+    "weight_decay": 0.0, 
+    "context_length": 16384,  # Default context length for most models
     "quantization": False, 
     "wandb": True,
     "truncate": True,  # Set to True for truncation, False for normal generation
@@ -20,21 +20,22 @@ CONSTANTS = {
 
 MODEL_NAMES = [
     "BSC-LT/salamandra-2b",
+    "BSC-LT/salamandra-2b-instruct",
     # Lists for varying parameters
     # qwen 2.5
-    #"Qwen/Qwen2.5-0.5B-Instruct",
-    #"Qwen/Qwen2.5-0.5B",
-    #"Qwen/Qwen2.5-1.5B-Instruct",
-    #"Qwen/Qwen2.5-1.5B",
-    #"Qwen/Qwen2.5-3B-Instruct",
-    #"Qwen/Qwen2.5-3B",
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-0.5B",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B",
+    "Qwen/Qwen2.5-3B-Instruct",
+    "Qwen/Qwen2.5-3B",
     # qwen 3
-    #"Qwen/Qwen3-0.6B",
-    #"Qwen/Qwen3-0.6B-Base",
-    #"Qwen/Qwen3-1.7B",
-    #"Qwen/Qwen3-1.7B-Base",
-    #"Qwen/Qwen3-4B",
-    #"Qwen/Qwen3-4B-Base",
+    "Qwen/Qwen3-0.6B",
+    "Qwen/Qwen3-0.6B-Base",
+    "Qwen/Qwen3-1.7B",
+    "Qwen/Qwen3-1.7B-Base",
+    "Qwen/Qwen3-4B",
+    "Qwen/Qwen3-4B-Base",
     # llama 3.2
     #"unsloth/Llama-3.2-1B-Instruct",
     #"unsloth/Llama-3.2-1B",
@@ -45,13 +46,13 @@ MODEL_NAMES = [
 PEFT_TYPES = ["lora"]
 
 DATASET_NAMES = [
-    #"data/02-processed/portuguese",
-    #"data/02-processed/french",
-    #"data/02-processed/italian",
-    #"data/02-processed/german",
-    #"data/02-processed/english",
-    #"data/02-processed/spanish",
-    "data/02-processed/canario",
+    "data/02-processed/portuguese",
+    "data/02-processed/french",
+    "data/02-processed/italian",
+    "data/02-processed/german",
+    "data/02-processed/english",
+    "data/02-processed/spanish",
+    #"data/02-processed/canario",
 ]
 
 # scripts funct
@@ -126,6 +127,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     Each script is saved in a specified output directory.
     """
     method = "normal" if not CONSTANTS['truncate'] else "truncate"
+    context = CONSTANTS['context_length'] if "salamandra" not in model_name else 8192
     return f"""
     # Model architecture
     model_name="{model_name}"
@@ -135,7 +137,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
 
     # Data
     dataset_name="{dataset_name}"
-    context_length={CONSTANTS['context_length']}
+    context_length={context}
 
     #Truncate
     truncate={CONSTANTS['truncate']}
@@ -157,6 +159,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
+    --use_openai False \\
     --method $method \\
     --up False
 """

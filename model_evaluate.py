@@ -144,7 +144,8 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                 print("Average:", metrics[lang]["average"])
 
     # Save metrics to a JSON file
-    save_metrics_to_json(metrics, model, RESULTS_FILENAME)
+    file_name_to_save = method + "_" + RESULTS_FILENAME
+    save_metrics_to_json(metrics, model, file_name_to_save)
 
     # Log metrics to wandb if enabled
     if enable_wandb:
