@@ -132,7 +132,7 @@ class OllamaSummarizer(OpenAiSummarizer):
 from summa import summarizer as TextRankSummarizer_model
 class TextRankingSummarizer(Baseline):
     
-    def __init__(self, model_name: str, ratio: int = 0.2):
+    def __init__(self, model_name: str, ratio: int = 0.3):
         self.ratio = ratio
 
     def summarize(self, document: str, language: str):

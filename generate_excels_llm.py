@@ -12,6 +12,7 @@ def find_and_read_json(base_dir, max_depth):
         
         if depth == max_depth:
             if "result_metrics.json" in files:
+                print(f"\"{root}\",")
                 model = root.split(os.sep)[-1]
                 json_path = os.path.join(root, "result_metrics.json")
                 try:
@@ -79,6 +80,16 @@ if __name__ == "__main__":
     base_directories = [
         "models/BSC-LT/salamandra-2b",
         "models/BSC-LT/salamandra-2b-instruct",
+        "models/Qwen/Qwen2.5-0.5B",
+        "models/Qwen/Qwen2.5-0.5B-Instruct",
+        "models/Qwen/Qwen2.5-1.5B",
+        "models/Qwen/Qwen2.5-1.5B-Instruct",
+        "models/Qwen/Qwen2.5-3B",
+        "models/Qwen/Qwen2.5-3B-Instruct",
+        "models/Qwen/Qwen3-0.6B"
+        "models/Qwen/Qwen3-0.6B-Base"
+        "models/Qwen/Qwen3-1.7B",
+        "models/Qwen/Qwen3-1.7B-Base",
     ]
 
     for directory in base_directories:
@@ -87,6 +98,6 @@ if __name__ == "__main__":
         output_excel = os.path.join(directory, f"metrics_summary_{model}.xlsx")
         
         results = find_and_read_json(directory, max_search_depth)
-        print(f"Resultados encontrados: {results}")
-        save_to_excel(results, output_excel)
-        print(f"Resultados guardados en {output_excel}")
+        #print(f"Resultados encontrados: {results}")
+        #save_to_excel(results, output_excel)
+        #print(f"Resultados guardados en {output_excel}")
