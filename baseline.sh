@@ -4,13 +4,14 @@
 
 # Lista de idiomas
 declare -a languages=(
-    "canario"
-    #"spanish"
-    #"english"
-    #"french"
-    #"german"
-    #"italian"
-    #"portuguese"
+    #canario"
+    "spanish"
+    "english"
+    "french"
+    "german"
+    "italian"
+    "portuguese"
+    "german"
 )
 # Lista de modelos
 declare -a models=(
@@ -23,28 +24,19 @@ for lang in "${languages[@]}"; do
     
     echo "Procesando idioma: $lang"
     
-    #python3 baseline.py --dataset "$dataset" --method "textranking"
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/textranking/qwen2.5:0.5b"
-    #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "bert-base-multilingual-cased"
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/bert-base-multilingual-cased"
-    #if [ "$lang" == "english" ]; then
-    #    python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "nlpaueb/legal-bert-base-uncased"
-    #    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/nlpaueb/legal-bert-base-uncased"
-    #fi
+    python3 baseline.py --dataset "$dataset" --method "textranking" --truncate True
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/textranking/qwen2.5:0.5b"
+    python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "bert-base-multilingual-cased" --truncate True
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/bert-base-multilingual-cased" --method "truncate"
+    if [ "$lang" == "english" ]; then
+        python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "nlpaueb/legal-bert-base-uncased" --truncate True
+        python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/nlpaueb/legal-bert-base-uncased" --method "truncate"
+    fi
     # si no es canario ejecuta el modelo de openai
-    #if [ "$lang" != "canario" ]; then
-    #    python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini"
-    #    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/openai"
-    #fi
-    #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "nlpaueb/legal-bert-base-uncased"
-    python3 baseline.py --dataset "$dataset" --method "ghic"
-    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ghic"
-    #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "FacebookAI/xlm-roberta-large"
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/FacebookAI/xlm-roberta-large"
-    #python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "phi4"
-    #ollama stop phi4
-    #python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "llama3.1"
-    #ollama stop llama3.1
+    if [ "$lang" != "canario" ]; then
+        python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini" --truncate True --context_window 128000
+        python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/openai" --method "truncate"
+    fi
 
     #for model_name in "${models[@]}"; do
     #    echo "Procesando modelo: $model_name"

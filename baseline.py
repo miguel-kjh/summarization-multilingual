@@ -19,6 +19,8 @@ def parse():
     parser.add_argument('--dataset', type=str, default="data/02-processed/spanish")
     parser.add_argument('--method', type=str, default="ollama")
     parser.add_argument('--model_name', type=str, default="qwen2.5:0.5b")
+    parser.add_argument('--context_window', type=int, default=16384, help='Context window size for the model')
+    parser.add_argument('--truncate', type=bool, default=False, help='Whether to truncate the input text to fit the model context window')
     args = parser.parse_args()
     return args
 
@@ -173,14 +175,28 @@ methods = {
     "textranking": TextRankingSummarizer,
 }
 
-def save_result_baseline(df_summary, method, model_name, name_df):
+def save_result_baseline(df_summary, method, model_name, name_df, name_excel):
     if method == "openai" or method == "ghic":
         root = f"models/baseline/{name_df}/{method}"
     else:
         root = f"models/baseline/{name_df}/{method}/{model_name}"
     os.makedirs(root, exist_ok=True)
-    df_summary.to_excel(f"{root}/test_summary_normal.xlsx", index=False)
+    df_summary.to_excel(f"{root}/{name_excel}", index=False)
     print("Summaries generated")
+
+def truncate_text(text, tokenizer, max_tokens):
+    # Tokeniza con truncamiento
+    tokenized = tokenizer(
+        text,
+        max_length=max_tokens,
+        truncation=True,
+        return_tensors=None,  # para que devuelva dict con input_ids
+        return_attention_mask=False,
+        return_token_type_ids=False
+    )
+    # Decodifica para volver a obtener el texto
+    truncated_text = tokenizer.decode(tokenized["input_ids"], skip_special_tokens=True)
+    return truncated_text
 
 def main():
     args = parse()
@@ -192,14 +208,29 @@ def main():
     else:
         baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
-    def count_tokens_in_dataset(example):
-        return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
-    dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
-    target_tokens = 16384 #change this for more samples
-    subset = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
-    summaries = generate_summaries(subset, baseline, num_samples=None)
-    save_result_baseline(summaries, args.method, args.model_name, name_df)
+    if not args.truncate:
+        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+        def count_tokens_in_dataset(example):
+            return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
+        dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
+        target_tokens = args.context_window - 2049
+        data_for_testing = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
+        print(f"Filtering dataset to fit the context window: {target_tokens - 2049} tokens")
+    else:
+        if args.method in ["ghic", "extractive", "textranking"]:
+            data_for_testing = dataset["test"]
+            print("No truncation needed for this method")
+        else:
+            tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+            target_tokens = args.context_window - 2049
+            def truncate_text_in_dataset(example):
+                example["input"] = truncate_text(example["input"], tokenizer, target_tokens)
+                return example
+            data_for_testing = dataset["test"].map(truncate_text_in_dataset, remove_columns=["num_tokens"])
+            print("Truncating text to fit the context window")
+    summaries = generate_summaries(data_for_testing, baseline, num_samples=None)
+    name_excel = "test_summary_normal.xlsx" if not args.truncate else "test_summary_truncate.xlsx"
+    save_result_baseline(summaries, args.method, args.model_name, name_df, name_excel)
 
 if __name__ == '__main__':
     main()
