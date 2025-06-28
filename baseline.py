@@ -132,7 +132,7 @@ class OllamaSummarizer(OpenAiSummarizer):
 from summa import summarizer as TextRankSummarizer_model
 class TextRankingSummarizer(Baseline):
     
-    def __init__(self, model_name: str, ratio: int = 0.3):
+    def __init__(self, model_name: str, ratio: int = 0.2):
         self.ratio = ratio
 
     def summarize(self, document: str, language: str):
@@ -208,16 +208,16 @@ def main():
     else:
         baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
+    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+    def count_tokens_in_dataset(example):
+        return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
+    dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
     if not args.truncate:
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
-        def count_tokens_in_dataset(example):
-            return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
-        dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
         target_tokens = args.context_window - 2049
         data_for_testing = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
         print(f"Filtering dataset to fit the context window: {target_tokens - 2049} tokens")
     else:
-        if args.method in ["ghic", "extractive", "textranking"]:
+        if args.method in ["ghic", "extractive"]:
             data_for_testing = dataset["test"]
             print("No truncation needed for this method")
         else:
