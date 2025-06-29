@@ -78,18 +78,8 @@ def save_to_excel(results, output_file):
 # Ejemplo de uso
 if __name__ == "__main__":
     base_directories = [
-        "models/BSC-LT/salamandra-2b",
-        "models/BSC-LT/salamandra-2b-instruct",
-        "models/Qwen/Qwen2.5-0.5B",
-        "models/Qwen/Qwen2.5-0.5B-Instruct",
-        "models/Qwen/Qwen2.5-1.5B",
-        "models/Qwen/Qwen2.5-1.5B-Instruct",
-        "models/Qwen/Qwen2.5-3B",
-        "models/Qwen/Qwen2.5-3B-Instruct",
-        "models/Qwen/Qwen3-0.6B"
-        "models/Qwen/Qwen3-0.6B-Base"
-        "models/Qwen/Qwen3-1.7B",
-        "models/Qwen/Qwen3-1.7B-Base",
+        "models/Qwen/Qwen3-4B",
+        "models/Qwen/Qwen3-4B-Base",
     ]
 
     for directory in base_directories:

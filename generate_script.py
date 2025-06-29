@@ -34,13 +34,13 @@ MODEL_NAMES = [
     #"Qwen/Qwen3-0.6B-Base",
     #"Qwen/Qwen3-1.7B",
     #"Qwen/Qwen3-1.7B-Base",
-    #"Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
-    #"Qwen/Qwen3-4B-Base",
+    "Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
+    "Qwen/Qwen3-4B-Base",
     # llama 3.2
-    "unsloth/Llama-3.2-1B-Instruct",
-    "unsloth/Llama-3.2-1B",
-    "unsloth/Llama-3.2-3B-Instruct",
-    "unsloth/Llama-3.2-3B",
+    #"unsloth/Llama-3.2-1B-Instruct",
+    #"unsloth/Llama-3.2-1B",
+    #"unsloth/Llama-3.2-3B-Instruct",
+    #"unsloth/Llama-3.2-3B",
 ]
 
 PEFT_TYPES = ["lora"]

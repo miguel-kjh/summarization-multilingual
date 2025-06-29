@@ -63,7 +63,7 @@ def create_model_and_tokenizer(args):
         dtype = None,
         gpu_memory_utilization=0.5,  # GPU memory utilization
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
-        float8_kv_cache=False,  # Enable float8 kv cache for faster inference
+        float8_kv_cache=True,  # Enable float8 kv cache for faster inference
     )
     return tokenizer, model
 
