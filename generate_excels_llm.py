@@ -11,16 +11,34 @@ def find_and_read_json(base_dir, max_depth):
         depth = root[len(base_dir):].count(os.sep)
         
         if depth == max_depth:
-            if "result_metrics.json" in files:
+            if "truncate_result_metrics.json" in files:
                 print(f"\"{root}\",")
                 model = root.split(os.sep)[-1]
-                json_path = os.path.join(root, "result_metrics.json")
+                json_path = os.path.join(root, "truncate_result_metrics.json")
                 try:
                     with open(json_path, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         results[model] = data
                 except Exception as e:
                     print(f"Error leyendo {json_path}: {e}")
+            if "result_metrics.json" in files:
+                print(f"\"{root}\",")
+                model = root.split(os.sep)[-1]
+                language = root.split(os.sep)[3]  # Asumiendo que el idioma está en la segunda posición
+                print(language)
+                json_path = os.path.join(root, "result_metrics.json")
+                with open(json_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    print(data.keys())
+                if model not in results:
+                    results[model] = data
+                else:
+                    # si results esta vacío, inicializarlo
+                    results[model][language]["coherence"] = data[language]["coherence"]
+                    results[model][language]["consistency"] = data[language]["consistency"]
+                    results[model][language]["fluency"] = data[language]["fluency"]
+                    results[model][language]["relevance"] = data[language]["relevance"]
+                    results[model][language]["average"] = data[language]["average"]
         
         # No bajar más allá del nivel especificado
         if depth >= max_depth:
@@ -78,8 +96,24 @@ def save_to_excel(results, output_file):
 # Ejemplo de uso
 if __name__ == "__main__":
     base_directories = [
+        "models/BSC-LT/salamandra-2b",
+        "models/BSC-LT/salamandra-2b-instruct",
         "models/Qwen/Qwen3-4B",
         "models/Qwen/Qwen3-4B-Base",
+        "models/Qwen/Qwen2.5-0.5B",
+        "models/Qwen/Qwen2.5-0.5B-Instruct",
+        "models/Qwen/Qwen2.5-1.5B",
+        "models/Qwen/Qwen2.5-1.5B-Instruct",
+        "models/Qwen/Qwen2.5-3B",
+        "models/Qwen/Qwen2.5-3B-Instruct",
+        "models/Qwen/Qwen3-0.6B",
+        "models/Qwen/Qwen3-0.6B-Base",
+        "models/Qwen/Qwen3-1.7B",
+        "models/Qwen/Qwen3-1.7B-Base",
+        "models/unsloth/Llama-3.2-1B",
+        "models/unsloth/Llama-3.2-3B",
+        "models/unsloth/Llama-3.2-1B-Instruct",
+        "models/unsloth/Llama-3.2-3B-Instruct",
     ]
 
     for directory in base_directories:
