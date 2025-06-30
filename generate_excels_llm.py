@@ -88,6 +88,6 @@ if __name__ == "__main__":
         output_excel = os.path.join(directory, f"metrics_summary_{model}.xlsx")
         
         results = find_and_read_json(directory, max_search_depth)
-        #print(f"Resultados encontrados: {results}")
-        #save_to_excel(results, output_excel)
-        #print(f"Resultados guardados en {output_excel}")
+        print(f"Resultados encontrados: {results}")
+        save_to_excel(results, output_excel)
+        print(f"Resultados guardados en {output_excel}")

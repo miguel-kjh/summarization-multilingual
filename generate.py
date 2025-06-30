@@ -19,7 +19,7 @@ def parse():
     parser.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b-instruct", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
     parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
-    parser.add_argument("--context_window", type=int, default=8192, help="Context window size")
+    parser.add_argument("--context_window", type=int, default=16398, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=False, help="Truncate the input to fit the context window")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
@@ -61,7 +61,7 @@ def create_model_and_tokenizer(args):
         fast_inference= True,  # Enable fast inference
         max_seq_length = args.context_window,  # Context window size
         dtype = None,
-        gpu_memory_utilization=0.5,  # GPU memory utilization
+        gpu_memory_utilization=0.8,  # GPU memory utilization
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
         float8_kv_cache=True,  # Enable float8 kv cache for faster inference
     )

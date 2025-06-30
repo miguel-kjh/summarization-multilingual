@@ -8,19 +8,7 @@ CONSTANTS = {
 }
 
 MODEL_NAMES = [
-    "models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-04-08-35",
-    "models/Qwen/Qwen3-4B/french/lora/Qwen3-4B-french-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-17-05-56",
-    "models/Qwen/Qwen3-4B/canario/lora/Qwen3-4B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-11-03-09",
-    "models/Qwen/Qwen3-4B/italian/lora/Qwen3-4B-italian-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-10-42-20",
-    "models/Qwen/Qwen3-4B/german/lora/Qwen3-4B-german-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-01-02-28",
-    "models/Qwen/Qwen3-4B/portuguese/lora/Qwen3-4B-portuguese-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-14-21-54-40",
-    "models/Qwen/Qwen3-4B-Base/english/lora/Qwen3-4B-Base-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-04-05-15",
-    "models/Qwen/Qwen3-4B-Base/french/lora/Qwen3-4B-Base-french-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-21-44-02",
-    "models/Qwen/Qwen3-4B-Base/canario/lora/Qwen3-4B-Base-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-07-54-06",
-    "models/Qwen/Qwen3-4B-Base/italian/lora/Qwen3-4B-Base-italian-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-23-41-59",
-    "models/Qwen/Qwen3-4B-Base/german/lora/Qwen3-4B-Base-german-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-01-36-50",
-    "models/Qwen/Qwen3-4B-Base/spanish/lora/Qwen3-4B-Base-spanish-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-05-53-08",
-    "models/Qwen/Qwen3-4B-Base/portuguese/lora/Qwen3-4B-Base-portuguese-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-18-14-18",
+    "models/Qwen/Qwen3-4B/spanish/lora/Qwen3-4B-spanish-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-08-06-07"
 ]
 
 DATASET_NAMES = [

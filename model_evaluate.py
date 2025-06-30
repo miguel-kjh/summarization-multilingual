@@ -157,7 +157,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/others/data_02-processed_canario/BSC-LT/salamandra-2b-instruct",
+        default="models/others/data_02-processed_spanish/Qwen/Qwen3-0.6B-Base",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument( 
