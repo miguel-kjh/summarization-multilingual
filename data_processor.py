@@ -123,7 +123,7 @@ def combine():
 def get_tiny():
     from transformers import AutoTokenizer
     english_dataset = load_from_disk("data/02-processed/english")
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+    tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
 
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
@@ -133,12 +133,14 @@ def get_tiny():
 
 
     #escoge las muestras de train que tenga menos de 100000 tokens y de validation que tenga menos de 100000 tokens
-    english_dataset["train"] = english_dataset["train"].filter(lambda x: x["num_tokens"] <= 100000)
-    english_dataset["validation"] = english_dataset["validation"].filter(lambda x: x["num_tokens"] <= 100000)
+    max_tokens_openai = 128000
+    english_dataset["train"] = english_dataset["train"].filter(lambda x: x["num_tokens"] <= max_tokens_openai)
+    english_dataset["validation"] = english_dataset["validation"].filter(lambda x: x["num_tokens"] <= max_tokens_openai)
+    english_dataset["test"] = english_dataset["test"].filter(lambda x: x["num_tokens"] <= max_tokens_openai)
     tiny_dataset = DatasetDict({
         "train": english_dataset["train"],
         "validation": english_dataset["validation"],
-        "test": english_dataset["test"].sort("num_tokens").select(range(100)),
+        "test": english_dataset["test"],
     })
 
     tiny_dataset_name = os.path.join(PROCESS_DATA_FOLDER, "tiny")

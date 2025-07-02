@@ -6,7 +6,7 @@ from summarizer import Summarizer
 from tqdm import tqdm
 from openai import OpenAI
 from datasets import Dataset
-from langchain_ollama import OllamaLLM
+from langchain_ollama import OllamaLLM, ChatOllama
 from transformers import AutoConfig, AutoTokenizer, AutoModel
 
 
@@ -91,23 +91,26 @@ class OpenAiSummarizer(Baseline):
         Returns:
             str: The generated summary.
         """
-        prompt = self._generate_prompt(document, language)
+        system_prompt = SYSTEM_PROMPT[language]
+        prompt = INSTRUCTION_TEMPLATE[language]
+        prompt = prompt + document + "\n"
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ]
         )
         # Extract the summary from the response
         summary = response.choices[0].message.content
         return summary
-    
+
+from utils import SYSTEM_PROMPT, INSTRUCTION_TEMPLATE
 class OllamaSummarizer(OpenAiSummarizer):
     def __init__(self, model: str = "llama3", type_sumarization: str = "large"):
         print(f"Using model for Ollama: {model}")
         self.model = model
-        self.llm = OllamaLLM(
+        self.llm = ChatOllama(
             model=model,
             temperature=0.7,  # Adjust temperature for more or less randomness
             max_tokens=2048,  # Adjust max tokens based on your needs
@@ -117,15 +120,19 @@ class OllamaSummarizer(OpenAiSummarizer):
         )
         self.type_sumarization = type_sumarization
         self.qwens = ["qwen3:14b", "qwen3:30b"]
-        self.system_prompt = "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure."
 
     def summarize(self, document, language):
-        prompt = self._generate_prompt(document, language)
-        prompt = self.system_prompt + prompt
+        system_prompt = SYSTEM_PROMPT[language]
+        prompt = INSTRUCTION_TEMPLATE[language]
+        prompt = prompt + document + "\n"
+        messages = [  
+            ("system", system_prompt),  
+            ("human", prompt),  
+        ]  
         if self.model in self.qwens:
             prompt += f"/no_think"
-        response = self.llm.invoke(prompt)
-        if self.model in self.qwens: #TODO: fix this for not thinking
+        response = self.llm.invoke(messages).content
+        if self.model in self.qwens:
             response = response.split("</think>")[1].strip()
         return response
     
@@ -214,8 +221,8 @@ def main():
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
     if not args.truncate:
         target_tokens = args.context_window - 2049
-        data_for_testing = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens - 2049)
-        print(f"Filtering dataset to fit the context window: {target_tokens - 2049} tokens")
+        data_for_testing = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
+        print(f"Filtering dataset to fit the context window: {target_tokens} tokens")
     else:
         if args.method in ["ghic", "extractive"]:
             data_for_testing = dataset["test"]

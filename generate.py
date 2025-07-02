@@ -16,9 +16,9 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="BSC-LT/salamandra-2b-instruct", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="unsloth/Qwen3-8B-bnb-4bit", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/spanish", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=16398, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=False, help="Truncate the input to fit the context window")
@@ -26,7 +26,9 @@ def parse():
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
     parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
-    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
+    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=True, help="Quantization")
+    parser.add_argument("--quant_cache", type=lambda x: bool(strtobool(x)), default=False, help="Quantization of cache")
+    parser.add_argument("--gpu_memory_utilization", type=float, default=0.5, help="GPU memory utilization for model loading")
 
 
     return parser.parse_args()
@@ -61,9 +63,9 @@ def create_model_and_tokenizer(args):
         fast_inference= True,  # Enable fast inference
         max_seq_length = args.context_window,  # Context window size
         dtype = None,
-        gpu_memory_utilization=0.8,  # GPU memory utilization
+        gpu_memory_utilization=args.gpu_memory_utilization,  # GPU memory utilization
         load_in_4bit = args.quantization, # quantization QLoRA 4-bit
-        float8_kv_cache=True,  # Enable float8 kv cache for faster inference
+        float8_kv_cache= args.quant_cache,  # Use float8 for KV cache
     )
     return tokenizer, model
 

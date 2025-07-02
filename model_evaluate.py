@@ -144,7 +144,10 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                 print("Average:", metrics[lang]["average"])
 
     # Save metrics to a JSON file
-    file_name_to_save = method + "_" + RESULTS_FILENAME
+    if method == "truncate":
+        file_name_to_save = method + "_" + RESULTS_FILENAME
+    else:
+        file_name_to_save = RESULTS_FILENAME
     save_metrics_to_json(metrics, model, file_name_to_save)
 
     # Log metrics to wandb if enabled
@@ -157,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/others/data_02-processed_spanish/Qwen/Qwen3-0.6B-Base",
+        default="models/others/data_02-processed_canario/unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument( 

@@ -13,7 +13,7 @@ CONSTANTS = {
     "num_train_epochs": 2,
     "weight_decay": 0.0, 
     "context_length": 16384,  # Default context length for most models
-    "quantization": False, 
+    "quantization": True, 
     "wandb": True,
     "truncate": True,  # Set to True for truncation, False for normal generation
 }
@@ -34,13 +34,16 @@ MODEL_NAMES = [
     #"Qwen/Qwen3-0.6B-Base",
     #"Qwen/Qwen3-1.7B",
     #"Qwen/Qwen3-1.7B-Base",
-    "Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
-    "Qwen/Qwen3-4B-Base",
+    #"Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
+    #"Qwen/Qwen3-4B-Base",
     # llama 3.2
     #"unsloth/Llama-3.2-1B-Instruct",
     #"unsloth/Llama-3.2-1B",
     #"unsloth/Llama-3.2-3B-Instruct",
     #"unsloth/Llama-3.2-3B",
+    # basaline models
+    "unsloth/Llama-3.1-8B-Instruct",
+    "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
 ]
 
 PEFT_TYPES = ["lora"]
@@ -52,7 +55,7 @@ DATASET_NAMES = [
     "data/02-processed/german",
     "data/02-processed/english",
     "data/02-processed/spanish",
-    #"data/02-processed/canario",
+    "data/02-processed/canario",
 ]
 
 # scripts funct

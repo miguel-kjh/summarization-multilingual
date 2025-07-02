@@ -25,8 +25,8 @@ def generar_tablas_latex_por_hoja(ruta_excel, carpeta_salida="metrics/tablas_lat
         "rouge1": "\\textbf{R-1}",
         "rouge2": "\\textbf{R-2}",
         "rougeL": "\\textbf{R-L}",
-        "rougeLsum": "\\textbf{R-Lsum}",
-        "bertscore_f1": "\\textbf{BERTScore}",
+        "rougeLsum": "\\textbf{R-LS}",
+        "bertscore_f1": "\\textbf{BS}",
         "coherence": "\\textbf{Coh.}",
         "consistency": "\\textbf{Cons.}",
         "fluency": "\\textbf{Flu.}",
@@ -56,12 +56,14 @@ def generar_tablas_latex_por_hoja(ruta_excel, carpeta_salida="metrics/tablas_lat
         name_file_formatted = name_file.replace("_", " ")
         latex_tabla = df_format.to_latex(index=False, escape=False)
         tabla_completa = (
-            f"\\begin{{table}}[h]\n"
+            f"\FloatBarrier\n"
+            f"\\begin{{table}}[ht]\n"
             f"\\caption{{Resultados para {hoja} {name_file_formatted}}}\n"
             f"\\label{{tab:{hoja}}}\n"
             f"\\centering\n"
             f"{latex_tabla}\n"
             f"\\end{{table}}\n"
+            f"\\FloatBarrier\n"
         )
 
         nombre_archivo = os.path.join(carpeta_salida, f"{hoja}.tex")
@@ -71,6 +73,7 @@ def generar_tablas_latex_por_hoja(ruta_excel, carpeta_salida="metrics/tablas_lat
     print(f"Tablas LaTeX generadas en: {carpeta_salida}")
 
 if __name__ == "__main__":
-    ruta_excel = "data/metrics_summary_ft.xlsx"  # Cambia esto si necesitas
-    generar_tablas_latex_por_hoja(ruta_excel)
+    ruta_excel = ["data/metrics_summary_baseline.xlsx", "data/metrics_summary_ft.xlsx", "data/metrics_summary_not_ft.xlsx"]
+    for ruta in ruta_excel:
+        generar_tablas_latex_por_hoja(ruta)
 

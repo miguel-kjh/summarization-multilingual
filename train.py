@@ -171,11 +171,11 @@ if __name__ == "__main__":
     trainer = SFTTrainer(
         model = model,
         tokenizer = tokenizer,
+        max_seq_length = script_args.context,
         train_dataset = dataset_train["train"],
         eval_dataset = dataset_train["validation"],
         formatting_func=lambda x: x["text"],
         dataset_text_field = "text",
-        max_seq_length = script_args.context,
         dataset_num_proc = 2,
         callbacks=[early_stopping_callback], # Early stopping callback
         args = args,
