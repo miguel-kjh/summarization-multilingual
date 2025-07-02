@@ -12,7 +12,7 @@ models=(
 )
 wandb=False
 use_openai=True
-method="truncate"
+method="normal"
 
 # Loop through each model and run the evaluation script
 for model in "${models[@]}"; do

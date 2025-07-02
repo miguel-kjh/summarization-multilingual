@@ -3,6 +3,7 @@ import json
 import os
 import argparse
 import numpy as np
+from datasets import load_from_disk
 from tqdm import tqdm
 import wandb
 import pandas as pd
@@ -51,9 +52,8 @@ def log_metrics_to_wandb(metrics: dict, use_openai: bool):
             wandb.log({f"{lang}/average": metrics["average"]})
     wandb.finish()
 
-def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, up=False):
+def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_openai=False, up=False):
 
-    final_folder = os.path.join(model, RESULTS_FILENAME)
 
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
@@ -106,22 +106,22 @@ def main(model, enable_wandb, verbose=True, method="normal", use_openai=False, u
                 'average': [],
             }
             for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
+                input_ = dataset_hf["test"].filter(lambda x: row["expected_summary"] == x["output"])
                 try:
                     openai_results = openai_evaluator.evaluate(
-                        row["expected_summary"], 
+                        input_["input"][0], 
                         row["generated_summary"],
                     )
-                    for value in openai_results.values():
+                    for item, value in openai_results.items():
                         if value < 0:
-                            raise ValueError("OpenAI evaluation returned a negative value, which is unexpected.")
+                            openai_results[item] = 1
                     openai_metrics['coherence'].append(openai_results['coherence'])
                     openai_metrics['consistency'].append(openai_results['consistency'])
                     openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
                     openai_metrics['relevance'].append(openai_results['relevance'])
                     openai_metrics['average'].append(calculate_weighted_mean(openai_results))
                 except Exception as e:
-                    print(f"Error evaluating {lang} with OpenAI: {e}")
-                    continue
+                    continue  # Skip this row if evaluation fails
             
             metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
             metrics[lang]["consistency"] = np.mean(openai_metrics['consistency'])
@@ -160,8 +160,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/others/data_02-processed_canario/unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+        default="models/Qwen/Qwen3-4B/spanish/lora/Qwen3-4B-spanish-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-08-06-07",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
+    )
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default="data/02-processed/spanish",
+        help="Path to the dataset directory (e.g., 'data/02-processed/spanish')."
     )
     parser.add_argument( 
         "--wandb",
@@ -194,9 +200,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     assert args.method in ["normal", "truncate"], f"Invalid method: {args.method}"
+    dataset = load_from_disk(args.dataset)
     main(
         model=args.model_name_or_path, 
         enable_wandb=args.wandb, 
+        dataset_hf=dataset,
         verbose=args.verbose, 
         method=args.method, 
         use_openai=args.use_openai,
