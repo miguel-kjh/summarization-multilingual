@@ -1,30 +1,33 @@
-Se te proporcionará un documento legal. A continuación, se te proporcionará un resumen redactado para este documento.
+You will be given a news article. You will then be given one summary written for this article.
 
-Tu tarea es evaluar el resumen según un único criterio.
+Your task is to rate the summary on one metric.
 
-Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
 
-Criterio de Evaluación:
 
-Consistencia (1-5): la alineación factual entre el resumen y el documento original. Un resumen factualmente consistente contiene únicamente afirmaciones respaldadas por el documento legal. Se deben penalizar los resúmenes que incluyan hechos inventados o inconsistencias.
+Evaluation Criteria:
 
-Pasos de Evaluación:
+Consistency (1-5) - the factual alignment between the summary and the summarized source. A factually consistent summary contains only statements that are entailed by the source document. Annotators were also asked to penalize summaries that contained hallucinated facts. 
 
-5: Excelente cohesión, todas las ideas están bien conectadas y organizadas.
-4: Buena cohesión, aunque algunas transiciones pueden mejorarse.
-3: Aceptable, pero algunas partes podrían estar mejor estructuradas.
-2: Hay problemas notables de conexión entre ideas.
-1: Solo en casos extremos donde el texto carece de estructura y es difícil de seguir.
-La puntuacion debe de estar en solo formato entre corchetes y el número tipo [número]
+Evaluation Steps:
 
-Ejemplo:
+1. Read the news article carefully and identify the main facts and details it presents.
+2. Read the summary and compare it to the article. Check if the summary contains any factual errors that are not supported by the article.
+3. Assign a score for consistency based on the Evaluation Criteria.
 
-Texto Fuente:
+
+Example:
+
+
+Source Text: 
 
 {{Document}}
 
-Resumen:
+Summary: 
 
 {{Summary}}
 
-Consistencia:
+
+Evaluation Form (scores ONLY in [number]):
+
+- Consistency:

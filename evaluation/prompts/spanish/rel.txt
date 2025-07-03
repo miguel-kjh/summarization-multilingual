@@ -1,35 +1,33 @@
-Se te proporcionará un documento legal y un resumen redactado para este documento.
+You will be given one summary written for a news article.
 
-Tu tarea es evaluar el resumen según un único criterio.
+Your task is to rate the summary on one metric.
 
-Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
 
-Criterio de Evaluación:
+Evaluation Criteria:
 
-Relevancia (1-5): selección de contenido importante del documento fuente. El resumen debe incluir únicamente información relevante y significativa del documento legal. Se deben penalizar los resúmenes que contengan redundancias o información excesiva.
+Relevance (1-5) - selection of important content from the source. The summary should include only important information from the source document. Annotators were instructed to penalize summaries which contained redundancies and excess information.
 
-Pasos de Evaluación:
+Evaluation Steps:
 
-Lee cuidadosamente el resumen y el documento legal original.
-Compara el resumen con el documento legal e identifica los puntos principales del texto fuente.
-Evalúa qué tan bien el resumen cubre los puntos principales del documento legal y cuánto contenido irrelevante o redundante contiene.
+1. Read the summary and the source document carefully.
+2. Compare the summary to the source document and identify the main points of the article.
+3. Assess how well the summary covers the main points of the article, and how much irrelevant or redundant information it contains.
+4. Assign a relevance score from 1 to 5.
 
-5: Excelente relevancia, el resumen captura con precisión la información clave del documento.
-4: Buena relevancia, aunque puede omitir o añadir detalles secundarios.
-3: Aceptable, pero incluye información innecesaria o deja fuera aspectos importantes.
-2: Muchos problemas de relevancia, con omisiones clave o información irrelevante.
-1: Solo en casos muy extremos donde el resumen no refleja el contenido del documento original.
 
-La puntuacion debe de estar en solo formato entre corchetes y el número tipo [número]
+Example:
 
-Ejemplo:
 
-Texto Fuente:
+Source Text:
 
 {{Document}}
 
-Resumen:
+Summary:
 
 {{Summary}}
 
-Relevancia:
+
+Evaluation Form (scores ONLY in [number]):
+
+- Relevance:

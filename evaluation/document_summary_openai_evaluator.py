@@ -67,11 +67,10 @@ class DocumentSummaryOpenAiEvaluator:
         response = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an expert evaluator for document summaries."},
-                {"role": "user", "content": prompt}
+                {"role": "system", "content": prompt},
             ],
-            max_tokens=10,
-            temperature=0.2,
+            max_tokens=5,
+            temperature=0.7,
         )
         return response
 
@@ -83,10 +82,10 @@ class DocumentSummaryOpenAiEvaluator:
         :return: The extracted score.
         """
         content = response.choices[0].message.content
-        matched = re.search(".*\[([\d.]+)\]", content)
+        matched = re.search(r"\d+(\.\d+)?", content)
         if (matched):
             try:
-                score = float(matched.group(1))
+                score = float(matched.group(0))
             except:
                 score = -1
         else:

@@ -114,7 +114,7 @@ def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_ope
                     )
                     for item, value in openai_results.items():
                         if value < 0:
-                            openai_results[item] = 1
+                            raise ValueError(f"Negative value found in OpenAI evaluation: {item} = {value}")
                     openai_metrics['coherence'].append(openai_results['coherence'])
                     openai_metrics['consistency'].append(openai_results['consistency'])
                     openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/Qwen/Qwen3-4B/spanish/lora/Qwen3-4B-spanish-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-08-06-07",
+        default="models/others/data_02-processed_spanish/Qwen/Qwen3-4B",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument(
@@ -201,6 +201,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     assert args.method in ["normal", "truncate"], f"Invalid method: {args.method}"
     dataset = load_from_disk(args.dataset)
+    print(f"Model path: {args.model_name_or_path}")
     main(
         model=args.model_name_or_path, 
         enable_wandb=args.wandb, 

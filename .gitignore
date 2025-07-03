@@ -177,3 +177,4 @@ estimator.py
 unsloth_compiled_cache/
 metrics/metrics/tablas_latex
 scripts_2/
+logs_2/

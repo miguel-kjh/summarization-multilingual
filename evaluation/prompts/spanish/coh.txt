@@ -1,33 +1,32 @@
-Se te proporcionará un resumen redactado para un documento legal.
+You will be given one summary written for a news article.
 
-Tu tarea es evaluar el resumen según un único criterio.
+Your task is to rate the summary on one metric.
 
-Por favor, asegúrate de leer y comprender estas instrucciones cuidadosamente. Mantén este documento abierto mientras realizas la evaluación y consúltalo cuando sea necesario.
+Please make sure you read and understand these instructions carefully. Please keep this document open while reviewing, and refer to it as needed.
 
-Criterio de Evaluación:
+Evaluation Criteria:
 
-Coherencia (1-5): calidad colectiva de todas las oraciones. Este criterio se alinea con la definición de estructura y coherencia establecida por los estándares legales, donde "el resumen debe estar bien estructurado y organizado. No debe ser simplemente un conjunto de información relacionada, sino que debe desarrollar un cuerpo coherente y lógico de información sobre el documento legal."
+Coherence (1-5) - the collective quality of all sentences. We align this dimension with the DUC quality question of structure and coherence whereby "the summary should be well-structured and well-organized. The summary should not just be a heap of related information, but should build from sentence to a coherent body of information about a topic."
 
-5: Excelente coherencia, casi sin fallos.
-4: Buena coherencia, con ligeros detalles mejorables.
-3: Bastante aceptable, aunque con margen de mejora.
-2: Algunos problemas importantes de coherencia.
-1: Solo en casos extremos donde el resumen sea totalmente incoherente.
+Evaluation Steps:
 
-Pasos de Evaluación:
+1. Read the news article carefully and identify the main topic and key points.
+2. Read the summary and compare it to the news article. Check if the summary covers the main topic and key points of the news article, and if it presents them in a clear and logical order.
+3. Assign a score for coherence on a scale of 1 to 5, where 1 is the lowest and 5 is the highest based on the Evaluation Criteria.
 
-Lee el documento legal detenidamente e identifica el tema principal y los puntos clave.
-Lee el resumen y compáralo con el documento legal. Verifica si el resumen abarca el tema principal y los puntos clave del documento legal, y si los presenta de manera clara y lógica.
-Asigna una puntuación de coherencia en una escala del 1 al 5, donde 1 es la más baja y 5 la más alta, basándote en el criterio de evaluación.
-La puntuacion debe de estar en solo formato entre corchetes y el número tipo [número]
-Ejemplo:
 
-Texto Fuente:
+Example:
+
+
+Source Text:
 
 {{Document}}
 
-Resumen:
+Summary:
 
 {{Summary}}
 
-Coherencia:
+
+Evaluation Form (scores ONLY in [number]):
+
+- Coherence:
