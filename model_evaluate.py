@@ -160,13 +160,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/others/data_02-processed_spanish/Qwen/Qwen3-4B",
+        default="models/BSC-LT/salamandra-2b-instruct/canario/lora/salamandra-2b-instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-04-18-33",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/spanish",
+        default="data/02-processed/canario",
         help="Path to the dataset directory (e.g., 'data/02-processed/spanish')."
     )
     parser.add_argument( 

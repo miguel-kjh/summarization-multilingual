@@ -98,8 +98,8 @@ if __name__ == "__main__":
     base_directories = [
         "models/BSC-LT/salamandra-2b",
         "models/BSC-LT/salamandra-2b-instruct",
-        #"models/Qwen/Qwen3-4B",
-        #"models/Qwen/Qwen3-4B-Base",
+        "models/Qwen/Qwen3-4B",
+        "models/Qwen/Qwen3-4B-Base",
         "models/Qwen/Qwen2.5-0.5B",
         "models/Qwen/Qwen2.5-0.5B-Instruct",
         "models/Qwen/Qwen2.5-1.5B",
@@ -121,7 +121,11 @@ if __name__ == "__main__":
         max_search_depth = 3  # Cambia esto al nivel deseado
         output_excel = os.path.join(directory, f"metrics_summary_{model}.xlsx")
         
-        results = find_and_read_json(directory, max_search_depth)
-        #print(f"Resultados encontrados: {results}")
-        #save_to_excel(results, output_excel)
-        #print(f"Resultados guardados en {output_excel}")
+        try:
+            results = find_and_read_json(directory, max_search_depth)
+        except Exception as e:
+            print(f"Error procesando {directory}: {e}")
+            continue
+        print(f"Resultados encontrados: {results}")
+        save_to_excel(results, output_excel)
+        print(f"Resultados guardados en {output_excel}")

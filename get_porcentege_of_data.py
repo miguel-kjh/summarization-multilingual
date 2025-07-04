@@ -19,7 +19,7 @@ def count_tokens(tokenizer, text):
 if __name__ == "__main__":
     def parse_arguments():
         parser = argparse.ArgumentParser(description="Get percentage of data from dataset")
-        parser.add_argument("--dataset_path", type=str, default="data/02-processed/spanish", help="Path to the dataset")
+        parser.add_argument("--dataset_path", type=str, default="data/02-processed/german", help="Path to the dataset")
         parser.add_argument("--model", type=str, default="qwen", help="Model to use (llama or qwen)")
         return parser.parse_args()
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     data = load_from_disk(args.dataset_path)
 
     def format_text(sample):
-        return sample['input']
+        return sample['output']
     
     data = data.map(lambda x: {"text": format_text(x)})
 
