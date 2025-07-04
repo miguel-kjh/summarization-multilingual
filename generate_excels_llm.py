@@ -12,7 +12,6 @@ def find_and_read_json(base_dir, max_depth):
         
         if depth == max_depth:
             if "truncate_result_metrics.json" in files:
-                print(f"\"{root}\",")
                 model = root.split(os.sep)[-1]
                 json_path = os.path.join(root, "truncate_result_metrics.json")
                 try:
@@ -21,9 +20,6 @@ def find_and_read_json(base_dir, max_depth):
                         results[model] = data
                 except Exception as e:
                     print(f"Error leyendo {json_path}: {e}")
-            else:
-                if "result_metrics.json" in files:
-                    print(f"\"{root}\",")
             if "result_metrics.json" in files:
                 model = root.split(os.sep)[-1]
                 language = root.split(os.sep)[3]  # Asumiendo que el idioma está en la segunda posición
@@ -98,8 +94,6 @@ if __name__ == "__main__":
     base_directories = [
         "models/BSC-LT/salamandra-2b",
         "models/BSC-LT/salamandra-2b-instruct",
-        "models/Qwen/Qwen3-4B",
-        "models/Qwen/Qwen3-4B-Base",
         "models/Qwen/Qwen2.5-0.5B",
         "models/Qwen/Qwen2.5-0.5B-Instruct",
         "models/Qwen/Qwen2.5-1.5B",
@@ -110,6 +104,8 @@ if __name__ == "__main__":
         "models/Qwen/Qwen3-0.6B-Base",
         "models/Qwen/Qwen3-1.7B",
         "models/Qwen/Qwen3-1.7B-Base",
+        "models/Qwen/Qwen3-4B",
+        "models/Qwen/Qwen3-4B-Base",
         "models/unsloth/Llama-3.2-1B",
         "models/unsloth/Llama-3.2-3B",
         "models/unsloth/Llama-3.2-1B-Instruct",

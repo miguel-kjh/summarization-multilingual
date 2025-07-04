@@ -1,4 +1,4 @@
-You will be given a news article. You will then be given one summary written for this article.
+You will be given a legal document. You will then be given one summary written for this legal document.
 
 Your task is to rate the summary on one metric.
 
@@ -11,7 +11,7 @@ Consistency (1-5) - the factual alignment between the summary and the summarized
 
 Evaluation Steps:
 
-1. Read the news article carefully and identify the main facts and details it presents.
+1. Read the legal document carefully and identify the main facts and details it presents.
 2. Read the summary and compare it to the article. Check if the summary contains any factual errors that are not supported by the article.
 3. Assign a score for consistency based on the Evaluation Criteria.
 

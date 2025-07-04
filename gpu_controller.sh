@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Ruta donde están los scripts que quieres ejecutar
-chmod +x scripts/*.sh
+chmod +x scripts_2/*.sh
 
 SCRIPTS_DIR="./scripts"
 LOG_DIR="./logs"

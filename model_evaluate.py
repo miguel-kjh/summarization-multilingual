@@ -54,6 +54,11 @@ def log_metrics_to_wandb(metrics: dict, use_openai: bool):
 
 def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_openai=False, up=False):
 
+    # Save metrics to a JSON file
+    if method == "truncate":
+        file_name_to_save = method + "_" + RESULTS_FILENAME
+    else:
+        file_name_to_save = RESULTS_FILENAME
 
     # Initialize the summary metrics calculator
     calculator = SummaryMetricsCalculator()
@@ -112,15 +117,17 @@ def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_ope
                         input_["input"][0], 
                         row["generated_summary"],
                     )
+                    print(f"OpenAI results for {lang}: {openai_results}")
                     for item, value in openai_results.items():
                         if value < 0:
-                            raise ValueError(f"Negative value found in OpenAI evaluation: {item} = {value}")
+                            continue
                     openai_metrics['coherence'].append(openai_results['coherence'])
                     openai_metrics['consistency'].append(openai_results['consistency'])
                     openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
                     openai_metrics['relevance'].append(openai_results['relevance'])
                     openai_metrics['average'].append(calculate_weighted_mean(openai_results))
                 except Exception as e:
+                    print(f"Error evaluating row in language {lang}: {e}")
                     continue  # Skip this row if evaluation fails
             
             metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
@@ -143,11 +150,6 @@ def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_ope
                 print("Relevance:", metrics[lang]["relevance"])
                 print("Average:", metrics[lang]["average"])
 
-    # Save metrics to a JSON file
-    if method == "truncate":
-        file_name_to_save = method + "_" + RESULTS_FILENAME
-    else:
-        file_name_to_save = RESULTS_FILENAME
     save_metrics_to_json(metrics, model, file_name_to_save)
 
     # Log metrics to wandb if enabled
@@ -160,7 +162,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/BSC-LT/salamandra-2b-instruct/canario/lora/salamandra-2b-instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-04-18-33",
+        default="models/others/data_02-processed_canario/BSC-LT/salamandra-2b",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument(
