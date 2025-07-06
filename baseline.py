@@ -148,6 +148,28 @@ class TextRankingSummarizer(Baseline):
         summary = TextRankSummarizer_model.summarize(document,  language=language, ratio=self.ratio)
         return summary
     
+
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer
+from sumy.nlp.stemmers import Stemmer
+from sumy.utils import get_stop_words
+import nltk
+nltk.download('punkt_tab')
+class LSASummarizer(Baseline):
+    
+    def __init__(self, model_name: str, ratio: int = 10):
+        self.ratio = ratio
+
+    def summarize(self, document: str, language: str):
+        if language == "canario":
+            language = "spanish"
+        parser = PlaintextParser.from_string(document, Tokenizer(language))
+        summarizer = LsaSummarizer(Stemmer(language))
+        summarizer.stop_words = get_stop_words(language)
+        summary = summarizer(parser.document, self.ratio)
+        return ' '.join(str(sentence) for sentence in summary)
+    
     
 def generate_summaries(dataset: Dataset, baseline_method: Baseline, num_samples: int=5) -> pd.DataFrame:
         summaries = []
@@ -180,6 +202,7 @@ methods = {
     "openai": OpenAiSummarizer,
     "ollama": OllamaSummarizer,
     "textranking": TextRankingSummarizer,
+    "lsa": LSASummarizer,
 }
 
 def save_result_baseline(df_summary, method, model_name, name_df, name_excel):

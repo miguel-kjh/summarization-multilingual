@@ -100,6 +100,8 @@ def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_ope
         metrics[lang]["rouge"] = results["rouge"]
         metrics[lang]["bertscore"] = results["bertscore"]
 
+        print(metrics)
+
         if use_openai:
 
             # OpenAI evaluation
@@ -161,13 +163,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path", 
         type=str,
-        default="models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-04-08-35",
+        default="models/Qwen/Qwen3-4B/tiny_improved/lora/Qwen3-4B-tiny_improved-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-24-00-51-50",
         help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/english",
+        default="data/02-processed/tiny_improved",
         help="Path to the dataset directory (e.g., 'data/02-processed/spanish')."
     )
     parser.add_argument( 

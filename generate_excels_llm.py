@@ -13,6 +13,7 @@ def find_and_read_json(base_dir, max_depth):
         if depth == max_depth:
             if "truncate_result_metrics.json" in files:
                 model = root.split(os.sep)[-1]
+                print(f"\"{model}\",")
                 json_path = os.path.join(root, "truncate_result_metrics.json")
                 try:
                     with open(json_path, "r", encoding="utf-8") as f:
@@ -20,21 +21,27 @@ def find_and_read_json(base_dir, max_depth):
                         results[model] = data
                 except Exception as e:
                     print(f"Error leyendo {json_path}: {e}")
+            else:
+                if "result_metrics.json" in files:
+                    print(f"\"{model}\",")
             if "result_metrics.json" in files:
                 model = root.split(os.sep)[-1]
                 language = root.split(os.sep)[3]  # Asumiendo que el idioma está en la segunda posición
                 json_path = os.path.join(root, "result_metrics.json")
                 with open(json_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                if model not in results:
-                    results[model] = data
-                else:
-                    # si results esta vacío, inicializarlo
-                    results[model][language]["coherence"] = data[language]["coherence"]
-                    results[model][language]["consistency"] = data[language]["consistency"]
-                    results[model][language]["fluency"] = data[language]["fluency"]
-                    results[model][language]["relevance"] = data[language]["relevance"]
-                    results[model][language]["average"] = data[language]["average"]
+                try:
+                    if model not in results:
+                        results[model] = data
+                    else:
+                        # si results esta vacío, inicializarlo
+                        results[model][language]["coherence"] = data[language]["coherence"]
+                        results[model][language]["consistency"] = data[language]["consistency"]
+                        results[model][language]["fluency"] = data[language]["fluency"]
+                        results[model][language]["relevance"] = data[language]["relevance"]
+                        results[model][language]["average"] = data[language]["average"]
+                except Exception as e:
+                    print(f"Error procesando {json_path}: {e}")
         
         # No bajar más allá del nivel especificado
         if depth >= max_depth:

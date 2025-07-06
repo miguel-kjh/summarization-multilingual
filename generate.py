@@ -16,10 +16,10 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen/Qwen3-4B-Base/canario/lora/Qwen3-4B-Base-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-07-54-06", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-4B", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
-    parser.add_argument("--context_window", type=int, default=16398, help="Context window size")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/english", help="Dataset path")
+    parser.add_argument("--context_window", type=int, default=32000, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=False, help="Truncate the input to fit the context window")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
