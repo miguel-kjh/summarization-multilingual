@@ -85,13 +85,15 @@ class SummaryGenerator:
         )
 
         with torch.no_grad():
-            start = time.time()
+            torch.cuda.synchronize()
+            t0 = time.perf_counter()
             outputs = model.fast_generate(
                 prompts,
                 sampling_params=sampling_params,
                 lora_request=None if not adapter_name else model.load_lora(adapter_name),
             )
-            end = time.time()
+            torch.cuda.synchronize()
+            t1 = time.perf_counter()
 
         # outputs es una lista de RequestOutput
         generated_texts = []
@@ -102,7 +104,7 @@ class SummaryGenerator:
             generated_texts.append(text)
 
         # Tiempo promedio por muestra
-        times = [(end - start) / len(prompts)] * len(prompts)
+        times = [(t1 - t0) / len(prompts)] * len(prompts)
 
         return generated_texts, times
 
