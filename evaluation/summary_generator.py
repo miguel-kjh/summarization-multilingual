@@ -82,6 +82,7 @@ class SummaryGenerator:
             top_k=20,
             repetition_penalty=1.0,
             max_tokens=max_new_tokens,
+            seed=123,  # For reproducibility
         )
 
         with torch.no_grad():

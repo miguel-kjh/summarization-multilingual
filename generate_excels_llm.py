@@ -13,7 +13,7 @@ def find_and_read_json(base_dir, max_depth):
         if depth == max_depth:
             if "truncate_result_metrics.json" in files:
                 model = root.split(os.sep)[-1]
-                print(f"\"{model}\",")
+                print(f"\"{root}\",")
                 json_path = os.path.join(root, "truncate_result_metrics.json")
                 try:
                     with open(json_path, "r", encoding="utf-8") as f:
@@ -130,5 +130,5 @@ if __name__ == "__main__":
             print(f"Error procesando {directory}: {e}")
             continue
         print(f"Resultados encontrados: {results}")
-        save_to_excel(results, output_excel)
-        print(f"Resultados guardados en {output_excel}")
+        #save_to_excel(results, output_excel)
+        #print(f"Resultados guardados en {output_excel}")

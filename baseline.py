@@ -13,6 +13,14 @@ from transformers import AutoConfig, AutoTokenizer, AutoModel
 from document_cluster import DocumentClustererTopKSentences
 from text2embeddings import Text2EmbeddingsSetenceTransforms
 
+TOKENIZER_FOR_MODELS = {
+    "llama3.1": "meta-llama/Llama-3.1-8B-Instruct",
+    "qwen2.5:7b": "Qwen/Qwen2.5-7B-Instruct",
+    "phi4": "microsoft/phi-4",
+    "qwen3:14b": "Qwen/Qwen3-14B",
+    "qwen3:30b" : "Qwen/Qwen3-30B",
+}
+
 def parse():
     import argparse
     parser = argparse.ArgumentParser(description='Baseline')
@@ -124,7 +132,7 @@ class OllamaSummarizer(OpenAiSummarizer):
     def summarize(self, document, language):
         system_prompt = SYSTEM_PROMPT[language]
         prompt = INSTRUCTION_TEMPLATE[language]
-        prompt = prompt + document + "\n"
+        prompt = prompt + "\n" + document + "\n"
         messages = [  
             ("system", system_prompt),  
             ("human", prompt),  
@@ -238,7 +246,12 @@ def main():
     else:
         baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
-    tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+    # get tokenizer for the models 
+    tokenizer_name = TOKENIZER_FOR_MODELS.get(args.model_name, args.model_name)
+    if not tokenizer_name:
+        raise ValueError(f"Tokenizer not found for model '{args.model_name}'. Please specify a valid model name.")
+    print(f"Using tokenizer: {tokenizer_name}")
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
@@ -251,7 +264,7 @@ def main():
             data_for_testing = dataset["test"]
             print("No truncation needed for this method")
         else:
-            tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-0.6B")
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
             target_tokens = args.context_window - 2049
             def truncate_text_in_dataset(example):
                 example["input"] = truncate_text(example["input"], tokenizer, target_tokens)

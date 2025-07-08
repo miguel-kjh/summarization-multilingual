@@ -10,207 +10,266 @@ import pandas as pd
 from distutils.util import strtobool
 from evaluation.summary_metrics_calculator import SummaryMetricsCalculator
 from evaluation.document_summary_openai_evaluator import DocumentSummaryOpenAiEvaluator
-from utils import DATASET_FILENAME, PROJECT_NAME, RESULTS_FILENAME, seed_everything, SEED, calculate_weighted_mean
+from utils import (
+    DATASET_FILENAME,
+    PROJECT_NAME,
+    RESULTS_FILENAME,
+    seed_everything,
+    SEED,
+    calculate_weighted_mean,
+)
 
-def load_dataset(model_path, filename):
-    """
-    Load the dataset from an Excel file.
+###############################################################################
+# Utility helpers
+###############################################################################
 
-    :param model_path: Path to the model directory.
-    :param filename: Name of the dataset file.
-    :return: Loaded dataset as a pandas DataFrame.
-    """
+def load_dataset(model_path: str, filename: str) -> pd.DataFrame:
+    """Load the dataset (Excel) located in *model_path* / *filename*."""
+    return pd.read_excel(os.path.join(model_path, filename))
+
+
+def save_metrics_to_json(metrics: dict, model_path: str, filename: str) -> None:
+    """Persist *metrics* as pretty‑printed JSON in *model_path* / *filename*."""
     filepath = os.path.join(model_path, filename)
-    return pd.read_excel(filepath)
+    with open(filepath, "w", encoding="utf‑8") as f:
+        json.dump(metrics, f, indent=4, ensure_ascii=False)
 
-def save_metrics_to_json(metrics, model_path, filename):
-    """
-    Save the calculated metrics to a JSON file.
 
-    :param metrics: Dictionary containing the metrics.
-    :param model_path: Path to the model directory.
-    :param filename: Name of the output file.
-    """
-    filepath = os.path.join(model_path, filename)
-    with open(filepath, "w") as f:
-        json.dump(metrics, f, indent=4)
-
-def log_metrics_to_wandb(metrics: dict, use_openai: bool):
-    """
-    Log metrics to Weights & Biases (wandb).
-
-    :param metrics: Dictionary containing the metrics.
-    """
-    for lang, metrics in metrics.items():
-        wandb.log({f"{lang}/rouge": metrics["rouge"]})
-        wandb.log({f"{lang}/bertscore": metrics["bertscore"]})
+def log_metrics_to_wandb(metrics: dict, use_openai: bool) -> None:
+    """Log *metrics* in Weights & Biases using a lang/metric hierarchy."""
+    for lang, vals in metrics.items():
+        wandb.log({f"{lang}/rouge": vals["rouge"]})
+        wandb.log({f"{lang}/bertscore": vals["bertscore"]})
         if use_openai:
-            wandb.log({f"{lang}/coherence": metrics["coherence"]})
-            wandb.log({f"{lang}/consistency": metrics["consistency"]})
-            wandb.log({f"{lang}/fluency": metrics["fluency"]})
-            wandb.log({f"{lang}/relevance": metrics["relevance"]})
-            wandb.log({f"{lang}/average": metrics["average"]})
+            for key in ("coherence", "consistency", "fluency", "relevance", "average"):
+                wandb.log({f"{lang}/{key}": vals[key]})
     wandb.finish()
 
-def main(model, enable_wandb, dataset_hf, verbose=True, method="normal", use_openai=False, up=False):
 
-    # Save metrics to a JSON file
-    if method == "truncate":
-        file_name_to_save = method + "_" + RESULTS_FILENAME
-    else:
-        file_name_to_save = RESULTS_FILENAME
+def load_previous_metrics(model_path: str, filename: str) -> dict | None:
+    """Return the previously saved metrics file if it exists, otherwise *None*."""
+    filepath = os.path.join(model_path, filename)
+    if os.path.isfile(filepath):
+        with open(filepath, "r", encoding="utf‑8") as f:
+            return json.load(f)
+    return None
 
-    # Initialize the summary metrics calculator
-    calculator = SummaryMetricsCalculator()
-    with open("api/key.json", "r") as file:
-        api_key = json.load(file)["key"]
+###############################################################################
+# Main evaluation pipeline
+###############################################################################
+
+def main(
+    model: str,
+    enable_wandb: bool,
+    dataset_hf,
+    verbose: bool = True,
+    method: str = "normal",
+    use_openai: bool = False,
+    recalcule_rouge: bool = False,
+    up: bool = False,
+):
+
+    # ---------------------------------------------------------------------
+    # 0)  Determine the output filename and see whether we already have ROUGE
+    #     and BERTScore results cached for this model.
+    # ---------------------------------------------------------------------
+    file_name_to_save = (
+        f"{method}_" + RESULTS_FILENAME if method == "truncate" else RESULTS_FILENAME
+    )
+
+    previous_metrics = load_previous_metrics(model, file_name_to_save)
+    rouge_bertscore_cached = previous_metrics is not None  # already computed once
+
+    # ------------------------------------------------------------------
+    # 1)  Set‑up evaluators
+    # ------------------------------------------------------------------
+
+
+    with open("api/key.json", "r", encoding="utf‑8") as fh:
+        api_key = json.load(fh)["key"]
     openai_evaluator = DocumentSummaryOpenAiEvaluator(api_key, upgrade=up)
 
-    # Initialize wandb if enabled
+    # ------------------------------------------------------------------
+    # 2)  Initialise Weights & Biases if requested
+    # ------------------------------------------------------------------
     if enable_wandb:
         wandb.init(
-            project=f"{PROJECT_NAME}_metrics", 
-            entity="miguel_kjh", 
+            project=f"{PROJECT_NAME}_metrics",
+            entity="miguel_kjh",
             name=os.path.basename(model),
             resume="allow",
         )
 
-    # Load the dataset
+    # ------------------------------------------------------------------
+    # 3)  Read dataset produced by the model
+    # ------------------------------------------------------------------
     name_dataset = f"{DATASET_FILENAME}_{method}.xlsx"
-    dataset = load_dataset(model, name_dataset)
-    dataset = dataset.dropna(subset=["expected_summary", "generated_summary"])
+    dataset = load_dataset(model, name_dataset).dropna(
+        subset=["expected_summary", "generated_summary"]
+    )
 
-    # split for language
-    dataset_gropby_lang = dataset.groupby("language")
+    # ------------------------------------------------------------------
+    # 4)  Iterate by language and compute / reuse metrics
+    # ------------------------------------------------------------------
+    metrics: dict[str, dict] = defaultdict(dict)
 
-    metrics = defaultdict(dict)
-    for lang, dataset in dataset_gropby_lang:
-        metrics[lang] = {}
-        results = calculator.calculate_metrics(
-            reference_summaries=dataset["expected_summary"].to_list(),
-            generated_summaries=dataset["generated_summary"].to_list(),
-        )
+    for lang, df_lang in dataset.groupby("language"):
+        if (rouge_bertscore_cached and lang in previous_metrics) and not recalcule_rouge:
+            # ------------------------------------------------------------------
+            # We already evaluated ROUGE + BERTScore – reuse those numbers.
+            # ------------------------------------------------------------------
+            print(f"Reusing ROUGE/BERTScore for {lang} from previous metrics.")
+            metrics[lang].update(
+                {
+                    "rouge": previous_metrics[lang]["rouge"],
+                    "bertscore": previous_metrics[lang]["bertscore"],
+                    "times(sec)": previous_metrics[lang].get("times(sec)", "N/A"),
+                }
+            )
+            print(f"  metrics[lang]: {metrics[lang]}")
+        else:
+            # ------------------------------------------------------------------
+            # First time evaluating this model: compute ROUGE + BERTScore.
+            # ------------------------------------------------------------------
+            print(f"Calculating ROUGE/BERTScore for {lang}...")
+            calculator = SummaryMetricsCalculator()
 
-        times = dataset["time"].values
 
-        mean = np.mean(times)
-        std_dev = np.std(times, ddof=1)
-        metrics[lang]["times(sec)"] = f"{mean:.2f} ± {std_dev:.2f}"
+            results = calculator.calculate_metrics(
+                reference_summaries=df_lang["expected_summary"].tolist(),
+                generated_summaries=df_lang["generated_summary"].tolist(),
+            )
 
-        metrics[lang]["rouge"] = results["rouge"]
-        metrics[lang]["bertscore"] = results["bertscore"]
+            times = df_lang["time"].to_numpy()
+            metrics[lang]["times(sec)"] = f"{np.mean(times):.2f} ± {np.std(times, ddof=1):.2f}"
+            metrics[lang]["rouge"] = results["rouge"]
+            metrics[lang]["bertscore"] = results["bertscore"]
 
-        print(metrics)
-
+        # ------------------------------------------------------------------
+        # 4b)  Always recompute the OpenAI‑based metrics (the expensive part).
+        # ------------------------------------------------------------------
         if use_openai:
-
-            # OpenAI evaluation
-            openai_metrics = {
-                'coherence': [],
-                'consistency': [],
-                'fluency': [], 
-                'relevance': [],
-                'average': [],
+            openai_scores = {
+                "coherence": [],
+                "consistency": [],
+                "fluency": [],
+                "relevance": [],
+                "average": [],
             }
-            for _, row in tqdm(dataset.iterrows(), desc=f"Evaluating {lang}"):
-                input_ = dataset_hf["test"].filter(lambda x: row["expected_summary"] == x["output"])
+
+            for _, row in tqdm(df_lang.iterrows(), total=len(df_lang), desc=f"OpenAI {lang}"):
                 try:
-                    openai_results = openai_evaluator.evaluate(
-                        input_["input"][0], 
-                        row["generated_summary"],
+                    input_match = dataset_hf["test"].filter(
+                        lambda x: row["expected_summary"] == x["output"]
                     )
-                    for item, value in openai_results.items():
-                        if value < 0:
-                            continue
-                    openai_metrics['coherence'].append(openai_results['coherence'])
-                    openai_metrics['consistency'].append(openai_results['consistency'])
-                    openai_metrics['fluency'].append(min(openai_results['fluency'], 3))
-                    openai_metrics['relevance'].append(openai_results['relevance'])
-                    openai_metrics['average'].append(calculate_weighted_mean(openai_results))
-                except Exception as e:
-                    print(f"Error evaluating row in language {lang}: {e}")
-                    continue  # Skip this row if evaluation fails
-            
-            metrics[lang]["coherence"] = np.mean(openai_metrics['coherence'])
-            metrics[lang]["consistency"] = np.mean(openai_metrics['consistency'])
-            metrics[lang]["fluency"] = np.mean(openai_metrics['fluency'])
-            metrics[lang]["relevance"] = np.mean(openai_metrics['relevance'])
-            metrics[lang]["average"] = np.mean(openai_metrics['average'])
+                    openai_res = openai_evaluator.evaluate(
+                        input_match["input"][0], row["generated_summary"]
+                    )
+                    # guard against occasional negative values
+                    openai_res = {k: max(v, 0) for k, v in openai_res.items()}
+                    openai_scores["coherence"].append(openai_res["coherence"])
+                    openai_scores["consistency"].append(openai_res["consistency"])
+                    openai_scores["fluency"].append(min(openai_res["fluency"], 3))
+                    openai_scores["relevance"].append(openai_res["relevance"])
+                    openai_scores["average"].append(calculate_weighted_mean(openai_res))
+                except Exception as exc:
+                    print(f"⚠️  Error evaluating {lang}: {exc}")
 
-        # Display results
+            # Write averaged OpenAI metrics (overwrite if present)
+            metrics[lang]["coherence"] = float(np.mean(openai_scores["coherence"]))
+            metrics[lang]["consistency"] = float(np.mean(openai_scores["consistency"]))
+            metrics[lang]["fluency"] = float(np.mean(openai_scores["fluency"]))
+            metrics[lang]["relevance"] = float(np.mean(openai_scores["relevance"]))
+            metrics[lang]["average"] = float(np.mean(openai_scores["average"]))
+
+        # ------------------------------------------------------------------
+        # 4c)  Optional CLI output for the user
+        # ------------------------------------------------------------------
         if verbose:
-            print(f"Results for {lang}")
-            print("ROUGE Results:", metrics[lang]["rouge"])
-            print("BERTScore Results:", metrics[lang]["bertscore"])
-            print("Time:", metrics[lang]["times(sec)"])
-            if use_openai:
-                print("OpenAI Evaluation Results:")
-                print("Coherence:", metrics[lang]["coherence"])
-                print("Consistency:", metrics[lang]["consistency"])
-                print("Fluency:", metrics[lang]["fluency"])
-                print("Relevance:", metrics[lang]["relevance"])
-                print("Average:", metrics[lang]["average"])
+            print(f"\n── Results: {lang} ───────────────────────────────────────────")
+            for key, val in metrics[lang].items():
+                print(f"{key:12}: {val}")
 
+    # ------------------------------------------------------------------
+    # 5)  Save combined metrics (ROUGE/BERTScore reused, OpenAI fresh)
+    # ------------------------------------------------------------------
     save_metrics_to_json(metrics, model, file_name_to_save)
 
-    # Log metrics to wandb if enabled
+    # ------------------------------------------------------------------
+    # 6)  WandB logging if enabled
+    # ------------------------------------------------------------------
     if enable_wandb:
         log_metrics_to_wandb(metrics, use_openai)
 
+###############################################################################
+# Entrypoint
+###############################################################################
+
 if __name__ == "__main__":
     seed_everything(SEED)
-    parser = argparse.ArgumentParser(description="Evaluate model-generated summaries.")
+
+    parser = argparse.ArgumentParser(description="Evaluate model‑generated summaries.")
+
     parser.add_argument(
-        "--model_name_or_path", 
+        "--model_name_or_path",
         type=str,
-        default="models/Qwen/Qwen3-4B/tiny_improved/lora/Qwen3-4B-tiny_improved-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-24-00-51-50",
-        help="Path to the model directory (e.g., 'models/pythia-14m-tiny-e20-b8-lr0.0001-wd0.01-c512-r16-a32-d0.05')."
+        default="models/others/data_02-processed_english/BSC-LT/salamandra-2b-instruct",
+        help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/tiny_improved",
-        help="Path to the dataset directory (e.g., 'data/02-processed/spanish')."
+        default="data/02-processed/english",
+        help="🤗  Dataset (disk) holding the raw test examples",
     )
-    parser.add_argument( 
+    parser.add_argument(
         "--wandb",
-        type=lambda x: bool(strtobool(x)), 
+        type=lambda x: bool(strtobool(x)),
         default=False,
-        help="Enable logging to Weights & Biases (wandb). Set to True to enable."
+        help="Log the metrics to W&B (true/false)",
     )
     parser.add_argument(
         "--verbose",
         type=lambda x: bool(strtobool(x)),
         default=True,
-        help="Enable verbose output. Set to True to enable."
+        help="Print per‑language breakdown to stdout",
     )
     parser.add_argument(
         "--method",
         type=str,
-        default="normal",
-        help="Method to use for generating summaries. Options: normal, truncate."
+        default="truncate",
+        choices=["normal", "truncate"],
+        help="Post‑processing method used when the summaries were generated",
     )
     parser.add_argument(
         "--use_openai",
         type=lambda x: bool(strtobool(x)),
         default=True,
+        help="(Slow) Evaluate with GPT‑4 rubric as well",
     )
     parser.add_argument(
         "--up",
         type=lambda x: bool(strtobool(x)),
         default=False,
+        help="Use the upgraded OpenAI rubric when available",
+    )
+    parser.add_argument(
+        "--recalcule_rouge",
+        type=lambda x: bool(strtobool(x)),
+        default=False,
+        help="Recalculate ROUGE and BERTScore even if they are already cached",
     )
 
     args = parser.parse_args()
-    assert args.method in ["normal", "truncate"], f"Invalid method: {args.method}"
-    dataset = load_from_disk(args.dataset)
-    print(f"Model path: {args.model_name_or_path}")
+    print(f"Evaluating model: {args.model_name_or_path}")
+    dataset_hf = load_from_disk(args.dataset)
     main(
-        model=args.model_name_or_path, 
-        enable_wandb=args.wandb, 
-        dataset_hf=dataset,
-        verbose=args.verbose, 
-        method=args.method, 
+        model=args.model_name_or_path,
+        enable_wandb=args.wandb,
+        dataset_hf=dataset_hf,
+        verbose=args.verbose,
+        method=args.method,
         use_openai=args.use_openai,
+        recalcule_rouge=args.recalcule_rouge,
         up=args.up,
     )

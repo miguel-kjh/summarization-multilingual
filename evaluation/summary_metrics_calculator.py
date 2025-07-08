@@ -51,10 +51,10 @@ class SummaryMetricsCalculator:
 # Example usage
 if __name__ == "__main__":
     reference_summaries = [
-        "The quick brown fox jumps over the lazy dog.", "Hello, world!"
+        "The quick brown fox jumps over the lazy dog.", 'Hello, world!'
     ]
     generated_summaries = [
-        "The brown fox quickly jumped over the slow dog.", "Hello, planet!"
+        "The brown fox quickly jumped over the slow dog.", 'Hello, planet!'
     ]
 
     calculator = SummaryMetricsCalculator()
