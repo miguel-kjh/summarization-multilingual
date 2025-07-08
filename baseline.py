@@ -125,6 +125,7 @@ class OllamaSummarizer(OpenAiSummarizer):
             top_p=0.8,  # Adjust top_p for nucleus sampling
             top_k=20,  # Adjust top_k for top-k sampling
             repetition_penalty=1.0,  # Adjust repetition penalty to avoid repetition
+            seed=123,  # For reproducibility
         )
         self.type_sumarization = type_sumarization
         self.qwens = ["qwen3:14b", "qwen3:30b"]
@@ -132,7 +133,7 @@ class OllamaSummarizer(OpenAiSummarizer):
     def summarize(self, document, language):
         system_prompt = SYSTEM_PROMPT[language]
         prompt = INSTRUCTION_TEMPLATE[language]
-        prompt = prompt + "\n" + document + "\n"
+        prompt = prompt + document + "\n"
         messages = [  
             ("system", system_prompt),  
             ("human", prompt),  
