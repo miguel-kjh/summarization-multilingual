@@ -19,6 +19,7 @@ TOKENIZER_FOR_MODELS = {
     "phi4": "microsoft/phi-4",
     "qwen3:14b": "Qwen/Qwen3-14B",
     "qwen3:30b" : "Qwen/Qwen3-14B",
+    "qwen2.5:0.5b": "Qwen/Qwen3-4B",
 }
 
 def parse():
@@ -168,6 +169,7 @@ class TextRankingSummarizer(Baseline):
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lsa import LsaSummarizer
+from sumy.summarizers.kl import KLSummarizer
 from sumy.nlp.stemmers import Stemmer
 from sumy.utils import get_stop_words
 import nltk
@@ -182,6 +184,20 @@ class LSASummarizer(Baseline):
             language = "spanish"
         parser = PlaintextParser.from_string(document, Tokenizer(language))
         summarizer = LsaSummarizer(Stemmer(language))
+        summarizer.stop_words = get_stop_words(language)
+        summary = summarizer(parser.document, self.ratio)
+        return ' '.join(str(sentence) for sentence in summary)
+    
+class KLummarizer(Baseline):
+    
+    def __init__(self, model_name: str, ratio: int = 10):
+        self.ratio = ratio
+
+    def summarize(self, document: str, language: str):
+        if language == "canario":
+            language = "spanish"
+        parser = PlaintextParser.from_string(document, Tokenizer(language))
+        summarizer = KLSummarizer(Stemmer(language))
         summarizer.stop_words = get_stop_words(language)
         summary = summarizer(parser.document, self.ratio)
         return ' '.join(str(sentence) for sentence in summary)
@@ -219,6 +235,7 @@ methods = {
     "ollama": OllamaSummarizer,
     "textranking": TextRankingSummarizer,
     "lsa": LSASummarizer,
+    "kl": KLummarizer,
 }
 
 def save_result_baseline(df_summary, method, model_name, name_df, name_excel):
@@ -268,7 +285,7 @@ def main():
         data_for_testing = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
         print(f"Filtering dataset to fit the context window: {target_tokens} tokens")
     else:
-        if args.method in ["ghic", "extractive"]:
+        if args.method in ["ghic", "extractive", "kl", "lsa"]:
             data_for_testing = dataset["test"]
             print("No truncation needed for this method")
         else:
