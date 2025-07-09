@@ -28,7 +28,7 @@ def parse():
     parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=True, help="Quantization")
     parser.add_argument("--quant_cache", type=lambda x: bool(strtobool(x)), default=False, help="Quantization of cache")
-    parser.add_argument("--gpu_memory_utilization", type=float, default=0.6, help="GPU memory utilization for model loading")
+    parser.add_argument("--gpu_memory_utilization", type=float, default=0.7, help="GPU memory utilization for model loading")
 
 
     return parser.parse_args()
