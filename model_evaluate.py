@@ -213,13 +213,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/others/data_02-processed_english/BSC-LT/salamandra-2b-instruct",
+        default="models/baseline/spanish/ollama/phi4",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/english",
+        default="data/02-processed/spanish",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--method",
         type=str,
-        default="truncate",
+        default="normal",
         choices=["normal", "truncate"],
         help="Post‑processing method used when the summaries were generated",
     )

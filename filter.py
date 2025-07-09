@@ -14,7 +14,7 @@ def filter_df_by_token_len(
     output_excel: str = "test_summary_normal.xlsx",
     sheet_name: str = "Sheet1",
     split: str = "test",
-    tokenizer_name: str = "unsloth/Llama-3.2-3B-Instruct",
+    tokenizer_name: str = "microsoft/phi-4",
     target_tokens: int = 14336,   # 14 336
 ) -> pd.DataFrame:
     """
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     ]
 
     MODEL_NAMES = [
-        "models/baseline/french/ollama/qwen3:30b"
+        "models/baseline/spanish/ollama/phi4",
     ]
 
     # Ejemplo de uso

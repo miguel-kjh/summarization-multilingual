@@ -2,33 +2,33 @@
 
 # Lista de idiomas (MISMA ORDEN que en los datasets)
 declare -a languages=(
-    #"canario"
-    "spanish"
-    "english"
-    "french"
-    "italian"
-    "portuguese"
-    "german"
+    "canario"
+    #"spanish"
+    #"english"
+    #"french"
+    #"italian"
+    #"portuguese"
+    #"german"
 )
 
 # Cada posición corresponde al mismo índice en «languages»
 declare -a datasets=(
-    #"data/02-processed/canario"
-    "data/02-processed/spanish"
-    "data/02-processed/english"
-    "data/02-processed/french"
-    "data/02-processed/italian"
-    "data/02-processed/portuguese"
-    "data/02-processed/german"
+    "data/02-processed/canario"
+    #"data/02-processed/spanish"
+    #"data/02-processed/english"
+    #"data/02-processed/french"
+    #"data/02-processed/italian"
+    #"data/02-processed/portuguese"
+    #"data/02-processed/german"
 )
 
 # Lista de modelos
 declare -a models=(
-    "phi4"
-    "llama3.1"
     "qwen2.5:7b"
-    "qwen3:14b"
-    "qwen3:30b"
+    "llama3.1"
+    #"phi4"
+    #"qwen3:14b"
+    #"qwen3:30b"
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -65,8 +65,8 @@ for i in "${!languages[@]}"; do
 
     # Iterar sobre los modelos Ollama
     for model_name in "${models[@]}"; do
-        echo "  Procesando modelo: $model_name"
-        python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name" --truncate True
+        echo "Procesando modelo: $model_name"
+        python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name"
         python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ollama/$model_name" --dataset "$dataset" --method "truncate" --recalcule_rouge True --use_openai False
         ollama stop "$model_name"
     done

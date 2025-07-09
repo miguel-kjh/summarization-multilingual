@@ -18,7 +18,7 @@ TOKENIZER_FOR_MODELS = {
     "qwen2.5:7b": "Qwen/Qwen2.5-7B-Instruct",
     "phi4": "microsoft/phi-4",
     "qwen3:14b": "Qwen/Qwen3-14B",
-    "qwen3:30b" : "Qwen/Qwen3-30B",
+    "qwen3:30b" : "Qwen/Qwen3-14B",
 }
 
 def parse():
@@ -118,14 +118,21 @@ class OllamaSummarizer(OpenAiSummarizer):
     def __init__(self, model: str = "llama3", type_sumarization: str = "large"):
         print(f"Using model for Ollama: {model}")
         self.model = model
+        num_ctx = 16384 - 2048  # Default context window size for Llama 3
+        if model in ["phi4", "qwen3:14b"]:
+            num_ctx = 2048  # Default context window size for Phi-4 and Qwen3 models
+        elif model == "qwen3:30b":
+            num_ctx = 2048
+
         self.llm = ChatOllama(
             model=model,
             temperature=0.7,  # Adjust temperature for more or less randomness
-            max_tokens=2048,  # Adjust max tokens based on your needs
+            max_tokens=1345,  # Adjust max tokens based on your needs
             top_p=0.8,  # Adjust top_p for nucleus sampling
             top_k=20,  # Adjust top_k for top-k sampling
             repetition_penalty=1.0,  # Adjust repetition penalty to avoid repetition
             seed=123,  # For reproducibility
+            num_ctx=num_ctx,  # Context window size
         )
         self.type_sumarization = type_sumarization
         self.qwens = ["qwen3:14b", "qwen3:30b"]

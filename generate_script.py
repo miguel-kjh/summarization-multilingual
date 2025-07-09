@@ -42,8 +42,9 @@ MODEL_NAMES = [
     #"unsloth/Llama-3.2-3B-Instruct",
     #"unsloth/Llama-3.2-3B",
     # basaline models
-    "unsloth/Llama-3.1-8B-Instruct",
-    "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+    #"unsloth/Llama-3.1-8B-Instruct",
+    #"unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+    "unsloth/Qwen3-8B"
 ]
 
 PEFT_TYPES = ["lora"]
