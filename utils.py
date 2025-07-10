@@ -61,12 +61,12 @@ INSTRUCTION_TEMPLATE = {
 
 SYSTEM_PROMPT = {
     "canario": "Eres un modelo entrenado para generar resúmenes institucionales de actas parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
-    "spanish": "Eres un modelo entrenado para generar resúmenes institucionales de actas parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
-    "english": "You are a model trained to generate institutional summaries of parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure.",
-    "german": "Sie sind ein Modell, das darauf trainiert ist, institutionelle Zusammenfassungen von Parlamentsprotokollen zu erstellen. Die Zusammenfassungen sollten in formeller Verwaltungssprache verfasst sein, ohne Werturteile, und einer klaren Struktur folgen.",
-    "french": "Vous êtes un modèle entraîné pour générer des résumés institutionnels des procès-verbaux parlementaires. Les résumés doivent être rédigés dans un langage formel-administratif, sans jugements de valeur, et suivre une structure claire.",
-    "italian": "Sei un modello addestrato per generare riassunti istituzionali dei verbali parlamentari. I riassunti devono essere redatti in linguaggio formale-amministrativo, senza giudizi di valore, e seguire una struttura chiara.",
-    "portuguese": "Você é um modelo treinado para gerar resumos institucionais de atas parlamentares. Os resumos devem ser escritos em linguagem formal-administrativa, sem julgamentos de valor, e seguir uma estrutura clara.",
+    "spanish": "Eres un modelo entrenado para generar resúmenes institucionales de actas legales y parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
+    "english": "You are a model trained to generate summaries of legal acts and parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure.",
+    "german": "Sie sind ein Modell, das darauf trainiert ist, institutionelle Zusammenfassungen von Parlamentsprotokollen und rechtlichen Sitzungsniederschriften zu erstellen. Die Zusammenfassungen sollten in formeller Verwaltungssprache verfasst sein, ohne Werturteile, und einer klaren Struktur folgen.",
+    "french": "Vous êtes un modèle entraîné pour générer des résumés institutionnels des procès-verbaux parlementaires et juridiques. Les résumés doivent être rédigés dans un langage formel-administratif, sans jugements de valeur, et suivre une structure claire.",
+    "italian": "Sei un modello addestrato per generare riassunti istituzionali dei verbali parlamentari e dei verbali legali. I riassunti devono essere redatti in linguaggio formale-amministrativo, senza giudizi di valore, e seguire una struttura chiara.",
+    "portuguese": "Você é um modelo treinado para gerar resumos institucionais de atas parlamentares e jurídicas. Os resumos devem ser escritos em linguagem formal-administrativa, sem julgamentos de valor, e seguir uma estrutura clara.",
 }
 
 
