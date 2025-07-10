@@ -71,6 +71,7 @@ class DocumentSummaryOpenAiEvaluator:
             ],
             max_tokens=5,
             temperature=0.7,
+            seed=123,  # For reproducibility
         )
         return response
 
