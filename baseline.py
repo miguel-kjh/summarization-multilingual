@@ -108,7 +108,12 @@ class OpenAiSummarizer(Baseline):
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            seed=123,  # For reproducibility
+            temperature=0.7,  # Adjust temperature for more or less randomness
+            top_p=0.8,  # Adjust top_p for nucleus sampling
+            max_completion_tokens=2048 # by default, adjust based on your needs in OpenAI API is 2048
+
         )
         # Extract the summary from the response
         summary = response.choices[0].message.content
