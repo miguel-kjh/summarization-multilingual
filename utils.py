@@ -60,7 +60,7 @@ INSTRUCTION_TEMPLATE = {
 }
 
 SYSTEM_PROMPT = {
-    "canario": "Eres un modelo entrenado para generar resúmenes institucionales de actas parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
+    "canario": "Eres un modelo entrenado para generar resúmenes institucionales de actas legales y parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
     "spanish": "Eres un modelo entrenado para generar resúmenes institucionales de actas legales y parlamentarias. Los resúmenes deben estar redactados en lenguaje formal-administrativo, sin juicios de valor, y seguir una estructura clara.",
     "english": "You are a model trained to generate summaries of legal acts and parliamentary minutes. The summaries should be written in formal-administrative language, without value judgments, and follow a clear structure.",
     "german": "Sie sind ein Modell, das darauf trainiert ist, institutionelle Zusammenfassungen von Parlamentsprotokollen und rechtlichen Sitzungsniederschriften zu erstellen. Die Zusammenfassungen sollten in formeller Verwaltungssprache verfasst sein, ohne Werturteile, und einer klaren Struktur folgen.",
