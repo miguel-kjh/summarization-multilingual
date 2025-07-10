@@ -117,6 +117,7 @@ class OpenAiSummarizer(Baseline):
         )
         # Extract the summary from the response
         summary = response.choices[0].message.content
+        print(f"Generated summary: {summary}")
         return summary
 
 from utils import SYSTEM_PROMPT, INSTRUCTION_TEMPLATE
@@ -277,20 +278,21 @@ def main():
         baseline = methods[args.method](args.model_name)
     # get a subset of the dataset
     # get tokenizer for the models 
-    tokenizer_name = TOKENIZER_FOR_MODELS.get(args.model_name, args.model_name)
-    if not tokenizer_name:
-        raise ValueError(f"Tokenizer not found for model '{args.model_name}'. Please specify a valid model name.")
-    print(f"Using tokenizer: {tokenizer_name}")
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    def count_tokens_in_dataset(example):
-        return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
-    dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
+    if args.method != "openai":
+        tokenizer_name = TOKENIZER_FOR_MODELS.get(args.model_name, args.model_name)
+        if not tokenizer_name:
+            raise ValueError(f"Tokenizer not found for model '{args.model_name}'. Please specify a valid model name.")
+        print(f"Using tokenizer: {tokenizer_name}")
+        tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+        def count_tokens_in_dataset(example):
+            return {"num_tokens": len(tokenizer(example["input"], add_special_tokens=False)["input_ids"])}
+        dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
     if not args.truncate:
         target_tokens = args.context_window - 2049
         data_for_testing = dataset["test"].filter(lambda x: x["num_tokens"] <= target_tokens)
         print(f"Filtering dataset to fit the context window: {target_tokens} tokens")
     else:
-        if args.method in ["ghic", "extractive", "kl", "lsa"]:
+        if args.method in ["ghic", "extractive", "kl", "lsa", "openai"]:
             data_for_testing = dataset["test"]
             print("No truncation needed for this method")
         else:

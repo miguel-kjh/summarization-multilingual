@@ -2,33 +2,24 @@
 
 # Lista de idiomas (MISMA ORDEN que en los datasets)
 declare -a languages=(
-    "canario"
-    #"spanish"
-    #"english"
-    #"french"
-    #"italian"
-    #"portuguese"
-    #"german"
+    #"canario"
+    "spanish"
+    "english"
+    "french"
+    "italian"
+    "portuguese"
+    "german"
 )
 
 # Cada posición corresponde al mismo índice en «languages»
 declare -a datasets=(
-    "data/02-processed/canario"
+    #"data/02-processed/canario"
     #"data/02-processed/spanish"
-    #"data/02-processed/english"
-    #"data/02-processed/french"
-    #"data/02-processed/italian"
-    #"data/02-processed/portuguese"
-    #"data/02-processed/german"
-)
-
-# Lista de modelos
-declare -a models=(
-    "qwen2.5:7b"
-    "llama3.1"
-    #"phi4"
-    #"qwen3:14b"
-    #"qwen3:30b"
+    "data/02-processed/english"
+    "data/02-processed/french"
+    "data/02-processed/italian"
+    "data/02-processed/portuguese"
+    "data/02-processed/german"
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -58,18 +49,10 @@ for i in "${!languages[@]}"; do
     #fi
 
     # Modelo OpenAI salvo en canario
-    #if [ "$lang" != "canario" ]; then
-        #python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini" --truncate True --context_window 128000
-        #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/openai" --dataset "$dataset" --method "truncate"
-    #fi
-
-    # Iterar sobre los modelos Ollama
-    for model_name in "${models[@]}"; do
-        echo "Procesando modelo: $model_name"
-        python3 baseline.py --dataset "$dataset" --method "ollama" --model_name "$model_name"
-        python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ollama/$model_name" --dataset "$dataset" --method "truncate" --recalcule_rouge True --use_openai False
-        ollama stop "$model_name"
-    done
+    if [ "$lang" != "canario" ]; then
+        python3 baseline.py --dataset "$dataset" --method "openai" --model_name "gpt-4o-mini" --truncate True --context_window 128000
+        python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/openai" --dataset "$dataset" --method "truncate" --use_openai False --recalcule_rouge True
+    fi
 
     echo "-------------------------------------------------------------------"
 done

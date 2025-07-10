@@ -62,23 +62,17 @@ def filter_df_by_token_len(
 
 if __name__ == "__main__":
     DATASET_NAMES = [
-        ("portuguese", "data/02-processed/portuguese"),
-        ("french", "data/02-processed/french") ,
-        ("italian", "data/02-processed/italian"),
-        ("german", "data/02-processed/german"),
-        ("english", "data/02-processed/english"),
+        #("portuguese", "data/02-processed/portuguese"),
+        #("french", "data/02-processed/french") ,
+        #("italian", "data/02-processed/italian"),
+        #("german", "data/02-processed/german"),
+        #("english", "data/02-processed/english"),
         ("spanish", "data/02-processed/spanish"),
-        ("canario", "data/02-processed/canario"),
+        #("canario", "data/02-processed/canario"),
     ]
 
     MODEL_NAMES = [
-        "models/others/data_02-processed_canario/unsloth/Qwen3-8B",
-        "models/others/data_02-processed_english/unsloth/Qwen3-8B",
-        "models/others/data_02-processed_french/unsloth/Qwen3-8B",
-        "models/others/data_02-processed_german/unsloth/Qwen3-8B",
-        "models/others/data_02-processed_italian/unsloth/Qwen3-8B",
-        "models/others/data_02-processed_portuguese/unsloth/Qwen3-8B",
-        "models/others/data_02-processed_spanish/unsloth/Qwen3-8B",
+        "models/baseline/spanish/openai",
     ]
 
     # Ejemplo de uso
