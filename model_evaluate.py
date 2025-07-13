@@ -213,13 +213,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/baseline/spanish/openai",
+        default="models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b2-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-07-13-11-56-19",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/spanish",
+        default="data/02-processed/english",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(
@@ -244,7 +244,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--use_openai",
         type=lambda x: bool(strtobool(x)),
-        default=True,
+        default=False,
         help="(Slow) Evaluate with GPT‑4 rubric as well",
     )
     parser.add_argument(

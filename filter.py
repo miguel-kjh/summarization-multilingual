@@ -14,7 +14,7 @@ def filter_df_by_token_len(
     output_excel: str = "test_summary_normal.xlsx",
     sheet_name: str = "Sheet1",
     split: str = "test",
-    tokenizer_name: str = "unsloth/Qwen3-8B",  # Cambia esto al nombre del tokenizer que estés usando
+    tokenizer_name: str = "Qwen/Qwen3-4B",  # Cambia esto al nombre del tokenizer que estés usando
     target_tokens: int = 14336,   # 14 336
 ) -> pd.DataFrame:
     """
@@ -66,13 +66,13 @@ if __name__ == "__main__":
         #("french", "data/02-processed/french") ,
         #("italian", "data/02-processed/italian"),
         #("german", "data/02-processed/german"),
-        #("english", "data/02-processed/english"),
-        ("spanish", "data/02-processed/spanish"),
+        ("english", "data/02-processed/english"),
+        #("spanish", "data/02-processed/spanish"),
         #("canario", "data/02-processed/canario"),
     ]
 
     MODEL_NAMES = [
-        "models/baseline/spanish/openai",
+        "models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b2-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-07-13-11-56-19",
     ]
 
     # Ejemplo de uso

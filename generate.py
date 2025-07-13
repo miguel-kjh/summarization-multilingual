@@ -16,17 +16,17 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="unsloth/Qwen3-8B", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b2-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-07-13-11-56-19", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
     parser.add_argument("--dataset", type=str, default="data/02-processed/english", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=16384, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
-    parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=False, help="Truncate the input to fit the context window")
+    parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=True, help="Truncate the input to fit the context window")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
     parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
-    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=True, help="Quantization")
+    parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
     parser.add_argument("--quant_cache", type=lambda x: bool(strtobool(x)), default=False, help="Quantization of cache")
     parser.add_argument("--gpu_memory_utilization", type=float, default=0.7, help="GPU memory utilization for model loading")
 
