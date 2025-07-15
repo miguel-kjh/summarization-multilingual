@@ -1,7 +1,7 @@
 import os
 import itertools
 
-FOR_TRAINING = False  # Set to True for training scripts, False for generation scripts
+FOR_TRAINING = True  # Set to True for training scripts, False for generation scripts
 
 # Constants that remain the same for all scripts
 CONSTANTS = {
@@ -12,8 +12,8 @@ CONSTANTS = {
     "learning_rate": 2e-4,
     "num_train_epochs": 2,
     "weight_decay": 0.0, 
-    "context_length": 16384,  # Default context length for most models
-    "quantization": True, 
+    "context_length": 8192,  # Default context length for most models
+    "quantization": False, 
     "wandb": True,
     "truncate": True,  # Set to True for truncation, False for normal generation
 }
@@ -23,19 +23,19 @@ MODEL_NAMES = [
     #"BSC-LT/salamandra-2b-instruct",
     # Lists for varying parameters
     # qwen 2.5
-    #"Qwen/Qwen2.5-0.5B-Instruct",
-    #"Qwen/Qwen2.5-0.5B",
-    #"Qwen/Qwen2.5-1.5B-Instruct",
-    #"Qwen/Qwen2.5-1.5B",
-    #"Qwen/Qwen2.5-3B-Instruct",
-    #"Qwen/Qwen2.5-3B",
+    "Qwen/Qwen2.5-0.5B-Instruct",
+    "Qwen/Qwen2.5-0.5B",
+    "Qwen/Qwen2.5-1.5B-Instruct",
+    "Qwen/Qwen2.5-1.5B",
+    "Qwen/Qwen2.5-3B-Instruct",
+    "Qwen/Qwen2.5-3B",
     # qwen 3
-    #"Qwen/Qwen3-0.6B",
-    #"Qwen/Qwen3-0.6B-Base",
-    #"Qwen/Qwen3-1.7B",
-    #"Qwen/Qwen3-1.7B-Base",
-    #"Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
-    #"Qwen/Qwen3-4B-Base",
+    "Qwen/Qwen3-0.6B",
+    "Qwen/Qwen3-0.6B-Base",
+    "Qwen/Qwen3-1.7B",
+    "Qwen/Qwen3-1.7B-Base",
+    "Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
+    "Qwen/Qwen3-4B-Base",
     # llama 3.2
     #"unsloth/Llama-3.2-1B-Instruct",
     #"unsloth/Llama-3.2-1B",
@@ -44,7 +44,7 @@ MODEL_NAMES = [
     # basaline models
     #"unsloth/Llama-3.1-8B-Instruct",
     #"unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
-    "unsloth/Qwen3-8B"
+    #"unsloth/Qwen3-8B"
 ]
 
 PEFT_TYPES = ["lora"]
@@ -56,7 +56,7 @@ DATASET_NAMES = [
     "data/02-processed/german",
     "data/02-processed/english",
     "data/02-processed/spanish",
-    "data/02-processed/canario",
+    #"data/02-processed/canario",
 ]
 
 # scripts funct
@@ -110,17 +110,19 @@ model_folder=$(python train.py \\
 python generate.py \\
     --model_name_or_path $model_folder \\
     --dataset $dataset_name \\
-    --context_window $context_length \\
+    --context_window 16384 \\
+    --truncate True \\
     --using_streamer False \\
-    --using_clustering False \\
     --rewrite False \\
+    --is_adapter True \\
     --max_new_tokens {max_new_tokens} \\
     --quantization $quantization \\
     
 python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
-    --method "normal" \\
+    --method "truncate" \\
+    --use_openai False \\
     --up False
     
 """
