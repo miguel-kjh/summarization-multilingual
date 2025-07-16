@@ -46,7 +46,26 @@ models_finetuned = {
         "models/unsloth/Llama-3.2-3B/canario/lora/Llama-3.2-3B-canario-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-18-28-10",
         "models/unsloth/Llama-3.2-3B-Instruct/canario/lora/Llama-3.2-3B-Instruct-canario-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-17-01-15-08",
     ], 
-    "english": [],
+    "english": [
+        "models/BSC-LT/salamandra-2b/english/lora/salamandra-2b-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-23-58-11",
+        "models/BSC-LT/salamandra-2b-instruct/english/lora/salamandra-2b-instruct-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-02-41-48",
+        "models/Qwen/Qwen2.5-0.5B/english/lora/Qwen2.5-0.5B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-22-25-34",
+        "models/Qwen/Qwen2.5-0.5B-Instruct/english/lora/Qwen2.5-0.5B-Instruct-english-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-13-47-05",
+        "models/Qwen/Qwen2.5-1.5B/english/lora/Qwen2.5-1.5B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-17-18-37-59",
+        "models/Qwen/Qwen2.5-1.5B-Instruct/english/lora/Qwen2.5-1.5B-Instruct-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-19-00-52",
+        "models/Qwen/Qwen2.5-3B/english/lora/Qwen2.5-3B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-02-26-31",
+        "models/Qwen/Qwen2.5-3B-Instruct/english/lora/Qwen2.5-3B-Instruct-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-02-46-25",
+        "models/Qwen/Qwen3-0.6B/english/lora/Qwen3-0.6B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-04-13-10",
+        "models/Qwen/Qwen3-0.6B-Base/english/lora/Qwen3-0.6B-Base-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-09-02-27",
+        "models/Qwen/Qwen3-1.7B/english/lora/Qwen3-1.7B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-14-19-16-53",
+        "models/Qwen/Qwen3-1.7B-Base/english/lora/Qwen3-1.7B-Base-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-15-16-41",
+        "models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-04-08-35",
+        "models/Qwen/Qwen3-4B-Base/english/lora/Qwen3-4B-Base-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-04-05-15",
+        "models/unsloth/Llama-3.2-1B/english/lora/Llama-3.2-1B-english-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-11-20-00",
+        "models/unsloth/Llama-3.2-1B-Instruct/english/lora/Llama-3.2-1B-Instruct-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-16-28-29",
+        "models/unsloth/Llama-3.2-3B/english/lora/Llama-3.2-3B-english-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-16-48-08",
+        "models/unsloth/Llama-3.2-3B-Instruct/english/lora/Llama-3.2-3B-Instruct-english-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-23-45-25",
+    ],
 
 }
 
@@ -115,26 +134,13 @@ def process_all_models(base_path: str) -> pd.DataFrame:
     generator = None
     if USE_FINETUNED:
         generator = models_finetuned.get(LANG, [])
-        if not generator:
-            print(f"[INFO] No hay modelos finetuneados para {LANG}. Usando modelos base.")
-    else:
-        generator = os.walk(base_path)
-
-    for root, dirs, files in tqdm.tqdm(generator, desc="Procesando modelos", unit="modelo"):
-        if any(fname in files for fname in filenames):
-            model_name = get_model_name_from_path(root)
-            if model_name in forbidden_models:
-                continue
-            df, file_path = load_dataframe(root, filenames)
+        for model_path in generator:
+            model_name = "/".join(model_path.split("/")[1:3])
+            df, file_path = load_dataframe(model_path, filenames)
             if df is None:
                 continue
-            try:
-                tokenizer = AutoTokenizer.from_pretrained(model_name)
-            except Exception as e:
-                print(f"[ERROR] No se pudo cargar tokenizer para {model_name}: {e}")
-                continue
             df = compute_token_lengths(df, tokenizer)
-            bertscore_path = os.path.join(root, bertscore_filename)
+            bertscore_path = os.path.join(model_path, bertscore_filename)
             if not os.path.exists(bertscore_path):
                 print(f"[WARNING] No se encontró BERTScore para {model_name}")
                 bertscore = None
@@ -143,6 +149,27 @@ def process_all_models(base_path: str) -> pd.DataFrame:
             metrics = build_metrics(model_name, df, bertscore)
             metrics["params"] = estimate_parameters(model_name)
             results.append(metrics)
+    else:
+        generator = os.walk(base_path)
+
+        for root, dirs, files in tqdm.tqdm(generator, desc="Procesando modelos", unit="modelo"):
+            if any(fname in files for fname in filenames):
+                model_name = get_model_name_from_path(root)
+                if model_name in forbidden_models:
+                    continue
+                df, file_path = load_dataframe(root, filenames)
+                if df is None:
+                    continue
+                df = compute_token_lengths(df, tokenizer)
+                bertscore_path = os.path.join(root, bertscore_filename)
+                if not os.path.exists(bertscore_path):
+                    print(f"[WARNING] No se encontró BERTScore para {model_name}")
+                    bertscore = None
+                else:
+                    bertscore = load_bertscore(bertscore_path)
+                metrics = build_metrics(model_name, df, bertscore)
+                metrics["params"] = estimate_parameters(model_name)
+                results.append(metrics)
 
     return pd.DataFrame(results)
 
@@ -188,7 +215,7 @@ def plot_metrics(df: pd.DataFrame, save_path: str = None):
 
 def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
     # Normalización para el color
-    norm = mcolors.Normalize(vmin=df["bertscore"].min(), vmax=df["bertscore"].max())
+    norm = mcolors.Normalize(vmin=40, vmax=90)
     colormap = cm.viridis  # Puedes cambiar a otra paleta como 'plasma', 'inferno', etc.
     sm = cm.ScalarMappable(cmap=colormap, norm=norm)
 
@@ -250,7 +277,10 @@ def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
 if __name__ == "__main__":
 
     base_models_path = f"models/others/data_02-processed_{LANG}"
-    output_file = os.path.join("metrics", "data", f"{LANG}_metrics_time.csv")
+    if not USE_FINETUNED:
+        output_file = os.path.join("metrics", "data", f"{LANG}_metrics_time.csv")
+    else:
+        output_file = os.path.join("metrics", "data", f"{LANG}_finetuned_metrics_time.csv")
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     if not os.path.exists(output_file):
@@ -265,7 +295,11 @@ if __name__ == "__main__":
     print(f"[INFO] Métricas guardadas en {output_file}")
 
     # Generar gráfica
-    plot_academic_scatter(df_all_metrics, save_path=f"metrics/data/{LANG}_metrics_plot.png")
+    if not USE_FINETUNED:
+        save_path = f"metrics/data/{LANG}_metrics_plot.png"
+    else:
+        save_path = f"metrics/data/{LANG}_finetuned_metrics_plot.png"
+    plot_academic_scatter(df_all_metrics, save_path=save_path)
     #plot_academic_scatter(df_all_metrics)
 
 
