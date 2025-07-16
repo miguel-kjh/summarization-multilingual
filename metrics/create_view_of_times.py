@@ -1,16 +1,54 @@
 import os
 import json
+import re
 import numpy as np
 import pandas as pd
 from transformers import AutoTokenizer
 import tqdm
 import matplotlib.pyplot as plt
 from adjustText import adjust_text  # <-- debes instalar esto: pip install adjustText
+from nltk.tokenize.toktok import ToktokTokenizer
+import string
 
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as mcolors
+import matplotlib.gridspec as gridspec
+import itertools
+
+tokenizer = ToktokTokenizer()
+punctuation = set(string.punctuation)  # !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+LANG = "canario"  # Puedes cambiar esto a "spanish", "french", etc.
+USE_FINETUNED = True  # Cambia a False si no quieres usar modelos finetuneados
 
 #delete warnings
 import warnings
 warnings.filterwarnings("ignore")
+
+models_finetuned = {
+    "canario": [
+        "models/BSC-LT/salamandra-2b/canario/lora/salamandra-2b-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-20-01-50-39",
+        "models/BSC-LT/salamandra-2b-instruct/canario/lora/salamandra-2b-instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-04-18-33",
+        "models/Qwen/Qwen2.5-0.5B/canario/lora/Qwen2.5-0.5B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-20-03-14-31",
+        "models/Qwen/Qwen2.5-0.5B-Instruct/canario/lora/Qwen2.5-0.5B-Instruct-canario-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-14-24-03",
+        "models/Qwen/Qwen2.5-1.5B/canario/lora/Qwen2.5-1.5B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-17-20-18-15",
+        "models/Qwen/Qwen2.5-1.5B-Instruct/canario/lora/Qwen2.5-1.5B-Instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-20-23-21",
+        "models/Qwen/Qwen2.5-3B/canario/lora/Qwen2.5-3B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-05-34-26",
+        "models/Qwen/Qwen2.5-3B-Instruct/canario/lora/Qwen2.5-3B-Instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-09-50-52",
+        "models/Qwen/Qwen3-0.6B/canario/lora/Qwen3-0.6B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-16-05-33-26",
+        "models/Qwen/Qwen3-0.6B-Base/canario/lora/Qwen3-0.6B-Base-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-10-22-11",
+        "models/Qwen/Qwen3-1.7B/canario/lora/Qwen3-1.7B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-14-20-59-42",
+        "models/Qwen/Qwen3-1.7B-Base/canario/lora/Qwen3-1.7B-Base-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-18-17-15-40",
+        "models/Qwen/Qwen3-4B/canario/lora/Qwen3-4B-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-11-03-09",
+        "models/Qwen/Qwen3-4B-Base/canario/lora/Qwen3-4B-Base-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-07-54-06",
+        "models/unsloth/Llama-3.2-1B/canario/lora/Llama-3.2-1B-canario-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-12-22-29",
+        "models/unsloth/Llama-3.2-1B-Instruct/canario/lora/Llama-3.2-1B-Instruct-canario-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-15-17-37-13",
+        "models/unsloth/Llama-3.2-3B/canario/lora/Llama-3.2-3B-canario-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-19-18-28-10",
+        "models/unsloth/Llama-3.2-3B-Instruct/canario/lora/Llama-3.2-3B-Instruct-canario-e1-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-17-01-15-08",
+    ], 
+    "english": [],
+
+}
 
 
 def get_model_name_from_path(folder_path: str) -> str:
@@ -27,14 +65,18 @@ def load_dataframe(folder: str, filenames: list[str]) -> tuple[pd.DataFrame, str
 
 def compute_token_lengths(df: pd.DataFrame, tokenizer) -> pd.DataFrame:
     df = df[df["generated_summary"].notna() & (df["generated_summary"] != "")]
-    df["input_len"] = df["generated_summary"].apply(lambda x: len(tokenizer(x).input_ids))
+    df["input_len"] = df["generated_summary"].apply(
+        lambda x: len([t for t in tokenizer.tokenize(x) if t not in punctuation])
+    )
     return df
 
 
 def load_bertscore(bertscore_path: str) -> float | None:
     with open(bertscore_path, "r") as f:
         data = json.load(f)
-    return data.get("canario", {}).get("bertscore", {}).get("bertscore_f1", None)
+    print(f"[INFO] Cargando BERTScore desde {bertscore_path}")
+    print(data)
+    return data.get(LANG, {}).get("bertscore", {}).get("bertscore_f1", None)
 
 
 def build_metrics(model: str, df: pd.DataFrame, bertscore: float) -> dict:
@@ -47,13 +89,17 @@ def build_metrics(model: str, df: pd.DataFrame, bertscore: float) -> dict:
 
 
 def estimate_parameters(model_name: str) -> float:
-    for part in model_name.split("/"):
-        if "B" in part:
-            try:
-                return float(part.lower().replace("b", "").replace("-", ""))
-            except ValueError:
-                continue
-    return 1.0  # fallback
+    """
+    Extrae el número de parámetros en miles de millones (B) desde el nombre del modelo.
+    Ejemplos: 'Qwen2.5-7B', 'LLaMA/3B', 'X/Y/Z/Qwen3-5B-Instruct' → 7.0, 3.0, 5.0, etc.
+    """
+    match = re.search(r"(\d+\.?\d*)[ -]?B", model_name, re.IGNORECASE)
+    if match:
+        try:
+            return float(match.group(1))
+        except ValueError:
+            pass
+    return 1.0  # valor por defecto si no se encuentra
 
 
 def process_all_models(base_path: str) -> pd.DataFrame:
@@ -64,9 +110,17 @@ def process_all_models(base_path: str) -> pd.DataFrame:
         "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"
     ]
     filenames = ["test_summary_truncate.xlsx", "test_summary_normal.xlsx"]
-    bertscore_filename = "result_metrics.json"
+    bertscore_filename = "truncate_result_metrics.json" if LANG != "canario" else "result_metrics.json"
 
-    for root, dirs, files in tqdm.tqdm(os.walk(base_path), desc="Procesando modelos", unit="modelo"):
+    generator = None
+    if USE_FINETUNED:
+        generator = models_finetuned.get(LANG, [])
+        if not generator:
+            print(f"[INFO] No hay modelos finetuneados para {LANG}. Usando modelos base.")
+    else:
+        generator = os.walk(base_path)
+
+    for root, dirs, files in tqdm.tqdm(generator, desc="Procesando modelos", unit="modelo"):
         if any(fname in files for fname in filenames):
             model_name = get_model_name_from_path(root)
             if model_name in forbidden_models:
@@ -108,7 +162,7 @@ def plot_metrics(df: pd.DataFrame, save_path: str = None):
         y_jitter,
         s=df["params"] * 80,
         c=df["bertscore"],
-        cmap="coolwarm",
+        cmap="viridis",
         alpha=0.85,
         edgecolors='none'
     )
@@ -132,19 +186,87 @@ def plot_metrics(df: pd.DataFrame, save_path: str = None):
         print(f"[INFO] Gráfica guardada en {save_path}")
     plt.show()
 
+def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
+    # Normalización para el color
+    norm = mcolors.Normalize(vmin=df["bertscore"].min(), vmax=df["bertscore"].max())
+    colormap = cm.viridis  # Puedes cambiar a otra paleta como 'plasma', 'inferno', etc.
+    sm = cm.ScalarMappable(cmap=colormap, norm=norm)
+
+    # Marcadores únicos por modelo
+    markers = itertools.cycle(('o', 's', '^', 'D', 'P', 'X', '*', 'v', '<', '>', 'h', 'H', '8'))
+
+    # Layout con espacio para leyenda y barra
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(2, 2, width_ratios=[4, 1], height_ratios=[10, 0.5], wspace=0.3, hspace=0.3)
+
+    ax_main = fig.add_subplot(gs[0, 0])
+    handles = []
+
+    # Dibujar puntos por modelo con marcador único
+    for _, row in df.iterrows():
+        marker = next(markers)
+        color = colormap(norm(row["bertscore"]))
+        scatter = ax_main.scatter(
+            row["mean_time"],
+            row["mean_tokens"],
+            color=color,
+            marker=marker,
+            s=100,
+            edgecolor='black',
+            alpha=0.8,
+            label=row["model"]
+        )
+        handles.append((scatter, row["model"]))
+
+    # Configuración de ejes
+    ax_main.set_xlabel("Mean Times (seg)", fontsize=12)
+    ax_main.set_ylabel("Mean Words", fontsize=12)
+    ax_main.grid(True)
+
+    # Leyenda en el panel derecho
+    handles = sorted(handles, key=lambda x: x[1])
+    ax_legend = fig.add_subplot(gs[0, 1])
+    ax_legend.axis("off")
+    ax_legend.legend(
+        [h[0] for h in handles],
+        [h[1] for h in handles],
+        loc="upper left",
+        fontsize=9,
+        title="Modelos"
+    )
+
+    # Barra de color horizontal
+    ax_cbar = fig.add_subplot(gs[1, 0])
+    cbar = plt.colorbar(sm, cax=ax_cbar, orientation='horizontal')
+    cbar.set_label("BERTScore")
+
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        print(f"[INFO] Gráfica guardada en {save_path}")
+    plt.show()
+
 
 if __name__ == "__main__":
-    base_models_path = "models/others/data_02-processed_canario"
-    df_all_metrics = process_all_models(base_models_path)
 
-    # Guardar CSV
-    output_file = os.path.join("metrics", "data", "canario_metrics_time.csv")
+    base_models_path = f"models/others/data_02-processed_{LANG}"
+    output_file = os.path.join("metrics", "data", f"{LANG}_metrics_time.csv")
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    if not os.path.exists(output_file):
+        df_all_metrics = process_all_models(base_models_path)
+    else:
+        df_all_metrics = pd.read_csv(output_file)
+
+    print(df_all_metrics.head())
+
+    # Guardar CSV    
     df_all_metrics.to_csv(output_file, index=False)
     print(f"[INFO] Métricas guardadas en {output_file}")
 
     # Generar gráfica
-    plot_metrics(df_all_metrics, save_path="metrics/data/canario_metrics_plot.png")
+    plot_academic_scatter(df_all_metrics, save_path=f"metrics/data/{LANG}_metrics_plot.png")
+    #plot_academic_scatter(df_all_metrics)
 
 
 

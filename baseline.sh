@@ -3,8 +3,8 @@
 # Lista de idiomas (MISMA ORDEN que en los datasets)
 declare -a languages=(
     #"canario"
+    #"english"
     "spanish"
-    "english"
     "french"
     "italian"
     "portuguese"
@@ -14,8 +14,8 @@ declare -a languages=(
 # Cada posición corresponde al mismo índice en «languages»
 declare -a datasets=(
     #"data/02-processed/canario"
-    #"data/02-processed/spanish"
-    "data/02-processed/english"
+    #"data/02-processed/english"
+    "data/02-processed/spanish"
     "data/02-processed/french"
     "data/02-processed/italian"
     "data/02-processed/portuguese"

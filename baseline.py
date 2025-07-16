@@ -117,7 +117,6 @@ class OpenAiSummarizer(Baseline):
         )
         # Extract the summary from the response
         summary = response.choices[0].message.content
-        print(f"Generated summary: {summary}")
         return summary
 
 from utils import SYSTEM_PROMPT, INSTRUCTION_TEMPLATE

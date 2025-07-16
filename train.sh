@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Model architecture
-model_name="Qwen/Qwen3-4B"  # Qwen/Qwen2.5-1.5B-Instruct, Qwen/Qwen2.5-7B-Instruct, Qwen/Qwen2.5-14B-Instruct
+model_name="Qwen/Qwen2.5-3B-Instruct"
 
 # PEFT and quantization
 peft_type="lora"  # lora, dora, vera, loha, lokr
@@ -16,11 +16,11 @@ learning_rate=0.0002
 num_train_epochs=2
 weight_decay=0.0
 context_length=8192
-eval_steps=100  # Define eval_steps if needed
+eval_steps=1000  # Define eval_steps if needed
 
 # Data
-dataset_name="data/02-processed/tiny_improved"
-wandb=False
+dataset_name="data/02-processed/spanish"
+wandb=True
 
 # Run
 model_folder=$(python train.py \
@@ -42,17 +42,17 @@ model_folder=$(python train.py \
 python generate.py \
     --model_name_or_path $model_folder \
     --dataset $dataset_name \
-    --is_adapter True \
-    --context_window 10000 \
+    --context_window 16384 \
+    --truncate True \
     --using_streamer False \
-    --using_clustering False \
     --rewrite False \
+    --is_adapter True \
     --max_new_tokens 2048 \
     --quantization $quantization \
     
 python model_evaluate.py \
     --model $model_folder \
     --verbose True \
-    --method "normal" \
+    --method "truncate" \
+    --use_openai False \
     --up False
-    
