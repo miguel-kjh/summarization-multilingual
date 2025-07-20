@@ -130,5 +130,5 @@ if __name__ == "__main__":
             print(f"Error procesando {directory}: {e}")
             continue
         print(f"Resultados encontrados: {results}")
-        #save_to_excel(results, output_excel)
-        #print(f"Resultados guardados en {output_excel}")
+        save_to_excel(results, output_excel)
+        print(f"Resultados guardados en {output_excel}")

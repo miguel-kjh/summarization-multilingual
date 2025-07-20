@@ -1,11 +1,12 @@
 
 import argparse
 import os
+import random
 import pandas as pd
 from unsloth import FastLanguageModel
 import torch
 from evaluation.summary_generator import SummaryGenerator
-from datasets import load_from_disk
+from datasets import load_from_disk, concatenate_datasets
 
 
 from distutils.util import strtobool
@@ -16,19 +17,20 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b2-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-07-13-11-56-19", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-4B", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/english", help="Dataset path")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=16384, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=True, help="Truncate the input to fit the context window")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
-    parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
+    parser.add_argument("--max_new_tokens", type=int, default=1024, help="Maximum number of new tokens")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
     parser.add_argument("--quant_cache", type=lambda x: bool(strtobool(x)), default=False, help="Quantization of cache")
     parser.add_argument("--gpu_memory_utilization", type=float, default=0.7, help="GPU memory utilization for model loading")
+    parser.add_argument("--batch_size", type=int, default=128, help="Batch size for generation")
 
 
     return parser.parse_args()
@@ -129,12 +131,14 @@ if __name__ == '__main__':
             enable_thinking = False, # Disable thinking
         )
     
+    dataset["validation"] = dataset["validation"].map(lambda x: {"prompt": formatting_func_inference(x)})
     dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_func_inference(x)})
         
 
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["prompt"], add_special_tokens=False)["input_ids"])}
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
+    dataset["validation"] = dataset["validation"].map(count_tokens_in_dataset)
     ##########
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -166,6 +170,20 @@ if __name__ == '__main__':
             print(f"Filtered dataset to {len(dataset['test'])} samples with num_tokens <= {target_tokens}")
         else:
             print(f"Using all samples in dataset but truncating them to {target_tokens} tokens")
+            if args.dataset == "data/02-processed/canario":
+                random.seed(SEED)
+                num_test_actual = len(dataset['test'])
+                num_needed = 500 - num_test_actual
+
+                validation_indices = list(range(len(dataset['validation'])))
+                random.shuffle(validation_indices)
+                selected_indices = validation_indices[:num_needed]
+
+                # Seleccionamos los primeros `num_needed` ejemplos del validation
+                validation_to_add = dataset['validation'].select(selected_indices)
+
+                # Creamos el nuevo conjunto de test con 500 ejemplos
+                dataset['test'] = concatenate_datasets([dataset['test'], validation_to_add])
         
         num_samples = len(dataset["test"])
         print("#"*10, "Normal summarization", "#"*10)
@@ -176,6 +194,7 @@ if __name__ == '__main__':
             max_new_tokens=args.max_new_tokens,
             temperature=0.7,
             adapter_name=args.model_name_or_path if args.is_adapter else "",
+            batch_size=args.batch_size,  # Batch size of 1 for simplicity
         )
     
         df_summary = pd.DataFrame(summaries)

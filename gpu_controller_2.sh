@@ -22,7 +22,7 @@ for SCRIPT in "$SCRIPTS_DIR"/*.sh; do
         EXIT_CODE=$?
 
         # Eliminar el script tras ejecutarlo
-        rm -f "$SCRIPT"
+        #rm -f "$SCRIPT"
     fi
 # Esperar antes de volver a revisar si hay nuevos scripts (opcional)
 # sleep 5

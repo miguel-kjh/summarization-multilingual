@@ -20,6 +20,8 @@ tokenizer = ToktokTokenizer()
 punctuation = set(string.punctuation)  # !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 LANG = "canario"  # Puedes cambiar esto a "spanish", "french", etc.
 USE_FINETUNED = True  # Cambia a False si no quieres usar modelos finetuneados
+EXTRACTIVE = 72
+LLM = 73
 
 #delete warnings
 import warnings
@@ -214,24 +216,28 @@ def plot_metrics(df: pd.DataFrame, save_path: str = None):
     plt.show()
 
 def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
-    # Normalización para el color
+    # Normalización y paleta fijas
     norm = mcolors.Normalize(vmin=40, vmax=90)
-    colormap = cm.viridis  # Puedes cambiar a otra paleta como 'plasma', 'inferno', etc.
+    colormap = cm.viridis
     sm = cm.ScalarMappable(cmap=colormap, norm=norm)
 
-    # Marcadores únicos por modelo
-    markers = itertools.cycle(('o', 's', '^', 'D', 'P', 'X', '*', 'v', '<', '>', 'h', 'H', '8'))
+    # Asignar un símbolo único a cada modelo
+    available_markers = [
+        'o', 's', '^', 'D', 'P', 'X', '*', 'v', '<', '>', 'h', 'H', '8', '1', '2', '3', '4', '|'
+    ]
+    unique_models = sorted(df["model"].unique())
+    model_to_marker = {model: available_markers[i % len(available_markers)] for i, model in enumerate(unique_models)}
 
-    # Layout con espacio para leyenda y barra
+    # Crear figura y layout
     fig = plt.figure(figsize=(15, 10))
     gs = gridspec.GridSpec(2, 2, width_ratios=[4, 1], height_ratios=[10, 0.5], wspace=0.3, hspace=0.3)
 
     ax_main = fig.add_subplot(gs[0, 0])
     handles = []
 
-    # Dibujar puntos por modelo con marcador único
+    # Dibujar puntos con símbolo fijo por modelo
     for _, row in df.iterrows():
-        marker = next(markers)
+        marker = model_to_marker[row["model"]]
         color = colormap(norm(row["bertscore"]))
         scatter = ax_main.scatter(
             row["mean_time"],
@@ -245,12 +251,13 @@ def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
         )
         handles.append((scatter, row["model"]))
 
-    # Configuración de ejes
-    ax_main.set_xlabel("Mean Times (seg)", fontsize=12)
-    ax_main.set_ylabel("Mean Words", fontsize=12)
+    # Configurar ejes y título
+    ax_main.set_xlabel("Mean Times", fontsize=12)
+    ax_main.set_ylabel("Longitud media del resumen (palabras)", fontsize=12)
+    ax_main.set_title("Comparación de modelos: tiempo vs longitud con calidad (BERTScore)", fontsize=14)
     ax_main.grid(True)
 
-    # Leyenda en el panel derecho
+    # Leyenda a la derecha
     handles = sorted(handles, key=lambda x: x[1])
     ax_legend = fig.add_subplot(gs[0, 1])
     ax_legend.axis("off")
@@ -262,6 +269,7 @@ def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
         title="Modelos"
     )
 
+
     # Barra de color horizontal
     ax_cbar = fig.add_subplot(gs[1, 0])
     cbar = plt.colorbar(sm, cax=ax_cbar, orientation='horizontal')
@@ -271,7 +279,108 @@ def plot_academic_scatter(df: pd.DataFrame, save_path: str = None):
     if save_path:
         plt.savefig(save_path, bbox_inches='tight')
         print(f"[INFO] Gráfica guardada en {save_path}")
+
     plt.show()
+
+def plot_score_vs_length(df):
+    # Paleta de colores para modelos (20 colores diferentes)
+    cmap = plt.get_cmap("tab20")
+    unique_models = sorted(df["model"].unique())
+
+    # Verificar que hay suficientes marcadores y colores
+    markers = ['o', 's', '^', 'D', 'P', 'X', '*', 'v', '<', '>', 'h', 'H', '8', '1', '2', '3', '4', '|', '_', '+']
+    if len(unique_models) > len(markers):
+        raise ValueError("No hay suficientes marcadores únicos para todos los modelos.")
+
+    model_to_marker = {model: markers[i] for i, model in enumerate(unique_models)}
+    model_to_color = {model: cmap(i % 20) for i, model in enumerate(unique_models)}
+
+    # Preparar figura
+    fig = plt.figure(figsize=(15, 10))
+    gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1], wspace=0.3)
+
+    ax_main = fig.add_subplot(gs[0])
+    handles = []
+
+    for _, row in df.iterrows():
+        marker = model_to_marker[row["model"]]
+        color = model_to_color[row["model"]]
+        point = ax_main.scatter(
+            row["mean_tokens"],
+            row["bertscore"],
+            color=color,
+            marker=marker,
+            s=100,
+            edgecolor='black',
+            alpha=0.9
+        )
+        handles.append((point, row["model"]))
+
+    # Ejes y título
+    ax_main.set_xlabel("Longitud media del resumen (palabras)", fontsize=12)
+    ax_main.set_ylabel("BERTScore (%)", fontsize=12)
+    ax_main.set_title("Relación entre longitud del resumen y calidad (BERTScore)", fontsize=14)
+    ax_main.grid(True)
+
+    # Leyenda
+    ax_legend = fig.add_subplot(gs[1])
+    ax_legend.axis("off")
+    handles = sorted(handles, key=lambda x: x[1])
+    ax_legend.legend(
+        [h[0] for h in handles],
+        [h[1] for h in handles],
+        loc="upper left",
+        fontsize=9,
+        title="Modelos"
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_histogram_by_score(df, save_path: str = None):
+    # Ordenar por BERTScore descendente
+    df_sorted = df.sort_values(by="bertscore", ascending=True)
+
+    # Colores en función del BERTScore
+    norm = mcolors.Normalize(vmin=40, vmax=85)
+    colormap = cm.viridis
+    colors = [colormap(norm(score)) for score in df_sorted["bertscore"]]
+
+    # Crear figura
+    plt.figure(figsize=(14, 8))
+    bars = plt.bar(
+        df_sorted["model"],
+        df_sorted["mean_tokens"],
+        color=colors,
+        edgecolor="black"
+    )
+
+    # Añadir texto del BERTScore encima de cada barra
+    for bar, score in zip(bars, df_sorted["bertscore"]):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, height + 1,
+                 f"{score:.1f}", ha='center', va='bottom', fontsize=9)
+
+    # Etiquetas y estilo
+    plt.xticks(rotation=45, ha="right", fontsize=9)
+    plt.ylabel("Summary Length", fontsize=12)
+
+    # Colorbar
+    sm = cm.ScalarMappable(cmap=colormap, norm=norm)
+    sm.set_array([])
+    ax = plt.gca()
+    cbar = plt.colorbar(sm, ax=ax)
+    cbar.set_label("BERTScore")
+
+
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        print(f"[INFO] Gráfica guardada en {save_path}")
+    plt.show()
+
+
 
 
 if __name__ == "__main__":
@@ -299,8 +408,9 @@ if __name__ == "__main__":
         save_path = f"metrics/data/{LANG}_metrics_plot.png"
     else:
         save_path = f"metrics/data/{LANG}_finetuned_metrics_plot.png"
-    plot_academic_scatter(df_all_metrics, save_path=save_path)
+    #plot_academic_scatter(df_all_metrics, save_path=save_path)
     #plot_academic_scatter(df_all_metrics)
+    plot_histogram_by_score(df_all_metrics, save_path=save_path)
 
 
 

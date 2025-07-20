@@ -2,6 +2,7 @@ from collections import defaultdict
 import json
 import os
 import argparse
+from time import sleep
 import numpy as np
 from datasets import load_from_disk
 from tqdm import tqdm
@@ -174,7 +175,9 @@ def main(
                     openai_scores["average"].append(calculate_weighted_mean(openai_res))
                 except Exception as exc:
                     print(f"⚠️  Error evaluating {lang}: {exc}")
+                    #sleep(5)  # avoid hitting the OpenAI API too hard
 
+            #sleep(2)  # avoid hitting the OpenAI API too hard
             # Write averaged OpenAI metrics (overwrite if present)
             metrics[lang]["coherence"] = float(np.mean(openai_scores["coherence"]))
             metrics[lang]["consistency"] = float(np.mean(openai_scores["consistency"]))
@@ -213,13 +216,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/Qwen/Qwen3-4B/english/lora/Qwen3-4B-english-e2-b2-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-07-13-11-56-19",
+        default="models/others/data_02-processed_canario/Qwen/Qwen3-4B",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/english",
+        default="data/02-processed/canario",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(
@@ -237,14 +240,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--method",
         type=str,
-        default="normal",
+        default="truncate",
         choices=["normal", "truncate"],
         help="Post‑processing method used when the summaries were generated",
     )
     parser.add_argument(
         "--use_openai",
         type=lambda x: bool(strtobool(x)),
-        default=False,
+        default=True,
         help="(Slow) Evaluate with GPT‑4 rubric as well",
     )
     parser.add_argument(
