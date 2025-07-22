@@ -145,6 +145,7 @@ def main(
             metrics[lang]["times(sec)"] = f"{np.mean(times):.2f} ± {np.std(times, ddof=1):.2f}"
             metrics[lang]["rouge"] = results["rouge"]
             metrics[lang]["bertscore"] = results["bertscore"]
+            print(f"  metrics[lang]: {metrics[lang]}")
 
         # ------------------------------------------------------------------
         # 4b)  Always recompute the OpenAI‑based metrics (the expensive part).
@@ -216,13 +217,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/others/data_02-processed_canario/Qwen/Qwen3-4B",
+        default="models/others/data_02-processed_french/unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/canario",
+        default="data/02-processed/french",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(

@@ -1,6 +1,7 @@
 import os
 import json
 import argparse
+import random
 from tqdm import tqdm
 from datasets import load_from_disk, DatasetDict, concatenate_datasets
 
@@ -8,7 +9,7 @@ from baseline import OpenAiSummarizer
 from data_preprare.transform_data import TransformData, TransformDataCanario
 from data_preprare.generate_data_stats import StatsGenerator
 from data_preprare.download_dataset import download_dataset, download_canary_parlament
-from utils import LANGUAGES, RAW_DATA_FOLDER,  FILE_STATS, PROCESS_DATA_FOLDER, COMBINED_DATA_FOLDER
+from utils import LANGUAGES, RAW_DATA_FOLDER,  FILE_STATS, PROCESS_DATA_FOLDER, COMBINED_DATA_FOLDER, SEED
 
 def download():
     for lang in LANGUAGES:
@@ -58,6 +59,19 @@ def process_canary():
         print(f"Processing {split} split for canario")
         instructions = transform.generate_instructions(dataset[split])
         dataset_dict[split] = instructions
+    random.seed(SEED)
+    num_test_actual = len(dataset_dict['test'])
+    num_needed = 509 - num_test_actual
+
+    validation_indices = list(range(len(dataset_dict['validation'])))
+    random.shuffle(validation_indices)
+    selected_indices = validation_indices[:num_needed]
+
+    # Seleccionamos los primeros `num_needed` ejemplos del validation
+    validation_to_add = dataset_dict['validation'].select(selected_indices)
+
+    # Creamos el nuevo conjunto de test con 500 ejemplos
+    dataset_dict['test'] = concatenate_datasets([dataset_dict['test'], validation_to_add])
     dataset_dict.save_to_disk(dataset_it_name)
 
 def combine():

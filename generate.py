@@ -17,19 +17,20 @@ from utils import CONTEXT_WINDOWS, seed_everything, SEED
 def parse():
     parser = argparse.ArgumentParser(description="Script to generate summaries")
 
-    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-4B", help="Model name")
+    parser.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name")
     parser.add_argument("--is_adapter", type=lambda x: bool(strtobool(x)), default=False, help="Is adapter model")
-    parser.add_argument("--dataset", type=str, default="data/02-processed/canario", help="Dataset path")
+    parser.add_argument("--dataset", type=str, default="data/02-processed/english", help="Dataset path")
     parser.add_argument("--context_window", type=int, default=16384, help="Context window size")
     parser.add_argument("--using_streamer", type=lambda x: bool(strtobool(x)), default=False, help="Use streamer for generation")
     parser.add_argument("--truncate", type=lambda x: bool(strtobool(x)), default=True, help="Truncate the input to fit the context window")
     parser.add_argument("--rewrite", type=lambda x: bool(strtobool(x)), default=False, help="Rewrite the summaries")
 
     parser.add_argument("--data_sample", type=int, default=10, help="Size of the data sample")
-    parser.add_argument("--max_new_tokens", type=int, default=1024, help="Maximum number of new tokens")
+    parser.add_argument("--max_new_tokens", type=int, default=2048, help="Maximum number of new tokens")
     parser.add_argument("--quantization", type=lambda x: bool(strtobool(x)), default=False, help="Quantization")
     parser.add_argument("--quant_cache", type=lambda x: bool(strtobool(x)), default=False, help="Quantization of cache")
     parser.add_argument("--gpu_memory_utilization", type=float, default=0.7, help="GPU memory utilization for model loading")
+    parser.add_argument("--enable_thinking", type=lambda x: bool(strtobool(x)), default=False, help="Enable thinking in the model")
     parser.add_argument("--batch_size", type=int, default=128, help="Batch size for generation")
 
 
@@ -75,6 +76,9 @@ def create_model_and_tokenizer(args):
 if __name__ == '__main__':
     seed_everything(SEED)
     args = parse()
+    dataset = load_from_disk(args.dataset)
+    print(f"Dataset loaded from {args.dataset}")
+    print(f"Acticate thinking: {args.enable_thinking}")
     name_df = f"test_summary_{'truncate' if args.truncate else 'normal'}.xlsx"
     target_tokens = args.context_window - args.max_new_tokens
 
@@ -96,7 +100,6 @@ if __name__ == '__main__':
     tokenizer, model = create_model_and_tokenizer(args)
     FastLanguageModel.for_inference(model)
 
-    dataset = load_from_disk(args.dataset)
 
     ##########
     # Create prompts
@@ -128,17 +131,15 @@ if __name__ == '__main__':
             messages, 
             tokenize=False,
             add_generation_prompt = True, # Must add for generation
-            enable_thinking = False, # Disable thinking
+            enable_thinking = args.enable_thinking,  # Enable thinking in the model
         )
     
-    dataset["validation"] = dataset["validation"].map(lambda x: {"prompt": formatting_func_inference(x)})
     dataset["test"] = dataset["test"].map(lambda x: {"prompt": formatting_func_inference(x)})
         
 
     def count_tokens_in_dataset(example):
         return {"num_tokens": len(tokenizer(example["prompt"], add_special_tokens=False)["input_ids"])}
     dataset["test"] = dataset["test"].map(count_tokens_in_dataset)
-    dataset["validation"] = dataset["validation"].map(count_tokens_in_dataset)
     ##########
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -170,20 +171,6 @@ if __name__ == '__main__':
             print(f"Filtered dataset to {len(dataset['test'])} samples with num_tokens <= {target_tokens}")
         else:
             print(f"Using all samples in dataset but truncating them to {target_tokens} tokens")
-            if args.dataset == "data/02-processed/canario":
-                random.seed(SEED)
-                num_test_actual = len(dataset['test'])
-                num_needed = 500 - num_test_actual
-
-                validation_indices = list(range(len(dataset['validation'])))
-                random.shuffle(validation_indices)
-                selected_indices = validation_indices[:num_needed]
-
-                # Seleccionamos los primeros `num_needed` ejemplos del validation
-                validation_to_add = dataset['validation'].select(selected_indices)
-
-                # Creamos el nuevo conjunto de test con 500 ejemplos
-                dataset['test'] = concatenate_datasets([dataset['test'], validation_to_add])
         
         num_samples = len(dataset["test"])
         print("#"*10, "Normal summarization", "#"*10)

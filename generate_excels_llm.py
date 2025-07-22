@@ -21,6 +21,8 @@ def find_and_read_json(base_dir, max_depth):
                         results[model] = data
                 except Exception as e:
                     print(f"Error leyendo {json_path}: {e}")
+                if "canario" in model:
+                    continue
             else:
                 if "result_metrics.json" in files:
                     print(f"\"{model}\",")

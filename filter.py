@@ -14,8 +14,8 @@ def filter_df_by_token_len(
     output_excel: str = "test_summary_normal.xlsx",
     sheet_name: str = "Sheet1",
     split: str = "test",
-    tokenizer_name: str = "Qwen/Qwen3-4B-Base",  # Cambia esto al nombre del tokenizer que estés usando
-    target_tokens: int = 14336,   # 14 336
+    tokenizer_name: str = "BSC-LT/salamandra-2b-instruct",  # Cambia esto al nombre del tokenizer que estés usando
+    target_tokens: int = 8192 -1300,  # Longitud máxima de tokens
 ) -> pd.DataFrame:
     """
     Lee un Excel con la columna 'expected_summary', busca en el dataset el
@@ -52,6 +52,8 @@ def filter_df_by_token_len(
     df["input_len"] = df["expected_summary"].map(lookup)
     df_filtered = df[df["input_len"].notna() & (df["input_len"] <= target_tokens)].reset_index(drop=True)
 
+    print(f"Filtrado: {len(df_filtered)} filas con longitud de tokens ≤ {target_tokens}")
+
     # ── 6) Guardar y devolver ────────────────────────────────────────────────
     output_path = os.path.join(base_dir, output_excel)
     df_filtered.to_excel(output_path, index=False)
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     ]
 
     MODEL_NAMES = [
-        "models/others/data_02-processed_english/Qwen/Qwen3-4B-Base",
+        "models/others/data_02-processed_canario/BSC-LT/salamandra-2b-instruct",
     ]
 
     # Ejemplo de uso

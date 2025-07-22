@@ -71,7 +71,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
-    --use_openai False \\
+    --use_openai True \\
     --method "truncate" \\
     --up False
 """
@@ -87,7 +87,7 @@ for (model_name, dataset_name) in itertools.product(MODEL_NAMES, DATASET_NAMES):
     if lang not in model_name:
         continue
     folder_data = dataset_name[1]
-    max_new_tokens = 1024 if "canario" in dataset_name else 2048
+    max_new_tokens = 1300 if "canario" in dataset_name else 2048
     if "salamandra" in model_name:
         CONSTANTS['context_length'] = 8192
     else:

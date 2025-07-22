@@ -34,7 +34,7 @@ MODEL_NAMES = [
     "Qwen/Qwen3-0.6B-Base",
     "Qwen/Qwen3-1.7B",
     "Qwen/Qwen3-1.7B-Base",
-    #"Qwen/Qwen3-4B", # TODO: falta 4b -> activar kv de 8bits
+    "Qwen/Qwen3-4B",
     "Qwen/Qwen3-4B-Base",
     # llama 3.2
     "unsloth/Llama-3.2-1B-Instruct",
@@ -165,7 +165,7 @@ def for_generation(model_name, dataset_name, max_new_tokens):
     python model_evaluate.py \\
     --model $model_folder \\
     --verbose True \\
-    --use_openai False \\
+    --use_openai True \\
     --method $method \\
     --up False
 """
@@ -176,7 +176,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Generate a script for each combination of model, PEFT type, and dataset
 for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODEL_NAMES, PEFT_TYPES, DATASET_NAMES)):
-    max_new_tokens = 1024 if "canario" in dataset_name else 2048
+    max_new_tokens = 1300 if "canario" in dataset_name else 2048
     eval_steps = 1000 
     simple_name = model_name.split("/")[-1]
     script_filename = os.path.join(output_dir, f"generate_{i+1}_{simple_name}_{peft_type}.sh")

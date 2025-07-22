@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Ruta donde están los scripts que quieres ejecutar
-chmod +x scripts_2/*.sh
+chmod +x scripts_1/*.sh
 
-SCRIPTS_DIR="./scripts_2"
-LOG_DIR="./logs_2"
+SCRIPTS_DIR="./scripts_1"
+LOG_DIR="./logs_1"
 
 # Crear carpeta de logs si no existe
 mkdir -p "$LOG_DIR"

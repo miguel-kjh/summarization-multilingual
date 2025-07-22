@@ -1,6 +1,7 @@
 import os
+import random
 import time
-from datasets import load_from_disk
+from datasets import load_from_disk, concatenate_datasets
 import pandas as pd
 from summarizer import Summarizer
 from tqdm import tqdm
@@ -119,7 +120,7 @@ class OpenAiSummarizer(Baseline):
         summary = response.choices[0].message.content
         return summary
 
-from utils import SYSTEM_PROMPT, INSTRUCTION_TEMPLATE
+from utils import SEED, SYSTEM_PROMPT, INSTRUCTION_TEMPLATE
 class OllamaSummarizer(OpenAiSummarizer):
     def __init__(self, model: str = "llama3", type_sumarization: str = "large"):
         print(f"Using model for Ollama: {model}")

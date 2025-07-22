@@ -2,24 +2,24 @@
 
 # Lista de idiomas (MISMA ORDEN que en los datasets)
 declare -a languages=(
-    #"canario"
-    "english"
-    "spanish"
-    "french"
-    "italian"
-    "portuguese"
-    "german"
+    "canario"
+    #"english"
+    #"spanish"
+    #"french"
+    #"italian"
+    #"portuguese"
+    #"german"
 )
 
 # Cada posición corresponde al mismo índice en «languages»
 declare -a datasets=(
-    #"data/02-processed/canario"
-    "data/02-processed/english"
-    "data/02-processed/spanish"
-    "data/02-processed/french"
-    "data/02-processed/italian"
-    "data/02-processed/portuguese"
-    "data/02-processed/german"
+    "data/02-processed/canario"
+    #"data/02-processed/english"
+    #"data/02-processed/spanish"
+    #"data/02-processed/french"
+    #"data/02-processed/italian"
+    #"data/02-processed/portuguese"
+    #"data/02-processed/german"
 )
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -32,15 +32,16 @@ for i in "${!languages[@]}"; do
     echo "Procesando idioma: $lang   |   Dataset: $dataset"
 
     #python3 baseline.py --dataset "$dataset" --method "textranking" --truncate True --context_window 200000
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/textranking/qwen2.5:0.5b" --dataset "$dataset" --method "normal"
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/textranking/qwen2.5:0.5b" --dataset "$dataset" --method "truncate" --use_openai True --recalcule_rouge True 
 
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/lsa/qwen2.5:0.5b" --dataset "$dataset" --method "normal"
+    #python3 baseline.py --dataset "$dataset" --method "lsa" --truncate True
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/lsa/qwen2.5:0.5b" --dataset "$dataset" --method "truncate" --use_openai True --recalcule_rouge True
 
     #python3 baseline.py --dataset "$dataset" --method "ghic" --truncate True
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ghic/" --dataset "$dataset" --method "normal"
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/ghic/" --dataset "$dataset" --method "truncate" --use_openai True --recalcule_rouge True
 
     #python3 baseline.py --dataset "$dataset" --method "extractive" --model_name "bert-base-multilingual-cased" --truncate True
-    #python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/bert-base-multilingual-cased" --dataset "$dataset" --method "normal"
+    python3 model_evaluate.py --model_name_or_path "models/baseline/$lang/extractive/bert-base-multilingual-cased" --dataset "$dataset" --method "truncate" --use_openai True --recalcule_rouge True
 
     # Extra para inglés
     #if [ "$lang" == "english" ]; then
