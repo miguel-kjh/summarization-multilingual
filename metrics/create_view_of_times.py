@@ -18,10 +18,9 @@ import itertools
 
 tokenizer = ToktokTokenizer()
 punctuation = set(string.punctuation)  # !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
-LANG = "canario"  # Puedes cambiar esto a "spanish", "french", etc.
+LANG = "english"  # Puedes cambiar esto a "spanish", "french", etc.
 USE_FINETUNED = True  # Cambia a False si no quieres usar modelos finetuneados
-EXTRACTIVE = 72
-LLM = 73
+MAX_ = 2000
 
 #delete warnings
 import warnings
@@ -131,7 +130,7 @@ def process_all_models(base_path: str) -> pd.DataFrame:
         "unsloth/Qwen2.5-7B-Instruct-bnb-4bit"
     ]
     filenames = ["test_summary_truncate.xlsx", "test_summary_normal.xlsx"]
-    bertscore_filename = "truncate_result_metrics.json" if LANG != "canario" else "result_metrics.json"
+    bertscore_filename = "truncate_result_metrics.json" 
 
     generator = None
     if USE_FINETUNED:
@@ -140,7 +139,8 @@ def process_all_models(base_path: str) -> pd.DataFrame:
             model_name = "/".join(model_path.split("/")[1:3])
             df, file_path = load_dataframe(model_path, filenames)
             if df is None:
-                continue
+                raise FileNotFoundError(f"No se encontraron archivos de métricas en {model_path}")
+            print(f"[INFO] samples {len(df)} for {model_name} in {file_path}")
             df = compute_token_lengths(df, tokenizer)
             bertscore_path = os.path.join(model_path, bertscore_filename)
             if not os.path.exists(bertscore_path):
@@ -161,7 +161,8 @@ def process_all_models(base_path: str) -> pd.DataFrame:
                     continue
                 df, file_path = load_dataframe(root, filenames)
                 if df is None:
-                    continue
+                    raise FileNotFoundError(f"No se encontraron archivos de métricas en {root}")
+                print(f"[INFO] samples {len(df)} for {model_name} in {file_path}")
                 df = compute_token_lengths(df, tokenizer)
                 bertscore_path = os.path.join(root, bertscore_filename)
                 if not os.path.exists(bertscore_path):
@@ -372,7 +373,54 @@ def plot_histogram_by_score(df, save_path: str = None):
     ax = plt.gca()
     cbar = plt.colorbar(sm, ax=ax)
     cbar.set_label("BERTScore")
+    plt.ylim(0, MAX_)
 
+
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
+        print(f"[INFO] Gráfica guardada en {save_path}")
+    plt.show()
+
+def plot_histogram_by_score_reversed(df, save_path: str = None):
+    # Ordenar por BERTScore ascendente
+    df_sorted = df.sort_values(by="bertscore", ascending=True)
+
+    # Definir rangos fijos
+    bertscore_min, bertscore_max = 0, 90
+    tokens_min, tokens_max = 10, 1000  # ajusta este rango según tu dataset
+
+    # Colores en función de la longitud del resumen
+    norm = mcolors.Normalize(vmin=tokens_min, vmax=tokens_max)
+    colormap = cm.viridis
+    colors = [colormap(norm(length)) for length in df_sorted["mean_tokens"]]
+
+    # Crear figura
+    plt.figure(figsize=(14, 8))
+    bars = plt.bar(
+        df_sorted["model"],
+        df_sorted["bertscore"],
+        color=colors,
+        edgecolor="black"
+    )
+
+    # Añadir texto del BERTScore encima de cada barra
+    for bar, score in zip(bars, df_sorted["bertscore"]):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, height + 0.5,
+                 f"{score:.1f}", ha='center', va='bottom', fontsize=9)
+
+    # Etiquetas y estilo
+    plt.xticks(rotation=45, ha="right", fontsize=9)
+    plt.ylabel("BERTScore", fontsize=12)
+    plt.ylim(bertscore_min, bertscore_max)
+
+    # Colorbar para longitud
+    sm = cm.ScalarMappable(cmap=colormap, norm=norm)
+    sm.set_array([])
+    ax = plt.gca()
+    cbar = plt.colorbar(sm, ax=ax)
+    cbar.set_label("Mean Summary Length")
 
     plt.tight_layout()
     if save_path:
