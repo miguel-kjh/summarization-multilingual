@@ -217,13 +217,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/others/data_02-processed_french/unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+        default="models/BSC-LT/salamandra-2b-instruct/english/lora/salamandra-2b-instruct-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-02-41-48",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/french",
+        default="data/02-processed/english",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(

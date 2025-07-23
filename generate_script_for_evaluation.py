@@ -41,9 +41,9 @@ DATASET_NAMES = [
     #("french", "data/02-processed/french") ,
     #("italian", "data/02-processed/italian"),
     #("german", "data/02-processed/german"),
-    #("english", "data/02-processed/english"),
+    ("english", "data/02-processed/english"),
     #("spanish", "data/02-processed/spanish"),
-    ("canario", "data/02-processed/canario"),
+    #("canario", "data/02-processed/canario"),
 ]
 
 
