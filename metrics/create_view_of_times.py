@@ -378,7 +378,7 @@ def plot_histogram_by_score(df, save_path: str = None):
 
     plt.tight_layout()
     if save_path:
-        plt.savefig(save_path, bbox_inches='tight')
+        plt.savefig(save_path, bbox_inches='tight', dpi=600, format='eps')
         print(f"[INFO] Gráfica guardada en {save_path}")
     plt.show()
 
@@ -453,9 +453,9 @@ if __name__ == "__main__":
 
     # Generar gráfica
     if not USE_FINETUNED:
-        save_path = f"metrics/data/{LANG}_metrics_plot.png"
+        save_path = f"metrics/data/{LANG}_metrics_plot.eps"
     else:
-        save_path = f"metrics/data/{LANG}_finetuned_metrics_plot.png"
+        save_path = f"metrics/data/{LANG}_finetuned_metrics_plot.eps"
     #plot_academic_scatter(df_all_metrics, save_path=save_path)
     #plot_academic_scatter(df_all_metrics)
     plot_histogram_by_score(df_all_metrics, save_path=save_path)
