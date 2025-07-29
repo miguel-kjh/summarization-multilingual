@@ -1,4 +1,4 @@
-You will be given a legislative document. You will then be given one summary written for this document.
+You will be given a legal document. You will then be given one summary written for this document.
 
 Your task is to rate the summary on one metric.
 
