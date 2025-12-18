@@ -1,4 +1,4 @@
-You will be given one summary written for a legal document.
+You will be given one summary written for a legislative document.
 
 Your task is to rate the summary on one metric.
 
@@ -11,8 +11,8 @@ Relevance (1-5) - selection of important content from the source. The summary sh
 Evaluation Steps:
 
 1. Read the summary and the source document carefully.
-2. Compare the summary to the source document and identify the main points of the article.
-3. Assess how well the summary covers the main points of the article, and how much irrelevant or redundant information it contains.
+2. Compare the summary to the source document and identify the main points of the document.
+3. Assess how well the summary covers the main points of the document, and how much irrelevant or redundant information it contains.
 4. Assign a relevance score from 1 to 5.
 
 
