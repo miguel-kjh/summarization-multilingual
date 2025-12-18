@@ -108,6 +108,9 @@ def main(
     dataset = load_dataset(model, name_dataset).dropna(
         subset=["expected_summary", "generated_summary"]
     )
+    # count number of samples
+    num_samples = len(dataset)
+    print(f"Number of samples in the dataset: {num_samples}")
 
     # ------------------------------------------------------------------
     # 4)  Iterate by language and compute / reuse metrics
@@ -159,13 +162,13 @@ def main(
                 "average": [],
             }
 
+            mapping = {x["output"]: x["input"] for x in dataset_hf["test"]}
+
             for _, row in tqdm(df_lang.iterrows(), total=len(df_lang), desc=f"OpenAI {lang}"):
                 try:
-                    input_match = dataset_hf["test"].filter(
-                        lambda x: row["expected_summary"] == x["output"]
-                    )
+                    input_text = mapping[row["expected_summary"]]
                     openai_res = openai_evaluator.evaluate(
-                        input_match["input"][0], row["generated_summary"]
+                        input_text, row["generated_summary"]
                     )
                     # guard against occasional negative values
                     openai_res = {k: max(v, 0) for k, v in openai_res.items()}
@@ -217,13 +220,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/BSC-LT/salamandra-2b-instruct/english/lora/salamandra-2b-instruct-english-e2-b1-lr0.0002-wd0.0-c8192-peft-lora-r16-a32-d0.0-2025-06-12-02-41-48",
+        default="models/baseline/canario/textranking/qwen2.5:0.5b",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/english",
+        default="data/02-processed/canario",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(

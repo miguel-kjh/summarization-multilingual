@@ -113,7 +113,7 @@ class OpenAiSummarizer(Baseline):
             seed=123,  # For reproducibility
             temperature=0.7,  # Adjust temperature for more or less randomness
             top_p=0.8,  # Adjust top_p for nucleus sampling
-            max_completion_tokens=2048 # by default, adjust based on your needs in OpenAI API is 2048
+            max_completion_tokens=1024 # by default, adjust based on your needs in OpenAI API is 2048
 
         )
         # Extract the summary from the response
@@ -162,7 +162,7 @@ class OllamaSummarizer(OpenAiSummarizer):
 from summa import summarizer as TextRankSummarizer_model
 class TextRankingSummarizer(Baseline):
     
-    def __init__(self, model_name: str, ratio: int = 0.3):
+    def __init__(self, model_name: str, ratio: float = 0.2):
         self.ratio = ratio
 
     def summarize(self, document: str, language: str):
