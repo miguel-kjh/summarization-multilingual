@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     def parse_arguments():
         parser = argparse.ArgumentParser(description="Get percentage of new n-grams in dataset")
-        parser.add_argument("--dataset_path", type=str, default="data/02-processed/english", help="Path to the dataset")
+        parser.add_argument("--dataset_path", type=str, default="data/02-processed/canario", help="Path to the dataset")
         parser.add_argument("--model", type=str, default="qwen", help="Model to use (llama or qwen)")
         return parser.parse_args()
 

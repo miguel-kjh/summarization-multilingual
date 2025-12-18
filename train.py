@@ -12,13 +12,13 @@ from utils import  SEED, count_trainable_params, setup_environment, generate_nam
 
 def parse_args():
     parse = argparse.ArgumentParser()
-    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen2.5-3B-Instruct", help="Model name or path")
+    parse.add_argument("--model_name_or_path", type=str, default="Qwen/Qwen3-0.6B", help="Model name or path")
     parse.add_argument("--batch_size", type=int, default=8)
     parse.add_argument("--num_train_epochs", type=int, default=2)
     parse.add_argument("--lr", type=float, default=2e-4)
     parse.add_argument("--weight_decay", type=float, default=0.0)
     parse.add_argument("--context", type=int, default=8192)  # Context window size, adjust based on model 8198
-    parse.add_argument("--dataset_name", type=str, default="data/02-processed/english", help="Path to the dataset")
+    parse.add_argument("--dataset_name", type=str, default="data/02-processed/canario", help="Path to the dataset")
     parse.add_argument("--num_proc", type=int, default=1)
     parse.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu")
     parse.add_argument("--wandb", type=lambda x: bool(strtobool(x)), default=False)
@@ -103,12 +103,6 @@ if __name__ == "__main__":
         # select a small subset of the dataset for quick testing randomly
         dataset["train"] = dataset["train"].shuffle(seed=SEED).select(range(100))
         dataset["validation"] = dataset["validation"].shuffle(seed=SEED).select(range(5))
-    
-    if "canario" in script_args.dataset_name:
-        print("Using canario dataset")
-        # Add system prompt to the dataset
-        dataset["train"] = dataset["train"].shuffle(seed=SEED).select(range(1000))
-        dataset["validation"] = dataset["validation"].shuffle(seed=SEED).select(range(100))
 
     ################
     # Prepare dataset for training

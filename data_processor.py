@@ -54,24 +54,17 @@ def process_canary():
 
     dataset_it_name = os.path.join(PROCESS_DATA_FOLDER, "canario")
     os.makedirs(dataset_it_name, exist_ok=True)
-    dataset_dict = DatasetDict()
-    for split in dataset.keys():
-        print(f"Processing {split} split for canario")
-        instructions = transform.generate_instructions(dataset[split])
-        dataset_dict[split] = instructions
-    random.seed(SEED)
-    num_test_actual = len(dataset_dict['test'])
-    num_needed = 509 - num_test_actual
+    dataset_processed = transform.generate_instructions(dataset)
+    # split into train, validation and test sets (80%, 10%, 10%)
 
-    validation_indices = list(range(len(dataset_dict['validation'])))
-    random.shuffle(validation_indices)
-    selected_indices = validation_indices[:num_needed]
-
-    # Seleccionamos los primeros `num_needed` ejemplos del validation
-    validation_to_add = dataset_dict['validation'].select(selected_indices)
-
-    # Creamos el nuevo conjunto de test con 500 ejemplos
-    dataset_dict['test'] = concatenate_datasets([dataset_dict['test'], validation_to_add])
+    dataset_processed = dataset_processed.shuffle(seed=SEED)
+    train_size = int(0.8 * len(dataset_processed))
+    val_size = int(0.1 * len(dataset_processed))
+    dataset_dict = DatasetDict({
+        "train": dataset_processed.select(range(0, train_size)),
+        "validation": dataset_processed.select(range(train_size, train_size + val_size)),
+        "test": dataset_processed.select(range(train_size + val_size, len(dataset_processed))),
+    })
     dataset_dict.save_to_disk(dataset_it_name)
 
 def combine():
