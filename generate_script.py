@@ -19,32 +19,32 @@ CONSTANTS = {
 }
 
 MODEL_NAMES = [
-    "BSC-LT/salamandra-2b",
-    "BSC-LT/salamandra-2b-instruct",
+    #"BSC-LT/salamandra-2b",
+    #"BSC-LT/salamandra-2b-instruct",
     # Lists for varying parameters
     # qwen 2.5
-    "Qwen/Qwen2.5-0.5B-Instruct",
-    "Qwen/Qwen2.5-0.5B",
-    "Qwen/Qwen2.5-1.5B-Instruct",
-    "Qwen/Qwen2.5-1.5B",
-    "Qwen/Qwen2.5-3B-Instruct",
-    "Qwen/Qwen2.5-3B",
+    #"Qwen/Qwen2.5-0.5B-Instruct",
+    #"Qwen/Qwen2.5-0.5B",
+    #"Qwen/Qwen2.5-1.5B-Instruct",
+    #"Qwen/Qwen2.5-1.5B",
+    #"Qwen/Qwen2.5-3B-Instruct",
+    #"Qwen/Qwen2.5-3B",
     # qwen 3
-    #"Qwen/Qwen3-0.6B",
-    "Qwen/Qwen3-0.6B-Base",
-    "Qwen/Qwen3-1.7B",
-    "Qwen/Qwen3-1.7B-Base",
-    "Qwen/Qwen3-4B",
-    "Qwen/Qwen3-4B-Base",
+    "Qwen/Qwen3-0.6B",
+    #"Qwen/Qwen3-0.6B-Base",
+    #"Qwen/Qwen3-1.7B",
+    #"Qwen/Qwen3-1.7B-Base",
+    #"Qwen/Qwen3-4B",
+    #"Qwen/Qwen3-4B-Base",
     # llama 3.2
-    "unsloth/Llama-3.2-1B-Instruct",
-    "unsloth/Llama-3.2-1B",
-    "unsloth/Llama-3.2-3B-Instruct",
-    "unsloth/Llama-3.2-3B",
+    #"unsloth/Llama-3.2-1B-Instruct",
+    #"unsloth/Llama-3.2-1B",
+    #"unsloth/Llama-3.2-3B-Instruct",
+    #"unsloth/Llama-3.2-3B",
     # basaline models
-    "unsloth/Llama-3.1-8B-Instruct",
-    "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
-    "unsloth/Qwen3-8B"
+    #"unsloth/Llama-3.1-8B-Instruct",
+    #"unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+    #"unsloth/Qwen3-8B"
 ]
 
 PEFT_TYPES = ["lora"]
@@ -176,7 +176,7 @@ os.makedirs(output_dir, exist_ok=True)
 
 # Generate a script for each combination of model, PEFT type, and dataset
 for i, (model_name, peft_type, dataset_name) in enumerate(itertools.product(MODEL_NAMES, PEFT_TYPES, DATASET_NAMES)):
-    max_new_tokens = 1300 if "canario" in dataset_name else 2048
+    max_new_tokens = 1024 if "canario" in dataset_name else 2048
     eval_steps = 1000 
     simple_name = model_name.split("/")[-1]
     script_filename = os.path.join(output_dir, f"generate_{i+1}_{simple_name}_{peft_type}.sh")
