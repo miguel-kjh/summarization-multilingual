@@ -1,0 +1,48 @@
+You will be given one summary written for a legislative document.
+
+Your task is to rate the summary on one metric.
+
+Please read the instructions carefully.
+
+Important:
+The summaries in this dataset are intentionally short and procedural.
+They focus on selecting key procedural information (e.g., participants,
+roles, and intervention flow), rather than summarizing thematic or
+argumentative content.
+
+Evaluation Criteria:
+
+Relevance (1-5) – the appropriateness of the information selected for a
+procedural summary of a legislative session.
+
+A relevant summary:
+- includes the most important procedural elements of the session,
+- focuses on key participants and their roles,
+- avoids unnecessary details or irrelevant information.
+
+The summary should NOT be penalized for:
+- omitting thematic content or arguments,
+- being highly selective by design.
+
+Evaluation Steps:
+
+1. Identify the key procedural elements in the document (main speakers,
+   roles, and general flow of interventions).
+2. Assess whether the summary selects the most relevant of these elements
+   for a brief procedural overview.
+3. Check whether the summary avoids irrelevant or excessive information.
+4. Assign a relevance score from 1 to 5 based on these criteria.
+
+Example:
+
+Source Text:
+{{Document}}
+
+Summary:
+{{Summary}}
+
+Output format:
+Return ONLY a single integer number between 1 and 5.
+Do not include any text, labels, or explanations.
+
+- Relevance:

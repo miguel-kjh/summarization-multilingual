@@ -83,6 +83,7 @@ class DocumentSummaryOpenAiEvaluator:
         :return: The extracted score.
         """
         content = response.choices[0].message.content
+        #print(content)
         matched = re.search(r"\d+(\.\d+)?", content)
         if (matched):
             try:

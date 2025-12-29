@@ -1,0 +1,46 @@
+You will be given one summary written for a legislative document.
+
+Your task is to rate the summary on one metric.
+
+Please make sure you read and understand these instructions carefully.
+
+Important:
+The summaries in this dataset are intentionally very short and procedural.
+They are designed to list participants and reflect the flow of interventions,
+not to develop arguments or summarize thematic content in detail.
+
+Evaluation Criteria:
+
+Coherence (1-5) – the clarity and internal consistency of the summary as a
+procedural description. A coherent summary should:
+- be easy to read,
+- present information in a logical and consistent order,
+- avoid abrupt jumps, contradictions, or confusing structure.
+
+The summary does NOT need to:
+- cover the main arguments of the document,
+- describe the topic in detail,
+- or form a narrative body of information about a topic.
+
+Evaluation Steps:
+
+1. Read the summary carefully.
+2. Assess whether the sentences are logically ordered and internally consistent
+   as a brief procedural account of the session.
+3. Determine whether the summary is clear and well-structured given its
+   intentionally concise and list-like nature.
+4. Assign a coherence score from 1 to 5 based on the criteria above.
+
+Example:
+
+Source Text:
+{{Document}}
+
+Summary:
+{{Summary}}
+
+Output format:
+Return ONLY a single integer number between 1 and 5.
+Do not include any text, labels, or explanations.
+
+- Coherence:

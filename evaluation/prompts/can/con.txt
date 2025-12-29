@@ -1,0 +1,46 @@
+You will be given a legislative document. You will then be given one summary
+written for this document.
+
+Your task is to rate the summary on one metric.
+
+Please read the instructions carefully.
+
+Important:
+The summaries in this dataset are intentionally short and procedural.
+They focus on listing participants, roles, and the flow of interventions.
+They do NOT aim to include all factual or thematic details of the document.
+
+Evaluation Criteria:
+
+Consistency (1-5) – the factual alignment between the summary and the source
+document at the procedural level.
+
+A factually consistent summary:
+- mentions only speakers, roles, and events that are supported by the document,
+- does not hallucinate participants, roles, or actions,
+- does not contradict the procedural structure of the session.
+
+The summary should NOT be penalized for:
+- omitting thematic content or detailed facts,
+- being highly selective by design.
+
+Evaluation Steps:
+
+1. Verify whether each factual statement in the summary (e.g., speaker names,
+   roles, order of interventions) is supported by the document.
+2. Check for hallucinated or incorrect procedural information.
+3. Assign a consistency score from 1 to 5 based on factual correctness only.
+
+Example:
+
+Source Text:
+{{Document}}
+
+Summary:
+{{Summary}}
+
+Output format:
+Return ONLY a single integer number between 1 and 5.
+Do not include any text, labels, or explanations.
+
+- Consistency:

@@ -1,0 +1,39 @@
+You will be given one summary written for a legislative document.
+
+Your task is to rate the summary on one metric.
+
+Please read the instructions carefully.
+
+Important:
+The summaries in this dataset are intentionally short and procedural.
+They often use formal, administrative language and list-like structures.
+This style is appropriate and should NOT be penalized.
+
+Evaluation Criteria:
+
+Fluency (1-3): the quality of the summary in terms of basic language correctness,
+including grammar, spelling, punctuation, and overall readability.
+
+Fluency should be judged independently of:
+- the length of the summary,
+- its level of detail,
+- its stylistic richness or narrative quality.
+
+Scoring Guidelines:
+- 1 (Poor): The summary contains frequent grammatical, spelling, or punctuation
+  errors that make it difficult to understand.
+- 2 (Fair): The summary contains some minor errors, but remains generally clear
+  and readable.
+- 3 (Good): The summary is grammatically correct, clear, and easy to read,
+  even if it is brief or list-like in structure.
+
+Example:
+
+Summary:
+{{Summary}}
+
+Output format:
+Return ONLY a single integer number between 1 and 3.
+Do not include any text, labels, or explanations.
+
+- Fluency:

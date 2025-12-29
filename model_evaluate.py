@@ -168,7 +168,9 @@ def main(
                 try:
                     input_text = mapping[row["expected_summary"]]
                     openai_res = openai_evaluator.evaluate(
-                        input_text, row["generated_summary"]
+                        input_text, 
+                        row["generated_summary"],
+                        language="can",
                     )
                     # guard against occasional negative values
                     openai_res = {k: max(v, 0) for k, v in openai_res.items()}
@@ -220,7 +222,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/baseline/canario/textranking/qwen2.5:0.5b",
+        default="models/result/Qwen3-4B",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
