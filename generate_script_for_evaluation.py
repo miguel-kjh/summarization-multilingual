@@ -7,7 +7,7 @@ CONSTANTS = {
     "wandb": True,
 }
 
-MODEL_NAMES = [
+"""MODEL_NAMES = [
     "models/result/Llama-3.2-1B",
     "models/result/Llama-3.2-1B-Instruct",
     "models/result/Llama-3.2-3B",
@@ -26,6 +26,35 @@ MODEL_NAMES = [
     "models/result/Qwen3-4B-Base",
     "models/result/salamandra-2b",
     "models/result/salamandra-2b-instruct",
+]"""
+
+MODEL_NAMES = [
+    "models/baseline/canario/extractive/bert-base-multilingual-cased",
+    "models/baseline/canario/ghic",
+    "models/baseline/canario/lsa/qwen2.5:0.5b",
+    "models/baseline/canario/openai",
+    "models/baseline/canario/textranking/qwen2.5:0.5b",
+    "models/others/data_02-processed_canario/BSC-LT/salamandra-2b",
+    "models/others/data_02-processed_canario/BSC-LT/salamandra-2b-instruct",
+    "models/others/data_02-processed_canario/Qwen/Qwen2.5-0.5B",
+    "models/others/data_02-processed_canario/Qwen/Qwen2.5-0.5B-Instruct",
+    "models/others/data_02-processed_canario/Qwen/Qwen2.5-1.5B",
+    "models/others/data_02-processed_canario/Qwen/Qwen2.5-1.5B-Instruct",
+    "models/others/data_02-processed_canario/Qwen/Qwen2.5-3B",
+    "models/others/data_02-processed_canario/Qwen/Qwen2.5-3B-Instruct",
+    "models/others/data_02-processed_canario/Qwen/Qwen3-0.6B",
+    "models/others/data_02-processed_canario/Qwen/Qwen3-0.6B-Base",
+    "models/others/data_02-processed_canario/Qwen/Qwen3-1.7B",
+    "models/others/data_02-processed_canario/Qwen/Qwen3-1.7B-Base",
+    "models/others/data_02-processed_canario/Qwen/Qwen3-4B",
+    "models/others/data_02-processed_canario/Qwen/Qwen3-4B-Base",
+    "models/others/data_02-processed_canario/unsloth/Llama-3.1-8B-Instruct",
+    "models/others/data_02-processed_canario/unsloth/Llama-3.2-1B",
+    "models/others/data_02-processed_canario/unsloth/Llama-3.2-1B-Instruct",
+    "models/others/data_02-processed_canario/unsloth/Llama-3.2-3B",
+    "models/others/data_02-processed_canario/unsloth/Llama-3.2-3B-Instruct",
+    "models/others/data_02-processed_canario/unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+    "models/others/data_02-processed_canario/unsloth/Qwen3-8B",
 ]
 
 DATASET_NAMES = [

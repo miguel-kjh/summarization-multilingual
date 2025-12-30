@@ -222,7 +222,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_name_or_path",
         type=str,
-        default="models/result/Qwen3-4B",
+        #default="models/baseline/canario/extractive/bert-base-multilingual-cased",
+        default=None,
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
