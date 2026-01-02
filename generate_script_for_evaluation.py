@@ -7,7 +7,7 @@ CONSTANTS = {
     "wandb": True,
 }
 
-"""MODEL_NAMES = [
+MODEL_NAMES = [
     "models/result/Llama-3.2-1B",
     "models/result/Llama-3.2-1B-Instruct",
     "models/result/Llama-3.2-3B",
@@ -26,9 +26,9 @@ CONSTANTS = {
     "models/result/Qwen3-4B-Base",
     "models/result/salamandra-2b",
     "models/result/salamandra-2b-instruct",
-]"""
+]
 
-MODEL_NAMES = [
+"""MODEL_NAMES = [
     "models/baseline/canario/extractive/bert-base-multilingual-cased",
     "models/baseline/canario/ghic",
     "models/baseline/canario/lsa/qwen2.5:0.5b",
@@ -55,7 +55,7 @@ MODEL_NAMES = [
     "models/others/data_02-processed_canario/unsloth/Llama-3.2-3B-Instruct",
     "models/others/data_02-processed_canario/unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
     "models/others/data_02-processed_canario/unsloth/Qwen3-8B",
-]
+]"""
 
 DATASET_NAMES = [
     #("portuguese", "data/02-processed/portuguese"),
@@ -90,6 +90,15 @@ def for_evaluation(model_name, dataset_name):
     --up False
 """
 
+def for_expert_guided_evaluation(model_name):
+    return f"""
+    # Model architecture
+    model_name="{model_name}"
+    
+    python eval_expert_guided.py \\
+    --input_xlsx "$model_name" \\
+"""
+
 # Create an output directory for the scripts
 output_dir = "scripts_2"
 os.makedirs(output_dir, exist_ok=True)
@@ -105,9 +114,13 @@ for (model_name, dataset_name) in itertools.product(MODEL_NAMES, DATASET_NAMES):
     script_filename = os.path.join(output_dir, f"generate_{indx+1}_{simple_name}_{lang}.sh")
     indx += 1
     
-    bash_script = for_evaluation(
+    """bash_script = for_evaluation(
         model_name=model_name,
         dataset_name=folder_data,
+    )"""
+
+    bash_script = for_expert_guided_evaluation(
+        model_name=model_name,
     )
 
     # Save the script
