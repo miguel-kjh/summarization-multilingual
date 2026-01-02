@@ -263,6 +263,7 @@ def main():
     ap.add_argument("--sample_seed", type=int, default=123)
     ap.add_argument("--model", default="gpt-4o-mini")
     args = ap.parse_args()
+    args.input_xlsx = os.path.join(args.input_xlsx, "test_summary_truncate.xlsx")
 
     if "OPENAI_API_KEY" not in os.environ:
         print("ERROR: set OPENAI_API_KEY.", file=sys.stderr)
