@@ -223,7 +223,7 @@ if __name__ == "__main__":
         "--model_name_or_path",
         type=str,
         #default="models/baseline/canario/extractive/bert-base-multilingual-cased",
-        default=None,
+        default="models/result/oracule",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(

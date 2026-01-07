@@ -61,11 +61,7 @@ def pick_sheet_name(xlsx_path: Path, preferred: str) -> str:
 
     # common variants / typos
     candidates = [
-        "paper_siummarizacion",   # typo seen in user msg
-        "paper_summarizacion",
         "paper_summary",
-        "paper",
-        "summary",
     ]
     for c in candidates:
         if c in sheets:
@@ -99,7 +95,7 @@ def main():
     ap.add_argument("--decimals", type=int, default=2, help="Decimales para Likert (default: 2)")
     ap.add_argument("--caption", default="Expert-guided automatic evaluation (Tier~3). Likert scores are reported as mean $\\pm$ standard deviation across evaluated summaries. Best-performing models per criterion are highlighted in bold.",
                     help="Caption de la tabla LaTeX")
-    ap.add_argument("--label", default="tab:expert-guided", help="Label LaTeX")
+    ap.add_argument("--label", default="tab:expert-guided", help="Label LaTeX") 
     args = ap.parse_args()
 
     root = Path(args.root_dir)
@@ -107,13 +103,13 @@ def main():
         raise FileNotFoundError(f"root_dir not found: {root}")
 
     extracted = []
-    for model_dir in sorted([p for p in root.iterdir() if p.is_dir()]):
+    for model_dir in sorted([p for p in root.iterdir() if p.is_dir()]): 
         xlsx_path = find_excel_in_dir(model_dir, args.excel_glob)
         if xlsx_path is None:
             continue
 
         try:
-            sheet = pick_sheet_name(xlsx_path, args.sheet_name)
+            sheet = pick_sheet_name(xlsx_path, args.sheet_name) 
             df = pd.read_excel(xlsx_path, sheet_name=sheet)
 
             # pick aggregated row
@@ -209,4 +205,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

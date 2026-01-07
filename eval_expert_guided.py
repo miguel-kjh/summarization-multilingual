@@ -18,13 +18,16 @@ from openai import OpenAI
 # ---------------------------
 
 EVAL_SYSTEM_PROMPT = """Eres un evaluador experto de resúmenes parlamentarios (Diario de Sesiones).
-Tu tarea es comparar un RESUMEN_DE_REFERENCIA (humano) con un RESUMEN_MODELO (generado) y evaluar si el resumen del modelo preserva la información procedimental y factual relevante.
+Tu tarea es evaluar si un RESUMEN permite inferir correctamente la información procedimental y factual relevante contenida en el DOCUMENTO_ORIGINAL.
 
 IMPORTANTE (criterios):
-- Este tipo de resumen es procedimental y administrativo: prioriza actores, roles, estructura de turnos e información factual.
-- NO penalices que falten valoraciones, conclusiones políticas o detalles argumentativos extensos.
-- Evalúa SOLO el RESUMEN_MODELO, usando el RESUMEN_DE_REFERENCIA como “ground truth” para comprobar fidelidad y cobertura.
-- Si el RESUMEN_MODELO inventa información no presente en el RESUMEN_DE_REFERENCIA, baja la puntuación aunque parezca plausible.
+- Este tipo de resumen es intencionadamente corto y de carácter procedimental.
+- Se centra en la selección de información procedimental clave (por ejemplo, participantes, roles e hilo de intervenciones), y no en la síntesis temática o argumentativa del debate.
+- Prioriza actores, roles, estructura de turnos e información factual.
+- NO penalices la ausencia de valoraciones, conclusiones políticas o detalles argumentativos extensos.
+- El DOCUMENTO_ORIGINAL actúa como ground truth.
+- Evalúa únicamente el RESUMEN.
+- Si el resumen introduce información no presente en el DOCUMENTO_ORIGINAL, penaliza la puntuación aunque parezca plausible.
 
 Escala Likert (1–5) para cada criterio:
 1 = No aparece en el resumen del modelo
@@ -39,10 +42,10 @@ Regla yes/no:
 Para cada pregunta incluye:
 - yes_no (yes/no)
 - likert (1..5)
-- evidence_model: cita breve (máx. 25 palabras) del RESUMEN_MODELO o "" si no hay evidencia
+- evidence_model: cita breve (máx. 25 palabras) del RESUMEN o "" si no hay evidencia
 - notes: explicación corta (1–2 frases)
 
-Preguntas / criterios a evaluar (sobre el RESUMEN_MODELO):
+Preguntas / criterios a evaluar (sobre el RESUMEN):
 
 Q1 (WHO - Intervinientes):
 ¿El resumen identifica correctamente a los intervinientes principales, incluyendo su nombre y Grupo Parlamentario cuando procede?
@@ -60,14 +63,15 @@ Q5 (ORDER - Secuencia):
 ¿El resumen respeta el orden cronológico de lo ocurrido (secuencia de turnos) sin reordenar hechos de forma incorrecta?
 """
 
+
 EVAL_USER_TEMPLATE = """Ahora evalúa usando los textos siguientes.
 
-RESUMEN_DE_REFERENCIA:
+DOCUMENTO_ORIGINAL:
 <<<
 {ref}
 >>>
 
-RESUMEN_MODELO:
+RESUMEN:
 <<<
 {hyp}
 >>>
@@ -256,7 +260,7 @@ def majority_yes_over_summaries(series: pd.Series) -> str:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input_xlsx", required=True) 
-    ap.add_argument("--ref_col", default="expected_summary")
+    ap.add_argument("--ref_col", default="document")
     ap.add_argument("--hyp_col", default="generated_summary")
     ap.add_argument("--id_col", default=None, help="Optional ID column; otherwise uses original row index")
     ap.add_argument("--n_summaries", type=int, default=100, help="Number of summaries to sample for evaluation")
@@ -272,8 +276,9 @@ def main():
     df = pd.read_excel(args.input_xlsx)
     for col in [args.ref_col, args.hyp_col]:
         if col not in df.columns:
-            raise ValueError(f"Missing column '{col}' in input Excel.")
+            raise ValueError(f"Missing column '{col}' in input Excel.") 
 
+    df = df.sort_values(by='document').reset_index(drop=True)
     n_pick = min(args.n_summaries, len(df)) if args.n_summaries is not None else len(df)
     sampled = df.sample(n=n_pick, random_state=args.sample_seed).copy()
     sampled = sampled.reset_index(drop=False).rename(columns={"index": "_orig_row"})
