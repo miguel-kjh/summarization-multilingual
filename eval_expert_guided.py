@@ -17,13 +17,29 @@ from openai import OpenAI
 # Prompt + JSON Schema
 # ---------------------------
 
-EVAL_SYSTEM_PROMPT = """Eres un evaluador experto de resúmenes parlamentarios (Diario de Sesiones).
-Tu tarea es evaluar si un RESUMEN permite inferir correctamente la información procedimental y factual relevante contenida en el DOCUMENTO_ORIGINAL.
+Q1 = "¿El resumen identifica explícitamente a los intervinientes principales, incluyendo su nombre y Grupo Parlamentario cuando procede?"
+#Q2 = "¿El resumen deja claro el tipo de interacción institucional que ha tenido lugar? (Da igual si no menciona el contenido específico o el tema del debate)"
+Q2 = "¿El resumen permite identificar explícitamente uno o más actos ilocutorios realizados durante el debate (p. ej., preguntar, responder, proponer, enmendar, fijar posición, votar, aprobar, señalar, exponer u otros), independientemente del contenido temático tratado?"
+#Q2 = "¿El resumen permite identificar explícitamente uno o más actos ilocutorios o procedimentales realizados durante el documento (p. ej., preguntar, responder, proponer, enmendar, fijar posición, votar, aprobar, exponer, señalar, replicar, así como actos procedimentales de la Presidencia como alterar o anunciar el orden del día), independientemente del contenido temático tratado?"
+#Q2 = "¿El resumen deja claro el tipo de interacción institucional que ha tenido lugar? (Da igual si no menciona el contenido específico o el tema del debate)"
+#Q2 = "¿El resumen permite identificar explícitamente los actos ilocutorios principales que estructuran el punto del orden del día (p. ej., exponer/fundamentar, informar, preguntar/responder, señalar parecer o fijar posición, réplica/contrarréplica, votar/aprobar u otros cuando proceda), independientemente del contenido temático tratado?"
+Q3 = "¿El resumen describe cómo se abordó el punto del orden del día, indicando el contenido principal discutido en el debate?"
+Q4 = "¿El resumen recoge la existencia del parecer o posicionamiento final de los grupos parlamentarios respecto al punto tratado, aunque no detalle los argumentos?"
+Q5 = "¿El resumen respeta el orden cronológico de las intervenciones y mantiene coherencia con la secuencia del Diario de Sesiones?"
+
+
+EVAL_SYSTEM_PROMPT = f"""
+Eres un evaluador experto en análisis de debates parlamentarios (Diario de Sesiones) y en teoría de los actos del habla (Austin, Searle).
+
+Tu tarea es evaluar si un RESUMEN permite inferir correctamente la información procedimental y factual relevante, tal y como lo haría un experto humano al resumir un debate parlamentario.
 
 IMPORTANTE (criterios):
 - Este tipo de resumen es intencionadamente corto y de carácter procedimental.
-- Se centra en la selección de información procedimental clave (por ejemplo, participantes, roles e hilo de intervenciones), y no en la síntesis temática o argumentativa del debate.
-- Prioriza actores, roles, estructura de turnos e información factual.
+- Los resúmenes humanos expertos no describen el contenido temático del debate, sino los actos ilocutorios realizados mediante el lenguaje.
+- Debes evaluar qué se hace al hablar, no de qué se habla.
+- Ejemplos de actos ilocutorios parlamentarios relevantes incluyen: exponer o fundamentar una iniciativa, informar, responder, preguntar, señalar el parecer o fijar posición de los grupos, replicar, admitir a trámite, votar, aprobar.
+- La ausencia de referencias al tema, asunto o contenido del debate es normal y no debe considerarse confusa ni incompleta.
+- Prioriza actores, roles, estructura de turnos y acciones procedimentales.
 - NO penalices la ausencia de valoraciones, conclusiones políticas o detalles argumentativos extensos.
 - El DOCUMENTO_ORIGINAL actúa como ground truth.
 - Evalúa únicamente el RESUMEN.
@@ -31,8 +47,8 @@ IMPORTANTE (criterios):
 
 Escala Likert (1–5) para cada criterio:
 1 = No aparece en el resumen del modelo
-2 = Aparece pero es incorrecto o confuso / contiene errores importantes
-3 = Aparece parcialmente (faltan elementos clave o hay ambigüedad)
+2 = Aparece pero es incorrecto o confusa
+3 = Aparece parcialmente o incompleto
 4 = Aparece de forma clara y mayormente correcta (pequeñas omisiones)
 5 = Aparece de forma clara, precisa y completa (sin alucinaciones)
 
@@ -48,19 +64,19 @@ Para cada pregunta incluye:
 Preguntas / criterios a evaluar (sobre el RESUMEN):
 
 Q1 (WHO - Intervinientes):
-¿El resumen identifica correctamente a los intervinientes principales, incluyendo su nombre y Grupo Parlamentario cuando procede?
+{Q1}
 
-Q2 (WHAT - Objeto del debate):
-¿El resumen deja claro cuál es la iniciativa/tema/punto del orden del día tratado (directamente o de forma funcional sin ambigüedad)?
+Q2 (WHAT – Speech Acts):
+{Q2}
 
 Q3 (HOW - Desarrollo procedimental):
-¿El resumen refleja adecuadamente el desarrollo procedimental (exposición inicial, intervenciones de grupos, réplica/cierre, etc.)?
+{Q3}
 
 Q4 (WHY - Parecer/posicionamiento):
-¿El resumen recoge la existencia del parecer/posicionamiento de los grupos, aunque sea sin detallar argumentos?
+{Q4}
 
 Q5 (ORDER - Secuencia):
-¿El resumen respeta el orden cronológico de lo ocurrido (secuencia de turnos) sin reordenar hechos de forma incorrecta?
+{Q5}
 """
 
 
@@ -77,6 +93,7 @@ RESUMEN:
 >>>
 """
 
+#TODO: CAMBIAR LAS QUESTIONES Y EL JSON SCHEMA
 EVAL_JSON_SCHEMA = {
     "name": "parliamentary_summary_expert_guided_eval",
     "strict": True,
@@ -119,7 +136,7 @@ EVAL_JSON_SCHEMA = {
                             "criterion": {"type": "string", "const": "WHO - Intervinientes"},
                             "question": {
                                 "type": "string",
-                                "const": "¿El resumen identifica correctamente a los intervinientes principales, incluyendo su nombre y Grupo Parlamentario cuando procede?",
+                                "const": Q1,
                             },
                             "yes_no": {"type": "string", "enum": ["yes", "no"]},
                             "likert": {"type": "integer", "minimum": 1, "maximum": 5},
@@ -133,10 +150,10 @@ EVAL_JSON_SCHEMA = {
                         "additionalProperties": False,
                         "properties": {
                             "id": {"type": "string", "const": "Q2"},
-                            "criterion": {"type": "string", "const": "WHAT - Objeto del debate"},
+                            "criterion": {"type": "string", "const": "WHAT - Speech Acts"},
                             "question": {
                                 "type": "string",
-                                "const": "¿El resumen deja claro cuál es la iniciativa/tema/punto del orden del día tratado (directamente o de forma funcional sin ambigüedad)?",
+                                "const": Q2,
                             },
                             "yes_no": {"type": "string", "enum": ["yes", "no"]},
                             "likert": {"type": "integer", "minimum": 1, "maximum": 5},
@@ -153,7 +170,7 @@ EVAL_JSON_SCHEMA = {
                             "criterion": {"type": "string", "const": "HOW - Desarrollo procedimental"},
                             "question": {
                                 "type": "string",
-                                "const": "¿El resumen refleja adecuadamente el desarrollo procedimental (exposición inicial, intervenciones de grupos, réplica/cierre, etc.)?",
+                                "const": Q3,
                             },
                             "yes_no": {"type": "string", "enum": ["yes", "no"]},
                             "likert": {"type": "integer", "minimum": 1, "maximum": 5},
@@ -170,7 +187,7 @@ EVAL_JSON_SCHEMA = {
                             "criterion": {"type": "string", "const": "WHY - Parecer/posicionamiento"},
                             "question": {
                                 "type": "string",
-                                "const": "¿El resumen recoge la existencia del parecer/posicionamiento de los grupos, aunque sea sin detallar argumentos?",
+                                "const": Q4,
                             },
                             "yes_no": {"type": "string", "enum": ["yes", "no"]},
                             "likert": {"type": "integer", "minimum": 1, "maximum": 5},
@@ -187,7 +204,7 @@ EVAL_JSON_SCHEMA = {
                             "criterion": {"type": "string", "const": "ORDER - Secuencia"},
                             "question": {
                                 "type": "string",
-                                "const": "¿El resumen respeta el orden cronológico de lo ocurrido (secuencia de turnos) sin reordenar hechos de forma incorrecta?",
+                                "const": Q5,    
                             },
                             "yes_no": {"type": "string", "enum": ["yes", "no"]},
                             "likert": {"type": "integer", "minimum": 1, "maximum": 5},
@@ -291,7 +308,7 @@ def main():
 
     raw_rows = []
     sid = 0
-    for _, row in tqdm(sampled.iterrows(), total=len(sampled)):
+    for _, row in tqdm(sampled.iterrows(), total=len(sampled)): 
         sid += 1
         ref = "" if pd.isna(row[args.ref_col]) else str(row[args.ref_col])
         hyp = "" if pd.isna(row[args.hyp_col]) else str(row[args.hyp_col])
@@ -306,6 +323,10 @@ def main():
                 "evidence_model": r.get("evidence_model", ""),
                 "notes": r.get("notes", ""),
             })
+            #if qid == "Q2":
+            #    print(f"DEBUG: summary_id={sid} Q2: {int(r['likert'])} yes_no={r['yes_no']}")
+            #    print(f"evidence_model: {r['evidence_model']}")
+            #    print(f"notes: {r['notes']}")        
 
     raw = pd.DataFrame(raw_rows)
 
@@ -320,9 +341,13 @@ def main():
         q_df = raw[raw["question_id"] == q]
         paper_rows[f"likert_mean_{q}"] = float(q_df["likert"].mean())
         paper_rows[f"likert_std_{q}"] = float(q_df["likert"].std(ddof=1)) if len(q_df) > 1 else 0.0
+        paper_rows[f"likert_median_{q}"] = float(q_df["likert"].median())
+        paper_rows[f"likert_iqr_{q}"] = float(q_df["likert"].quantile(0.75) - q_df["likert"].quantile(0.25))
         paper_rows[f"yes_no_majority_{q}"] = majority_yes_over_summaries(q_df["yes_no"])
 
     paper_summary = pd.DataFrame([paper_rows])
+    print("Paper-level summary:")
+    print(paper_rows)
 
     # Write Excel
     folder_output = os.path.dirname(args.input_xlsx)

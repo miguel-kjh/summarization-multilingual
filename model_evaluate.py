@@ -170,7 +170,7 @@ def main(
                     openai_res = openai_evaluator.evaluate(
                         input_text, 
                         row["generated_summary"],
-                        language="can",
+                        language="spanish",
                     )
                     # guard against occasional negative values
                     openai_res = {k: max(v, 0) for k, v in openai_res.items()}
@@ -223,13 +223,13 @@ if __name__ == "__main__":
         "--model_name_or_path",
         type=str,
         #default="models/baseline/canario/extractive/bert-base-multilingual-cased",
-        default="models/result/oracule",
+        default="models/others/data_02-processed_english/oracule",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/canario",
+        default="data/02-processed/english",
         help="🤗  Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(
