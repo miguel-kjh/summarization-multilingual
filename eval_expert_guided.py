@@ -18,11 +18,7 @@ from openai import OpenAI
 # ---------------------------
 
 Q1 = "¿El resumen identifica explícitamente a los intervinientes principales, incluyendo su nombre y Grupo Parlamentario cuando procede?"
-#Q2 = "¿El resumen deja claro el tipo de interacción institucional que ha tenido lugar? (Da igual si no menciona el contenido específico o el tema del debate)"
 Q2 = "¿El resumen permite identificar explícitamente uno o más actos ilocutorios realizados durante el debate (p. ej., preguntar, responder, proponer, enmendar, fijar posición, votar, aprobar, señalar, exponer u otros), independientemente del contenido temático tratado?"
-#Q2 = "¿El resumen permite identificar explícitamente uno o más actos ilocutorios o procedimentales realizados durante el documento (p. ej., preguntar, responder, proponer, enmendar, fijar posición, votar, aprobar, exponer, señalar, replicar, así como actos procedimentales de la Presidencia como alterar o anunciar el orden del día), independientemente del contenido temático tratado?"
-#Q2 = "¿El resumen deja claro el tipo de interacción institucional que ha tenido lugar? (Da igual si no menciona el contenido específico o el tema del debate)"
-#Q2 = "¿El resumen permite identificar explícitamente los actos ilocutorios principales que estructuran el punto del orden del día (p. ej., exponer/fundamentar, informar, preguntar/responder, señalar parecer o fijar posición, réplica/contrarréplica, votar/aprobar u otros cuando proceda), independientemente del contenido temático tratado?"
 Q3 = "¿El resumen describe cómo se abordó el punto del orden del día, indicando el contenido principal discutido en el debate?"
 Q4 = "¿El resumen recoge la existencia del parecer o posicionamiento final de los grupos parlamentarios respecto al punto tratado, aunque no detalle los argumentos?"
 Q5 = "¿El resumen respeta el orden cronológico de las intervenciones y mantiene coherencia con la secuencia del Diario de Sesiones?"

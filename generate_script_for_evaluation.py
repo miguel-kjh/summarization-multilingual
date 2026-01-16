@@ -29,7 +29,7 @@ MODEL_NAMES = [
     "models/baseline/canario/extractive/bert-base-multilingual-cased",
     "models/baseline/canario/ghic",
     "models/baseline/canario/lsa/qwen2.5:0.5b",
-    "models/baseline/canario/textranking/qwen2.5:0.5b",
+    "models/baseline/canario/textranking/qwen2.5:0.5b", 
     "models/others/data_02-processed_canario/BSC-LT/salamandra-2b",
     "models/others/data_02-processed_canario/BSC-LT/salamandra-2b-instruct",
     "models/others/data_02-processed_canario/Qwen/Qwen2.5-0.5B",

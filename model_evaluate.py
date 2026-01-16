@@ -223,14 +223,14 @@ if __name__ == "__main__":
         "--model_name_or_path",
         type=str,
         #default="models/baseline/canario/extractive/bert-base-multilingual-cased",
-        default="models/others/data_02-processed_english/oracule",
+        default="models/others/data_02-processed_spanish/oracle",
         help="Directory containing the evaluation spreadsheet and metrics JSON",
     )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="data/02-processed/english",
-        help="🤗  Dataset (disk) holding the raw test examples",
+        default="data/02-processed/spanish",
+        help="Dataset (disk) holding the raw test examples",
     )
     parser.add_argument(
         "--wandb",
